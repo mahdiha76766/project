@@ -1,9 +1,25 @@
 import { Schema, model, models } from 'mongoose';
+import { PAYMENT_STATUSES } from '@/constants/order';
+import { SHIPPING_METHOD_CODES } from '@/constants/shipping';
 
-export const Coupon = models.Coupon || model('Coupon', new Schema({ code: { type: String, unique: true }, discountType: String, value: Number, expiresAt: Date, isActive: { type: Boolean, default: true } }, { timestamps: true }));
+export const Coupon = models.Coupon || model('Coupon', new Schema({
+  code: { type: String, unique: true, required: true },
+  discountType: { type: String, enum: ['PERCENT', 'FIXED', 'FREE_SHIPPING'], required: true },
+  value: { type: Number, default: 0 },
+  minPurchaseAmount: { type: Number, default: 0 },
+  maxDiscountAmount: { type: Number },
+  startsAt: { type: Date, required: true },
+  expiresAt: { type: Date, required: true },
+  usageLimit: { type: Number, default: 0 },
+  usagePerUserLimit: { type: Number, default: 1 },
+  allowedProducts: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+  allowedCategories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
+  isActive: { type: Boolean, default: true }
+}, { timestamps: true }));
+
 export const CouponUsage = models.CouponUsage || model('CouponUsage', new Schema({ coupon: { type: Schema.Types.ObjectId, ref: 'Coupon' }, user: { type: Schema.Types.ObjectId, ref: 'User' }, order: { type: Schema.Types.ObjectId, ref: 'Order' }, usedAt: { type: Date, default: Date.now } }, { timestamps: true }));
-export const ShippingMethod = models.ShippingMethod || model('ShippingMethod', new Schema({ name: String, cost: Number, estimatedDays: Number, isActive: { type: Boolean, default: true } }, { timestamps: true }));
-export const Payment = models.Payment || model('Payment', new Schema({ order: { type: Schema.Types.ObjectId, ref: 'Order' }, amount: Number, provider: String, status: String, transactionId: String, paidAt: Date }, { timestamps: true }));
+export const ShippingMethod = models.ShippingMethod || model('ShippingMethod', new Schema({ code: { type: String, enum: SHIPPING_METHOD_CODES, unique: true }, name: String, baseCost: Number, estimatedDays: Number, cityOnly: { type: Boolean, default: false }, freeAboveAmount: Number, isActive: { type: Boolean, default: true } }, { timestamps: true }));
+export const Payment = models.Payment || model('Payment', new Schema({ order: { type: Schema.Types.ObjectId, ref: 'Order' }, amount: Number, provider: { type: String, enum: ['ZARINPAL', 'ZIBAL', 'NEXTPAY', 'IDPAY'] }, status: { type: String, enum: PAYMENT_STATUSES, default: 'PENDING' }, transactionId: String, authority: String, paidAt: Date }, { timestamps: true }));
 export const Shipment = models.Shipment || model('Shipment', new Schema({ order: { type: Schema.Types.ObjectId, ref: 'Order' }, method: { type: Schema.Types.ObjectId, ref: 'ShippingMethod' }, trackingCode: String, status: String, shippedAt: Date, deliveredAt: Date }, { timestamps: true }));
 export const Review = models.Review || model('Review', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User' }, product: { type: Schema.Types.ObjectId, ref: 'Product' }, rating: { type: Number, min: 1, max: 5 }, comment: String, isApproved: { type: Boolean, default: false } }, { timestamps: true }));
 export const Wishlist = models.Wishlist || model('Wishlist', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User', unique: true }, products: [{ type: Schema.Types.ObjectId, ref: 'Product' }] }, { timestamps: true }));
