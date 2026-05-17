@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server'; import { Review } from '@/models'; import { connectToDatabase } from '@/lib/db/mongoose'; import { getSessionUser } from '@/lib/auth/session'; import { hasMinimumRole } from '@/server/permissions';
+async function guard(){const u=await getSessionUser(); return u && hasMinimumRole(u.role,'ADMIN');}
+export async function GET(){ if(!(await guard())) return NextResponse.json({error:'Forbidden'},{status:403}); await connectToDatabase(); return NextResponse.json({items: await Review.find().populate('user','name mobile').populate('product','name').sort({createdAt:-1}).lean()}); }

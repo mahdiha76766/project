@@ -1,20 +1,19 @@
 import { notFound } from 'next/navigation';
-import { blogPosts } from '@/lib/data/shop-data';
+import { BlogPost } from '@/models';
+import { connectToDatabase } from '@/lib/db/mongoose';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug === slug);
+  await connectToDatabase();
+  const post = await BlogPost.findOne({ slug, isPublished: true }).lean();
   if (!post) return { title: 'مقاله یافت نشد' };
-  return {
-    title: `${post.title} | بلاگ عصاره طبیعت`,
-    description: `مطالعه مقاله ${post.title}`,
-    alternates: { canonical: `/blog/${post.slug}` }
-  };
+  return { title: `${post.title} | بلاگ عصاره طبیعت`, description: String(post.content || '').slice(0, 160), alternates: { canonical: `/blog/${post.slug}` } };
 }
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug === slug);
+  await connectToDatabase();
+  const post = await BlogPost.findOne({ slug, isPublished: true }).lean();
   if (!post) notFound();
-  return <main className="mx-auto max-w-3xl p-6"><h1 className="text-2xl font-bold">{post.title}</h1><p className="mt-3">محتوای مقاله به‌صورت داینامیک از CMS بارگذاری می‌شود.</p></main>;
+  return <main className="mx-auto max-w-3xl p-6"><h1 className="text-2xl font-bold text-[#4d382b]">{post.title}</h1><article className="prose prose-sm mt-6 max-w-none whitespace-pre-wrap leading-8 text-[#5f4a3c]">{post.content}</article></main>;
 }

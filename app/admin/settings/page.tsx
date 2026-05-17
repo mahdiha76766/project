@@ -1,31 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { AdminCard } from '@/components/admin/ui/AdminCard';
+import { FieldLabel, TextArea, TextInput } from '@/components/admin/ui/AdminField';
+import { AdminTable } from '@/components/admin/ui/AdminTable';
 
-const initial = {
-  slides: [
-    { title: 'عنوان اسلاید', subtitle: 'زیرعنوان اسلاید', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5', ctaText: 'مشاهده', ctaLink: '/products' }
-  ]
-};
+type Setting = { _id: string; key: string; value: unknown };
 
 export default function AdminSettingsPage() {
-  const [json, setJson] = useState(JSON.stringify(initial, null, 2));
+  const [items, setItems] = useState<Setting[]>([]);
+  const [keyName, setKeyName] = useState('');
+  const [value, setValue] = useState('{}');
   const [message, setMessage] = useState('');
+
+  const load = async () => setItems((await (await fetch('/api/admin/settings')).json()).items || []);
+  useEffect(() => { void load(); }, []);
 
   const save = async () => {
     setMessage('در حال ذخیره...');
     try {
-      const parsed = JSON.parse(json);
-      const res = await fetch('/api/admin/settings/slider', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed)
-      });
-      setMessage(res.ok ? 'اسلایدر با موفقیت ذخیره شد. تغییرات روی سایت اعمال می‌شود.' : 'ذخیره ناموفق بود.');
+      const parsed = JSON.parse(value);
+      const res = await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: keyName, value: parsed }) });
+      setMessage(res.ok ? 'ذخیره شد' : 'ذخیره ناموفق بود');
+      void load();
     } catch {
-      setMessage('فرمت JSON نامعتبر است.');
+      setMessage('JSON نامعتبر است');
     }
   };
 
-  return <main className="mx-auto max-w-5xl p-6"><h1 className="text-2xl font-black text-[#4d382b]">تنظیمات اسلایدر صفحه اصلی</h1><p className="mt-2 text-sm text-slate-600">اسلایدها را از همین پنل تغییر دهید. بعد از ذخیره، صفحه اصلی به‌صورت خودکار از تنظیمات جدید استفاده می‌کند.</p><textarea value={json} onChange={(e) => setJson(e.target.value)} className="mt-4 h-80 w-full rounded-2xl border border-amber-200 bg-white p-4 font-mono text-xs" /><button onClick={save} className="mt-4 rounded-xl bg-[#667744] px-5 py-2.5 font-bold text-white">ذخیره اسلایدر</button><p className="mt-3 text-sm text-[#5a3e2b]">{message}</p></main>;
+  return <main className="space-y-6"><h1 className="text-2xl font-black">تنظیمات</h1><AdminCard title="ثبت تنظیمات کلیدی"><div className="grid gap-4 md:grid-cols-2"><div><FieldLabel text="کلید"/><TextInput value={keyName} onChange={(e)=>setKeyName(e.target.value)} /></div><div className="md:col-span-2"><FieldLabel text="مقدار (JSON)"/><TextArea value={value} onChange={(e)=>setValue(e.target.value)} /></div></div><button onClick={save} className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-white">ذخیره</button><p className="mt-2 text-sm">{message}</p></AdminCard>
+  <AdminTable head={<tr className="[&>th]:px-4 [&>th]:py-3 text-right"><th>کلید</th><th>مقدار</th></tr>}>{items.map(x => <tr key={x._id} className="[&>td]:px-4 [&>td]:py-3"><td>{x.key}</td><td><pre className="max-w-xl overflow-x-auto text-xs">{JSON.stringify(x.value)}</pre></td></tr>)}</AdminTable></main>;
 }

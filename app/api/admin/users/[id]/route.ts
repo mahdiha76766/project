@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server'; import { User } from '@/models'; import { connectToDatabase } from '@/lib/db/mongoose'; import { getSessionUser } from '@/lib/auth/session'; import { hasMinimumRole } from '@/server/permissions';
+async function guard(){const u=await getSessionUser(); return u && hasMinimumRole(u.role,'ADMIN');}
+export async function PUT(req:Request,{params}:{params:Promise<{id:string}>}){ if(!(await guard())) return NextResponse.json({error:'Forbidden'},{status:403}); const {id}=await params; const b=await req.json(); await connectToDatabase(); const item=await User.findByIdAndUpdate(id,b,{new:true}).select('-password'); return NextResponse.json({item}); }

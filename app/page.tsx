@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { HeroSlider } from '@/components/shop/HeroSlider';
 import { getHeroSlides } from '@/lib/admin/slider-settings';
+import { Banner } from '@/models';
+import { connectToDatabase } from '@/lib/db/mongoose';
 
 const trustItems = ['ارسال سریع و مطمئن', 'ضمانت اصالت کالا', 'پشتیبانی واقعی خرید', 'مرجوعی تا ۷ روز'];
 
@@ -20,6 +22,8 @@ const bestSellers = [
 
 export default async function Home() {
   const heroSlides = await getHeroSlides();
+  await connectToDatabase();
+  const homeBanners = await Banner.find({ isActive: true, position: 'home' }).sort({ createdAt: -1 }).limit(3).lean();
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-16">
@@ -32,6 +36,18 @@ export default async function Home() {
           <div key={item} className="rounded-2xl border border-[#e6dcc8] bg-[#fffdf8] px-3 py-3 text-center text-xs font-semibold text-[#5f4a3c] sm:text-sm">{item}</div>
         ))}
       </section>
+
+
+      {homeBanners.length ? (
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+          {homeBanners.map((b: any) => (
+            <Link key={String(b._id)} href={b.link || '/'} className="overflow-hidden rounded-2xl border border-[#e6dcc8] bg-white">
+              <img src={b.image} alt={b.title} className="h-36 w-full object-cover" />
+              <div className="p-3 text-sm font-bold text-[#5a3e2b]">{b.title}</div>
+            </Link>
+          ))}
+        </section>
+      ) : null}
 
       <section className="mt-12 rounded-3xl bg-[#f8f2e6] p-5 sm:p-6">
         <div className="mb-5 flex items-end justify-between gap-3">
