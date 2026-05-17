@@ -1,5 +1,12 @@
 import Link from 'next/link';
+import { HeroSlider } from '@/components/shop/HeroSlider';
 
+
+const heroSlides = [
+  { title: 'روغن‌های طبیعی و ادویه‌های اصیل، مستقیم از عصاری', subtitle: 'کیفیت تضمین‌شده، تولید تازه، ارسال سریع و بسته‌بندی بهداشتی برای خریدی امن.', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5', ctaText: 'مشاهده محصولات', ctaLink: '/products' },
+  { title: 'روغن‌های تازه‌گیری‌شده با پرس سرد روزانه', subtitle: 'بدون افزودنی، مناسب مصرف روزانه و حفظ کامل عطر و خواص طبیعی.', image: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03', ctaText: 'خرید روغن‌های تازه', ctaLink: '/products?category=oils' },
+  { title: 'ادویه‌های اصیل و معطر برای طعم واقعی غذا', subtitle: 'انتخاب تخصصی زردچوبه، دارچین، هل و ادویه‌های محبوب ایرانی.', image: 'https://images.unsplash.com/photo-1615485291234-9fbc5ec80a8f', ctaText: 'مشاهده ادویه‌ها', ctaLink: '/products?category=spices' }
+];
 const trustItems = ['ارسال سریع', 'ضمانت اصالت', 'پرداخت امن', 'پشتیبانی خرید', 'بسته‌بندی بهداشتی'];
 
 const categories = [
@@ -29,24 +36,7 @@ const blogs = ['خواص روغن کنجد برای سلامتی', 'تشخیص �
 export default function Home() {
   return (
     <main className="mx-auto max-w-7xl px-4 pb-14">
-      <section className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-l from-[#fff9ef] via-[#f9f5ea] to-[#eef2e6] p-6 md:p-10">
-        <div className="grid items-center gap-8 md:grid-cols-2">
-          <div>
-            <p className="mb-3 inline-block rounded-full bg-white px-3 py-1 text-xs text-olive-900">طبیعی • سالم • اصیل</p>
-            <h1 className="text-3xl font-black leading-tight text-[#5a3e2b] md:text-5xl">روغن‌های طبیعی و ادویه‌های اصیل، مستقیم از عصاری</h1>
-            <p className="mt-4 text-slate-700">کیفیت تضمین‌شده، تولید تازه، ارسال سریع و بسته‌بندی کاملاً بهداشتی برای خریدی امن و مطمئن.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/products" className="rounded-xl bg-[#667744] px-5 py-3 text-white transition hover:opacity-90">مشاهده محصولات</Link>
-              <Link href="/products?category=oils" className="rounded-xl border border-[#c69a3a] bg-white px-5 py-3 text-[#5a3e2b] transition hover:bg-amber-50">خرید روغن‌های تازه</Link>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5', 'https://images.unsplash.com/photo-1615485291234-9fbc5ec80a8f', 'https://images.unsplash.com/photo-1505253213348-cd54c92b37be', 'https://images.unsplash.com/photo-1514996937319-344454492b37'].map((src) => (
-              <img key={src} src={src} alt="محصولات طبیعی" className="h-32 w-full rounded-2xl object-cover md:h-40" />
-            ))}
-          </div>
-        </div>
-      </section>
+      <HeroSlider slides={heroSlides} />
 
       <section className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-amber-100 bg-white p-3 md:grid-cols-5">
         {trustItems.map((item) => <div key={item} className="rounded-xl bg-amber-50 px-3 py-2 text-center text-sm text-[#5a3e2b]">{item}</div>)}
