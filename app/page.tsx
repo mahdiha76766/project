@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import { HeroSlider } from '@/components/shop/HeroSlider';
+
+
+const heroSlides = [
+  { title: 'روغن‌های طبیعی و ادویه‌های اصیل', subtitle: 'خرید مستقیم از عصاری با تضمین کیفیت، ارسال سریع و پشتیبانی حرفه‌ای.', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5', ctaText: 'مشاهده محصولات', ctaLink: '/products' },
+  { title: 'روغن‌های تازه‌گیری‌شده با پرس سرد', subtitle: 'تولید روزانه، بدون افزودنی و مناسب مصرف سالم خانواده.', image: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03', ctaText: 'خرید روغن‌ها', ctaLink: '/products?category=oils' },
+  { title: 'ادویه‌های تازه با عطر اصیل ایرانی', subtitle: 'انتخاب تخصصی ادویه‌های محبوب برای طعم واقعی غذا.', image: 'https://images.unsplash.com/photo-1615485291234-9fbc5ec80a8f', ctaText: 'خرید ادویه‌ها', ctaLink: '/products?category=spices' }
+];
 
 const trustItems = [
   'ارسال سریع و مطمئن',
@@ -36,21 +44,8 @@ const blogPosts = [
 export default function Home() {
   return (
     <main className="mx-auto max-w-7xl px-4 pb-16">
-      <section className="mt-6 overflow-hidden rounded-3xl border border-[#e6dcc8] bg-gradient-to-l from-[#f4efe2] to-[#fcfaf5] shadow-[0_18px_45px_-32px_rgba(90,62,43,0.35)]">
-        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-2 lg:items-center lg:p-10">
-          <div>
-            <p className="inline-block rounded-full border border-[#dbcaa6] bg-[#f9f2df] px-3 py-1 text-xs font-semibold text-[#7a6243]">فروشگاه تخصصی روغن و ادویه</p>
-            <h1 className="mt-4 text-3xl font-black leading-tight text-[#4d382b] sm:text-4xl">خرید مطمئن محصولات عصاری با کیفیت واقعی</h1>
-            <p className="mt-4 text-sm leading-7 text-[#5f4a3c] sm:text-base">روغن‌های پرس سرد، ادویه‌های اصیل و محصولات طبیعی را با ضمانت کیفیت، ارسال سریع و پشتیبانی حرفه‌ای از عصاره طبیعت تهیه کنید.</p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link href="/products" className="rounded-xl bg-[#667744] px-6 py-3 text-center font-bold text-white transition hover:brightness-105">مشاهده محصولات</Link>
-              <Link href="/categories" className="rounded-xl border border-[#bfa886] bg-white px-6 py-3 text-center font-bold text-[#5a3e2b] transition hover:bg-[#faf5eb]">دسته‌بندی‌ها</Link>
-            </div>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-[#e6dcc8] bg-white p-2">
-            <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03" alt="روغن طبیعی و تازه" className="h-64 w-full rounded-xl object-cover sm:h-72 lg:h-80" />
-          </div>
-        </div>
+      <section className="hero-text mt-6 overflow-hidden rounded-3xl shadow-[0_18px_45px_-32px_rgba(90,62,43,0.35)]">
+        <HeroSlider slides={heroSlides} />
       </section>
 
       <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
