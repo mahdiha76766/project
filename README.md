@@ -19,6 +19,13 @@
    npm run seed
    ```
 
+## Implemented Pages
+
+- `/` Home page (hero, categories, best sellers, featured, discount, fresh oils, popular spices, benefits, testimonials, blog, FAQ, footer)
+- `/products` Product listing with search/filter/sort UI and grid
+- `/categories` Category listing page
+- `/products/[slug]` Product details with purchase actions, specs, similar and complementary products
+
 ## Folders
 
 - `app`

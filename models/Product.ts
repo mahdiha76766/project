@@ -30,4 +30,14 @@ const ProductSchema = new Schema(
   { timestamps: true }
 );
 
+
+ProductSchema.index({
+  name: 'text',
+  shortDescription: 'text',
+  fullDescription: 'text',
+  tags: 'text',
+  'attributes.origin': 'text',
+  'attributes.extraction': 'text'
+});
+
 export const Product = models.Product || model('Product', ProductSchema);
