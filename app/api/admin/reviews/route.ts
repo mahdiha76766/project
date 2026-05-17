@@ -40,7 +40,7 @@ export async function GET(req: Request){
   if (parsed.type !== 'product') {
     const blogFilter: Record<string, unknown> = {};
     if (parsed.userId) blogFilter.userId = parsed.userId;
-    if (parsed.status) blogFilter.isApproved = parsed.status === 'APPROVED';
+    if (parsed.status) blogFilter.status = parsed.status;
     if (parsed.dateFrom || parsed.dateTo) blogFilter.createdAt = { ...(parsed.dateFrom ? { $gte: new Date(parsed.dateFrom) } : {}), ...(parsed.dateTo ? { $lte: new Date(parsed.dateTo) } : {}) };
 
     const blogComments = await BlogComment.find(blogFilter).populate('postId', 'title slug').sort({ createdAt: -1 }).lean();
@@ -49,7 +49,7 @@ export async function GET(req: Request){
       title: 'دیدگاه بلاگ',
       comment: x.comment,
       rating: '-',
-      status: x.isApproved ? 'APPROVED' : 'PENDING',
+      status: x.status || 'PENDING',
       adminReply: '',
       createdAt: x.createdAt,
       userName: x.userName,

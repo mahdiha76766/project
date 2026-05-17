@@ -52,5 +52,6 @@ export const BlogComment = models.BlogComment || model('BlogComment', new Schema
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
   userName: { type: String, default: '' },
   comment: { type: String, required: true },
-  isApproved: { type: Boolean, default: false, index: true }
+  status: { type: String, enum: ['PENDING','APPROVED','REJECTED'], default: 'PENDING', index: true },
+  isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true }));

@@ -11,7 +11,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
   await connectToDatabase();
   const post = await BlogPost.findOne({ slug, isPublished: true }).select('_id');
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const items = await BlogComment.find({ postId: post._id, isApproved: true }).sort({ createdAt: -1 }).lean();
+  const items = await BlogComment.find({ postId: post._id, status: 'APPROVED', isDeleted: false }).sort({ createdAt: -1 }).lean();
   return NextResponse.json({ items });
 }
 
@@ -24,6 +24,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const post = await BlogPost.findOne({ slug, isPublished: true }).select('_id');
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const user = await User.findById(session.userId).select('name');
-  await BlogComment.create({ postId: post._id, userId: session.userId, userName: user?.name || '', comment: parsed.comment, isApproved: false });
+  await BlogComment.create({ postId: post._id, userId: session.userId, userName: user?.name || '', comment: parsed.comment, status: 'PENDING', isDeleted: false });
   return NextResponse.json({ ok: true, message: 'دیدگاه شما ثبت شد و پس از تایید نمایش داده می‌شود.' }, { status: 201 });
 }
