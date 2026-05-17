@@ -23,7 +23,15 @@ export const Payment = models.Payment || model('Payment', new Schema({ order: { 
 export const Shipment = models.Shipment || model('Shipment', new Schema({ order: { type: Schema.Types.ObjectId, ref: 'Order' }, method: { type: Schema.Types.ObjectId, ref: 'ShippingMethod' }, trackingCode: String, status: String, shippedAt: Date, deliveredAt: Date }, { timestamps: true }));
 export const Review = models.Review || model('Review', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User' }, product: { type: Schema.Types.ObjectId, ref: 'Product' }, rating: { type: Number, min: 1, max: 5 }, comment: String, isApproved: { type: Boolean, default: false } }, { timestamps: true }));
 export const Wishlist = models.Wishlist || model('Wishlist', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User', unique: true }, products: [{ type: Schema.Types.ObjectId, ref: 'Product' }] }, { timestamps: true }));
-export const BlogPost = models.BlogPost || model('BlogPost', new Schema({ title: String, slug: { type: String, unique: true }, content: String, isPublished: { type: Boolean, default: false }, publishedAt: Date }, { timestamps: true }));
+export const BlogPost = models.BlogPost || model('BlogPost', new Schema({
+  title: { type: String, required: true, trim: true },
+  slug: { type: String, unique: true, required: true, trim: true },
+  excerpt: { type: String, default: '' },
+  coverImage: { type: String, default: '' },
+  content: { type: String, required: true, default: '' },
+  isPublished: { type: Boolean, default: false },
+  publishedAt: Date
+}, { timestamps: true }));
 export const Banner = models.Banner || model('Banner', new Schema({ title: String, image: String, link: String, position: String, isActive: { type: Boolean, default: true } }, { timestamps: true }));
 export const Setting = models.Setting || model('Setting', new Schema({ key: { type: String, unique: true }, value: Schema.Types.Mixed }, { timestamps: true }));
 export const Notification = models.Notification || model('Notification', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User' }, title: String, message: String, isRead: { type: Boolean, default: false } }, { timestamps: true }));
