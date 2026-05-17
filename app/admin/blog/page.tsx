@@ -54,7 +54,7 @@ export default function AdminBlogPage() {
           <div><FieldLabel text="عنوان" /><TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div><FieldLabel text="اسلاگ (اختیاری)" /><TextInput value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></div>
           <div className="md:col-span-2"><FieldLabel text="خلاصه" /><TextInput value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} /></div>
-          <div className="md:col-span-2"><FieldLabel text="تصویر شاخص (URL)" /><TextInput value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} /></div>
+          <div className="md:col-span-2"><FieldLabel text="تصویر شاخص (لینک مستقیم یا آپلود)" /><TextInput value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} placeholder="https://..." /><input type="file" accept="image/*" className="mt-2 text-xs" onChange={(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>setForm((prev)=>({...prev,coverImage:String(r.result||'')})); r.readAsDataURL(f); }} /></div>
           <div className="md:col-span-2"><FieldLabel text="محتوای کامل" /><TextArea className="min-h-52" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} /></div>
           <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished} onChange={(e) => setForm({ ...form, isPublished: e.target.checked })} /> منتشر شود</label>
         </div>

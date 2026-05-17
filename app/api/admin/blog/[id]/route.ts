@@ -10,7 +10,7 @@ const blogUpdateSchema = z.object({
   title: z.string().trim().min(3).optional(),
   slug: z.string().trim().optional(),
   excerpt: z.string().trim().max(300).optional(),
-  coverImage: z.string().trim().url().or(z.literal('')).optional(),
+  coverImage: z.string().trim().min(0).max(500000).optional(),
   content: z.string().trim().min(20).optional(),
   isPublished: z.boolean().optional()
 });

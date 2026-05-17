@@ -10,7 +10,7 @@ const blogInputSchema = z.object({
   title: z.string().trim().min(3),
   slug: z.string().trim().optional(),
   excerpt: z.string().trim().max(300).optional(),
-  coverImage: z.string().trim().url().or(z.literal('')).optional(),
+  coverImage: z.string().trim().min(0).max(500000).optional(),
   content: z.string().trim().min(20),
   isPublished: z.boolean().optional()
 });

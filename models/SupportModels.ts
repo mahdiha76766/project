@@ -47,3 +47,10 @@ export const Banner = models.Banner || model('Banner', new Schema({ title: Strin
 export const Setting = models.Setting || model('Setting', new Schema({ key: { type: String, unique: true }, value: Schema.Types.Mixed }, { timestamps: true }));
 export const Notification = models.Notification || model('Notification', new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User' }, title: String, message: String, isRead: { type: Boolean, default: false } }, { timestamps: true }));
 export const InventoryLog = models.InventoryLog || model('InventoryLog', new Schema({ product: { type: Schema.Types.ObjectId, ref: 'Product' }, change: Number, reason: String, performedBy: { type: Schema.Types.ObjectId, ref: 'User' } }, { timestamps: true }));
+export const BlogComment = models.BlogComment || model('BlogComment', new Schema({
+  postId: { type: Schema.Types.ObjectId, ref: 'BlogPost', required: true, index: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User' },
+  userName: { type: String, default: '' },
+  comment: { type: String, required: true },
+  isApproved: { type: Boolean, default: false, index: true }
+}, { timestamps: true }));
