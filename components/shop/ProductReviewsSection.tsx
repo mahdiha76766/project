@@ -8,6 +8,7 @@ type Review = { _id: string; rating: number; title?: string; comment: string; cr
 export function ProductReviewsSection({ slug }: { slug: string }) {
   const user = useCurrentUser();
   const [items, setItems] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
   const [message, setMessage] = useState('');
   const [form, setForm] = useState({ rating: 0, title: '', comment: '' });
 
@@ -15,6 +16,7 @@ export function ProductReviewsSection({ slug }: { slug: string }) {
     const res = await fetch(`/api/products/${slug}/reviews`, { cache: 'no-store' });
     const data = await res.json();
     setItems(data.items || []);
+    setAverageRating(data.averageRating || 0);
   };
 
   useEffect(() => { void load(); }, [slug]);
@@ -38,7 +40,7 @@ export function ProductReviewsSection({ slug }: { slug: string }) {
 
   return (
     <section className="mt-10 rounded-2xl border border-[#e6dcc8] bg-white p-5">
-      <h2 className="text-xl font-black text-[#4d382b]">نظرات کاربران</h2>
+      <div className="flex items-center justify-between"><h2 className="text-xl font-black text-[#4d382b]">نظرات کاربران</h2><p className="text-sm text-[#7b6757]">میانگین امتیاز: {averageRating || 0} از 5</p></div>
 
       {!user ? (
         <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">برای ثبت نظر باید وارد حساب کاربری شوید.</p>

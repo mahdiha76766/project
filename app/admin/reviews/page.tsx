@@ -1,7 +1,26 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { AdminTable } from '@/components/admin/ui/AdminTable';
+import { TextInput, SelectInput } from '@/components/admin/ui/AdminField';
 
-type Review={_id:string;comment:string;rating:number;isApproved:boolean;user?:{name?:string;mobile?:string};product?:{name?:string}};
-export default function AdminReviewsPage(){const [items,setItems]=useState<Review[]>([]); const load=async()=>setItems((await (await fetch('/api/admin/reviews')).json()).items||[]); useEffect(()=>{void load();},[]);
-return <main className="space-y-6"><h1 className="text-2xl font-black">مدیریت نظرات</h1><AdminTable head={<tr className="[&>th]:px-4 [&>th]:py-3 text-right"><th>کاربر</th><th>محصول</th><th>امتیاز</th><th>نظر</th><th>تایید</th><th>عملیات</th></tr>}>{items.map(r=><tr key={r._id} className="[&>td]:px-4 [&>td]:py-3"><td>{r.user?.name||r.user?.mobile||'-'}</td><td>{r.product?.name||'-'}</td><td>{r.rating}</td><td>{r.comment}</td><td>{r.isApproved?'بله':'خیر'}</td><td><button className="text-amber-700" onClick={async()=>{await fetch(`/api/admin/reviews/${r._id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({isApproved:!r.isApproved})});void load();}}>تغییر وضعیت</button> <button className="text-red-600" onClick={async()=>{await fetch(`/api/admin/reviews/${r._id}`,{method:'DELETE'});void load();}}>حذف</button></td></tr>)}</AdminTable></main>; }
+type Review={_id:string;title:string;comment:string;rating:number;status:'PENDING'|'APPROVED'|'REJECTED';adminReply?:string;createdAt:string;userName?:string;userId?:{name?:string;mobile?:string};productId?:{name?:string}};
+
+export default function AdminReviewsPage(){
+  const [items,setItems]=useState<Review[]>([]);
+  const [filters,setFilters]=useState({productId:'',userId:'',rating:'',status:'',dateFrom:'',dateTo:''});
+
+  const load=async()=>{
+    const q=new URLSearchParams(Object.entries(filters).filter(([,v])=>v));
+    const res=await fetch(`/api/admin/reviews?${q.toString()}`); const data=await res.json(); setItems(data.items||[]);
+  };
+  useEffect(()=>{void load();},[]);
+
+  const updateReview = async (id:string,payload:Record<string,unknown>,msg:string)=>{ if(!confirm(msg)) return; await fetch(`/api/admin/reviews/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); void load(); };
+
+  return <main className="space-y-6"><h1 className="text-2xl font-black">مدیریت نظرات</h1>
+  <div className="grid gap-3 rounded-xl border bg-white p-4 md:grid-cols-3 xl:grid-cols-6"><TextInput placeholder="Product ID" value={filters.productId} onChange={(e)=>setFilters({...filters,productId:e.target.value})}/><TextInput placeholder="User ID" value={filters.userId} onChange={(e)=>setFilters({...filters,userId:e.target.value})}/><SelectInput value={filters.rating} onChange={(e)=>setFilters({...filters,rating:e.target.value})}><option value="">امتیاز</option>{[1,2,3,4,5].map(n=><option key={n} value={String(n)}>{n}</option>)}</SelectInput><SelectInput value={filters.status} onChange={(e)=>setFilters({...filters,status:e.target.value})}><option value="">وضعیت</option><option value="PENDING">در انتظار تایید</option><option value="APPROVED">تایید شده</option><option value="REJECTED">رد شده</option></SelectInput><TextInput type="date" value={filters.dateFrom} onChange={(e)=>setFilters({...filters,dateFrom:e.target.value})}/><TextInput type="date" value={filters.dateTo} onChange={(e)=>setFilters({...filters,dateTo:e.target.value})}/><button onClick={load} className="h-11 rounded-xl bg-amber-600 px-4 text-white">اعمال فیلتر</button></div>
+  <AdminTable head={<tr className="[&>th]:px-4 [&>th]:py-3 text-right"><th>کاربر</th><th>محصول</th><th>امتیاز</th><th>وضعیت</th><th>تاریخ</th><th>متن</th><th>پاسخ ادمین</th><th>عملیات</th></tr>}>
+    {items.map(r=><tr key={r._id} className="[&>td]:px-4 [&>td]:py-3 align-top"><td>{r.userId?.name||r.userName||r.userId?.mobile||'-'}</td><td>{r.productId?.name||'-'}</td><td>{r.rating}</td><td>{r.status==='PENDING'?'در انتظار تایید':r.status==='APPROVED'?'تایید شده':'رد شده'}</td><td>{new Date(r.createdAt).toLocaleDateString('fa-IR')}</td><td><div className="max-w-xs"><p className="font-semibold">{r.title}</p><p className="text-xs text-slate-600 whitespace-pre-wrap">{r.comment}</p></div></td><td><TextInput defaultValue={r.adminReply||''} onBlur={(e)=>{ if(e.target.value !== (r.adminReply||'')) void updateReview(r._id,{adminReply:e.target.value},'ثبت پاسخ ادمین انجام شود؟'); }} /></td><td className="space-y-1"><button className="block text-emerald-700" onClick={()=>void updateReview(r._id,{action:'approve'},'این نظر تایید شود؟')}>تایید</button><button className="block text-orange-700" onClick={()=>void updateReview(r._id,{action:'reject'},'این نظر رد شود؟')}>رد</button><button className="block text-amber-700" onClick={()=>{ const title=prompt('عنوان جدید',r.title)||r.title; const comment=prompt('متن جدید',r.comment)||r.comment; void updateReview(r._id,{title,comment},'نظر ویرایش شود؟'); }}>ویرایش</button><button className="block text-red-600" onClick={()=>void updateReview(r._id,{action:'soft_delete'},'حذف نرم انجام شود؟')}>حذف نرم</button></td></tr>)}
+  </AdminTable></main>;
+}
