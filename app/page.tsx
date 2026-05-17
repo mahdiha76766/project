@@ -42,9 +42,12 @@ export default function Home() {
         {trustItems.map((item) => <div key={item} className="rounded-xl bg-amber-50 px-3 py-2 text-center text-sm text-[#5a3e2b]">{item}</div>)}
       </section>
 
-      <section className="mt-12 grid gap-5 lg:grid-cols-2">
-        <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03" alt="روغن تازه‌گیری‌شده" className="h-72 w-full rounded-3xl object-cover lg:h-full" />
-        <div className="rounded-3xl border border-amber-100 bg-white p-6">
+      <section className="mt-12 grid gap-5 lg:grid-cols-2 lg:items-stretch">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-100 shadow-lg">
+          <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03" alt="روغن تازه‌گیری‌شده" className="h-64 w-full object-cover object-center sm:h-80 md:h-[26rem] lg:h-full transition duration-500 hover:scale-105" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        </div>
+        <div className="rounded-3xl border border-amber-100 bg-white p-6 md:p-7">
           <h2 className="text-2xl font-black text-[#5a3e2b]">روغن‌های تازه‌گیری‌شده</h2>
           <p className="mt-3 leading-8 text-slate-700">روغن‌ها به‌صورت روزانه و با دستگاه پرس سرد تولید می‌شوند تا ارزش غذایی، عطر و کیفیت طبیعی آن‌ها حفظ شود.</p>
           <ul className="mt-4 grid gap-2 text-sm text-[#5a3e2b] md:grid-cols-2">
