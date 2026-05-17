@@ -1,9 +1,12 @@
-import Link from 'next/link';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { Section } from '@/components/shop/Section';
 import { blogPosts, products, storeCategories, testimonials } from '@/lib/data/shop-data';
+import Link from 'next/link';
+import { HeroSlider } from '@/components/shop/HeroSlider';
+import { getHeroSlides } from '@/lib/admin/slider-settings';
 
-export default function Home() {
+export default async function Home() {
+  const slides = await getHeroSlides();
   const bestSellers = products.filter((p) => p.bestSeller);
   const featured = products.filter((p) => p.featured);
   const discounted = products.filter((p) => p.discountPrice);
@@ -12,25 +15,7 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 md:px-6">
-      <section className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-l from-amber-100 via-orange-50 to-lime-50 p-8 shadow-lg">
-        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-amber-200/50 blur-2xl pulse-soft" />
-        <div className="absolute -bottom-10 -right-10 h-48 w-48 rounded-full bg-lime-200/50 blur-2xl pulse-soft" />
-        <div className="relative z-10 grid items-center gap-6 md:grid-cols-2">
-          <div>
-            <span className="mb-3 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-800">تازه‌گیری روزانه • ارسال سریع</span>
-            <h1 className="text-3xl font-black leading-tight text-amber-900 md:text-4xl">فروشگاه روغن، ادویه و محصولات عصاری</h1>
-            <p className="mt-3 max-w-2xl text-slate-700">محصولات طبیعی، تازه و اصیل با طراحی تجربه خرید مدرن، سریع و مطمئن.</p>
-            <div className="mt-5 flex gap-3">
-              <Link href="/products" className="relative inline-block overflow-hidden rounded-xl bg-amber-800 px-5 py-3 text-white shine">مشاهده محصولات</Link>
-              <Link href="/categories" className="inline-block rounded-xl border border-amber-400 bg-white px-5 py-3 text-amber-900">دسته‌بندی‌ها</Link>
-            </div>
-          </div>
-          <div className="float-y rounded-2xl border border-white/70 bg-white/60 p-5 backdrop-blur">
-            <p className="font-bold text-amber-900">پیشنهاد ویژه امروز</p>
-            <p className="mt-2 text-sm text-slate-700">تا ۲۰٪ تخفیف روی روغن‌های تازه‌گیری‌شده + ارسال سریع سراسری.</p>
-          </div>
-        </div>
-      </section>
+      <HeroSlider slides={slides} />
 
       <Section title="دسته‌بندی‌های اصلی">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
