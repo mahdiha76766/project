@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { MainHeader } from '@/components/shop/MainHeader';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 
@@ -19,8 +20,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa">
-      <body>{children}</body>
+    <html lang="fa" dir="rtl">
+      <body>
+        <MainHeader />
+        {children}
+      </body>
     </html>
   );
 }
