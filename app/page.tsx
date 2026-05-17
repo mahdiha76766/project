@@ -44,7 +44,7 @@ export default function Home() {
 
       <section className="mt-12 grid gap-5 lg:grid-cols-2 lg:items-stretch">
         <div className="relative overflow-hidden rounded-3xl border border-amber-100 shadow-lg">
-          <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03" alt="روغن تازه‌گیری‌شده" className="h-[260px] w-full object-cover object-center sm:h-[320px] md:h-[380px] lg:h-[420px] transition duration-500 hover:scale-105" />
+          <img src="https://images.unsplash.com/photo-1510626176961-4b57d4fbad03" alt="روغن تازه‌گیری‌شده" className="h-[160px] w-full object-cover object-center sm:h-[220px] md:h-[280px] lg:h-[350px] transition duration-500 hover:scale-105" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </div>
         <div className="rounded-3xl border border-amber-100 bg-white p-6 md:p-7">

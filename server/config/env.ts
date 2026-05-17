@@ -5,7 +5,13 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development')
 });
 
+const nodeEnv = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development';
+
+// Use a local MongoDB URI for development/testing when one isn't provided.
+// In production this will remain undefined and the schema will throw.
+const mongoUri = process.env.MONGODB_URI ?? (nodeEnv === 'production' ? undefined : 'mongodb://127.0.0.1:27017/nextjs-shop-architecture');
+
 export const env = envSchema.parse({
-  MONGODB_URI: process.env.MONGODB_URI,
-  NODE_ENV: process.env.NODE_ENV
+  MONGODB_URI: mongoUri,
+  NODE_ENV: nodeEnv
 });
