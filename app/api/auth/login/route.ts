@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: 'کاربر یافت نشد' }, { status: 404 });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return NextResponse.json({ error: 'رمز عبور اشتباه است' }, { status: 401 });
-    const token = signToken({ userId: String(user._id), role: user.role, mobile: user.mobile });
+    const token = await signToken({ userId: String(user._id), role: user.role, mobile: user.mobile });
     const res = NextResponse.json({ ok: true });
     res.cookies.set('session_token', token, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
     return res;
@@ -38,6 +38,11 @@ export async function POST(req: Request) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: 'شماره موبایل یا رمز عبور معتبر نیست.' }, { status: 400 });
     }
+    if (error instanceof SyntaxError) {
+      console.error('[api][auth][login] Bad JSON:', error);
+      return NextResponse.json({ error: 'درخواست JSON نامعتبر است.' }, { status: 400 });
+    }
+    console.error('[api][auth][login] Error:', error);
     return NextResponse.json({ error: 'اتصال به دیتابیس برقرار نشد. تنظیمات MONGODB_URI را بررسی کنید.' }, { status: 503 });
   }
 }

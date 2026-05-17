@@ -27,6 +27,7 @@ export const connectToDatabase = async () => {
       .then((m) => m)
       .catch((error) => {
         cache.promise = null;
+        console.error('[db][mongoose] Connection error:', error);
         throw error;
       });
   }

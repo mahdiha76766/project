@@ -31,6 +31,11 @@ export async function POST(req: Request) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: 'شماره موبایل یا اطلاعات واردشده صحیح نیست.' }, { status: 400 });
     }
+    if (error instanceof SyntaxError) {
+      console.error('[api][auth][register] Bad JSON:', error);
+      return NextResponse.json({ error: 'درخواست JSON نامعتبر است.' }, { status: 400 });
+    }
+    console.error('[api][auth][register] Error:', error);
     return NextResponse.json({ error: 'خطا در ارتباط با سرور/دیتابیس. دوباره تلاش کنید.' }, { status: 503 });
   }
 }
