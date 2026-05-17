@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { IconCategory, IconShoppingBag, IconUser } from './Icons';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const menuItems = [
   { href: '/', label: 'خانه' },
@@ -13,6 +14,7 @@ const menuItems = [
 
 export const MainHeader = () => {
   const [open, setOpen] = useState(false);
+  const user = useCurrentUser();
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#e7dcc8] bg-[#fffdf8]/95 backdrop-blur-xl">
@@ -32,7 +34,7 @@ export const MainHeader = () => {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link href="/cart" className="inline-flex items-center gap-1 rounded-xl border border-[#e2d6c0] bg-white px-3 py-2 text-sm font-medium text-[#5f4a3c] transition hover:bg-[#faf6ed]"><IconShoppingBag /> سبد</Link>
-          <Link href="/auth/login" className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-[#667744] to-[#7b8b5a] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:brightness-105"><IconUser /> ورود</Link>
+          <Link href={user ? '/dashboard' : '/auth/login'} className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-[#667744] to-[#7b8b5a] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:brightness-105"><IconUser /> {user ? 'پروفایل' : 'ورود / ثبت‌نام'}</Link>
         </div>
 
         <button onClick={() => setOpen((v) => !v)} className="rounded-xl border border-[#d8ccb4] bg-white px-3 py-2 text-[#5f4a3c] lg:hidden" aria-label="menu">☰</button>
@@ -46,7 +48,7 @@ export const MainHeader = () => {
             ))}
             <Link href="/categories" className="inline-flex items-center gap-2 rounded-xl border border-[#e1d5bf] bg-white px-3 py-2.5 text-sm text-[#5f4a3c]"><IconCategory /> دسته‌بندی‌ها</Link>
             <Link href="/cart" className="inline-flex items-center gap-2 rounded-xl border border-[#e1d5bf] bg-white px-3 py-2.5 text-sm text-[#5f4a3c]"><IconShoppingBag /> سبد خرید</Link>
-            <Link href="/auth/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#667744] to-[#7b8b5a] px-3 py-2.5 text-sm font-bold text-white"><IconUser /> ورود / ثبت‌نام</Link>
+            <Link href={user ? '/dashboard' : '/auth/login'} className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#667744] to-[#7b8b5a] px-3 py-2.5 text-sm font-bold text-white"><IconUser /> {user ? 'پروفایل کاربری' : 'ورود / ثبت‌نام'}</Link>
           </div>
         </div>
       ) : null}
