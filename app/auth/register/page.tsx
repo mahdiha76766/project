@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
-      <div className="mx-auto max-w-md rounded-3xl border border-[#e5dac6] bg-white p-6 shadow-[0_18px_50px_-35px_rgba(90,62,43,0.45)] sm:p-8">
+    <main className="mx-auto min-h-[calc(100vh-90px)] max-w-5xl px-4 py-8 sm:py-12 lg:flex lg:items-center">
+      <div className="mx-auto w-full max-w-md rounded-3xl border border-[#e5dac6] bg-white p-6 shadow-[0_18px_50px_-35px_rgba(90,62,43,0.45)] sm:p-8">
         <p className="text-xs font-semibold text-[#7a6243]">عضویت جدید</p>
         <h1 className="mt-2 text-3xl font-black text-[#4d382b]">ایجاد حساب کاربری</h1>
         <p className="mt-2 text-sm text-[#6b5646]">برای خرید ساده‌تر و دریافت پیشنهادهای ویژه ثبت‌نام کنید.</p>
