@@ -19,6 +19,6 @@ export async function POST(req: Request) {
   if (!ok) return NextResponse.json({ error: 'رمز عبور اشتباه است' }, { status: 401 });
   const token = signToken({ userId: String(user._id), role: user.role, mobile: user.mobile });
   const res = NextResponse.json({ ok: true });
-  res.cookies.set('session_token', token, { httpOnly: true, sameSite: 'lax', secure: true, path: '/' });
+  res.cookies.set('session_token', token, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' });
   return res;
 }

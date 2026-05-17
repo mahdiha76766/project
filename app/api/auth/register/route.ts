@@ -13,6 +13,8 @@ export async function POST(req: Request) {
   await connectToDatabase();
   const exists = await User.findOne({ mobile: body.mobile });
   if (exists) return NextResponse.json({ error: 'کاربر قبلا ثبت‌نام کرده است' }, { status: 409 });
-  const user = await User.create({ ...body, role: 'CUSTOMER' });
-  return NextResponse.json({ id: user._id, mobile: user.mobile });
+  const count = await User.countDocuments();
+  const role = count === 0 ? 'ADMIN' : 'CUSTOMER';
+  const user = await User.create({ ...body, role });
+  return NextResponse.json({ id: user._id, mobile: user.mobile, role: user.role });
 }
