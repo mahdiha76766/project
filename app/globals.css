@@ -10,7 +10,7 @@
 }
 
 body {
-  @apply bg-slate-100 text-slate-900;
+  @apply text-slate-900;
   background-image: radial-gradient(circle at 10% 20%, #fff8e9 0%, #f6f3eb 40%, #eef1e5 100%);
 }
 
@@ -29,6 +29,16 @@ body {
   to { transform: translateX(220%); }
 }
 
+@keyframes zoomFade {
+  from { transform: scale(1.08); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUpFade {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .float-y { animation: floatY 4s ease-in-out infinite; }
 .pulse-soft { animation: pulseSoft 2.8s ease-in-out infinite; }
 .shine::after {
@@ -38,3 +48,6 @@ body {
   background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.5) 45%, transparent 70%);
   animation: shine 2.8s linear infinite;
 }
+
+.hero-image { animation: zoomFade 700ms ease; }
+.hero-text { animation: slideUpFade 550ms ease; }
