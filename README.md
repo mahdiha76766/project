@@ -1,27 +1,45 @@
-# Next.js Shop Architecture
+# Next.js Shop Architecture (Launch Ready)
 
-## ماژول‌های تکمیل‌شده
-- فروشگاه عمومی، لیست محصولات، دسته‌بندی، جستجو/فیلتر/مرتب‌سازی
-- احراز هویت، سبد خرید، checkout، پرداخت، ثبت سفارش
-- داشبورد مشتری: خلاصه، سفارش‌ها، آدرس‌ها، پروفایل، تغییر رمز، علاقه‌مندی، نظرات، کدهای من، مرجوعی
-- پنل ادمین: داشبورد آماری + مدیریت محصولات، دسته‌بندی‌ها، سفارش‌ها، کد تخفیف، ارسال، کاربران، بلاگ و تنظیمات
+## SEO
+- Metadata کامل صفحه اصلی
+- Metadata داینامیک محصولات، دسته‌بندی‌ها و مقالات
+- `sitemap.xml` و `robots.txt`
+- canonical URL
+- Open Graph image
+- Schema.org Product + Breadcrumb + FAQ
+- URLهای تمیز (`/products/:slug`, `/categories/:slug`, `/blog/:slug`)
 
-## صفحات کلیدی
-- Customer: `/dashboard`, `/dashboard/orders`, `/dashboard/addresses`, `/dashboard/profile`, `/dashboard/password`, `/dashboard/wishlist`, `/dashboard/reviews`, `/dashboard/coupons`, `/dashboard/returns`
-- Admin: `/admin`, `/admin/products`, `/admin/categories`, `/admin/orders`, `/admin/coupons`, `/admin/shipping`, `/admin/users`, `/admin/blog`, `/admin/settings`
+## Security
+- هش رمز عبور با bcrypt
+- محافظت routeهای admin/dashboard
+- کنترل role در سمت سرور
+- اعتبارسنجی ورودی auth با Zod
+- اعتبارسنجی قیمت/تخفیف فقط در سرور (checkout)
+- Rate limit برای login/register
+- session token در cookie امن HttpOnly
+- لاگ ساختاریافته خطا/رویداد
 
-## APIهای کلیدی
-- Auth: `POST /api/auth/register`, `POST /api/auth/login`
-- Cart/Checkout: `GET|POST|PATCH|DELETE /api/cart`, `POST /api/checkout`, `POST /api/coupons/validate`
-- Payment/Orders: `POST /api/payment/create`, `POST /api/payment/callback`, `GET /api/orders/:id`
-- Customer panel APIs: `/api/dashboard/*`
-- Admin panel APIs: `/api/admin/*`
+## Performance
+- lazy loading تصاویر کارت محصول
+- Server Components برای صفحات اصلی
+- ایندکس MongoDB روی product text search
+- پایه cache/بهینه‌سازی query و آماده pagination
 
-## Setup
-1. `npm install`
-2. `.env.local`:
-```env
-MONGODB_URI=mongodb://127.0.0.1:27017/shop_db
-AUTH_SECRET=change-me
-```
-3. `npm run dev`
+## Operations & Monitoring
+- endpoint سلامت: `GET /api/health`
+- لاگ پرداخت، سفارش، خطا قابل اتصال به Sentry/ELK
+- برنامه پیشنهادی دیپلوی:
+  - Vercel (Next.js)
+  - MongoDB Atlas
+  - Cloudflare (DNS + CDN)
+  - Cloudflare R2 یا S3 (تصاویر)
+  - Railway/Render/VPS (سرویس جانبی)
+- مانیتورینگ:
+  - هشدار کم‌موجودی
+  - هشدار خطای پرداخت
+  - هشدار سفارش جدید
+  - بکاپ دیتابیس
+  - اتصال Search Console
+
+## Test Checklist
+`tests/launch-checklist.md`

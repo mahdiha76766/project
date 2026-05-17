@@ -6,7 +6,7 @@ export const ProductCard = ({ product }: { product: ShopProduct }) => {
 
   return (
     <Link href={`/products/${product.slug}`} className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">
-      <div className="mb-3 h-36 rounded-xl bg-amber-50" />
+      <img src={product.images[0]} alt={product.name} loading="lazy" className="mb-3 h-36 w-full rounded-xl object-cover" />
       <h3 className="font-bold text-amber-900">{product.name}</h3>
       <p className="mt-1 text-sm text-slate-600">{product.shortDescription}</p>
       <div className="mt-2 flex items-center gap-2">
