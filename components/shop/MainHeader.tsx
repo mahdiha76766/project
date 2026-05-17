@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { IconCategory, IconShoppingBag, IconUser } from './Icons';
+import { getSessionUser } from '@/lib/auth/session';
 
 const menuItems = [
   { href: '/', label: 'خانه' },
@@ -9,7 +10,12 @@ const menuItems = [
   { href: '/dashboard', label: 'پنل مشتری' }
 ];
 
-export const MainHeader = () => {
+const ADMIN_ENTRY_ROLES = ['SUPER_ADMIN', 'OPERATOR', 'WAREHOUSE_MANAGER', 'CONTENT_MANAGER'];
+
+export const MainHeader = async () => {
+  const session = await getSessionUser();
+  const canEnterAdmin = !!session && ADMIN_ENTRY_ROLES.includes(session.role);
+
   return (
     <header className="sticky top-0 z-50 mb-6 border-b border-amber-200/70 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6">
@@ -24,6 +30,7 @@ export const MainHeader = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          {canEnterAdmin ? <Link href="/admin" className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white">ورود به پنل</Link> : null}
           <Link href="/categories" className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm"><IconCategory /> منو</Link>
           <Link href="/cart" className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm"><IconShoppingBag /> سبد</Link>
           <Link href="/auth/login" className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm"><IconUser /> ورود</Link>
