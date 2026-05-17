@@ -11,27 +11,10 @@
 
 body {
   @apply text-slate-900;
-  background-image: radial-gradient(circle at 10% 20%, #fff8e9 0%, #f6f3eb 40%, #eef1e5 100%);
-}
-
-@keyframes floatY {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes pulseSoft {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
-}
-
-@keyframes shine {
-  from { transform: translateX(-120%); }
-  to { transform: translateX(220%); }
-}
-
-@keyframes zoomFade {
-  from { transform: scale(1.08); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  background:
+    radial-gradient(circle at 12% 10%, rgba(198, 154, 58, 0.1), transparent 35%),
+    radial-gradient(circle at 88% 14%, rgba(102, 119, 68, 0.08), transparent 30%),
+    linear-gradient(180deg, #fffcf6 0%, #f6f1e6 100%);
 }
 
 @keyframes slideUpFade {
@@ -39,15 +22,4 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-.float-y { animation: floatY 4s ease-in-out infinite; }
-.pulse-soft { animation: pulseSoft 2.8s ease-in-out infinite; }
-.shine::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.5) 45%, transparent 70%);
-  animation: shine 2.8s linear infinite;
-}
-
-.hero-image { animation: zoomFade 700ms ease; }
-.hero-text { animation: slideUpFade 550ms ease; }
+.hero-text { animation: slideUpFade 420ms ease; }
