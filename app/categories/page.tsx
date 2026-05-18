@@ -10,24 +10,36 @@ export default async function CategoriesPage() {
   const categories = await Category.find({ isActive: true }).sort({ createdAt: -1 }).lean();
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      <section className="rounded-3xl bg-gradient-to-r from-[#f7efdf] to-[#efe2ca] p-7 shadow-sm">
-        <h1 className="text-3xl font-black text-[#4d382b]">دسته‌بندی محصولات</h1>
-        <p className="mt-2 text-sm text-[#6c5847]">دسته مناسب خودت رو انتخاب کن و مستقیم برو به محصولات واقعی همون دسته.</p>
-      </section>
+    <main className="mx-auto max-w-6xl px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-black text-[#4d382b]">دسته‌بندی‌ها</h1>
+        <p className="mt-2 text-sm text-[#6c5847]">یک دسته را انتخاب کنید تا محصولات همان بخش را ببینید.</p>
+      </header>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {categories.map((cat: any) => (
-          <Link key={String(cat._id)} href={`/products?category=${cat.slug}`} className="group overflow-hidden rounded-3xl border border-[#e6dcc8] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-            <img src={cat.image || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5'} alt={cat.name} className="h-48 w-full object-cover" />
-            <div className="p-5">
-              <h2 className="text-xl font-black text-[#5a3e2b]">{cat.name}</h2>
-              <p className="mt-2 line-clamp-2 text-sm text-[#6e5847]">{cat.description || 'مشاهده محصولات این دسته‌بندی'}</p>
-              <span className="mt-4 inline-block rounded-xl bg-[#f7f1e4] px-3 py-2 text-sm font-bold text-[#667744]">مشاهده محصولات</span>
+          <Link
+            key={String(cat._id)}
+            href={`/products?category=${cat.slug}`}
+            className="group relative overflow-hidden rounded-2xl border border-[#eadfcf] bg-[#fffaf1] p-1.5 transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="relative overflow-hidden rounded-xl">
+              <img
+                src={cat.image || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5'}
+                alt={cat.name}
+                className="h-28 w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+              <h2 className="absolute bottom-2 right-2 left-2 line-clamp-1 text-sm font-black text-white drop-shadow">
+                {cat.name}
+              </h2>
             </div>
+            {cat.description ? (
+              <p className="mt-2 line-clamp-1 px-1 text-xs text-[#6e5847]">{cat.description}</p>
+            ) : null}
           </Link>
         ))}
-      </div>
+      </section>
     </main>
   );
 }
