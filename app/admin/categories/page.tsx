@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { AdminCard } from '@/components/admin/ui/AdminCard';
 import { FieldLabel, SelectInput, TextInput } from '@/components/admin/ui/AdminField';
-import { AdminTable } from '@/components/admin/ui/AdminTable';
+import { AdminDataTable } from '@/components/admin/ui/AdminDataTable';
+import { DeleteButton, EditButton } from '@/components/admin/ui/AdminActionButtons';
 
 type Cat = { _id: string; name: string; slug: string; isActive: boolean; parent?: { _id: string; name: string } | null };
 
@@ -16,7 +17,12 @@ export default function AdminCategoriesPage() {
   return <main className="space-y-6"><h1 className="text-2xl font-black text-slate-900">مدیریت دسته‌بندی‌ها</h1>
     <AdminCard title={form.id ? 'ویرایش دسته‌بندی' : 'ایجاد دسته‌بندی'}><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><div><FieldLabel text="نام" /><TextInput value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})}/></div><div><FieldLabel text="اسلاگ" /><TextInput value={form.slug} onChange={(e)=>setForm({...form,slug:e.target.value})}/></div><div><FieldLabel text="دسته والد" /><SelectInput value={form.parent} onChange={(e)=>setForm({...form,parent:e.target.value})}><option value="">بدون والد</option>{items.filter(x=>x._id!==form.id).map(c=><option key={c._id} value={c._id}>{c.name}</option>)}</SelectInput></div><label className="mt-7 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e)=>setForm({...form,isActive:e.target.checked})}/> فعال</label></div><button className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white" onClick={save}>{form.id?'ذخیره تغییرات':'ایجاد دسته‌بندی'}</button></AdminCard>
 
-    <AdminTable head={<tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-right"><th>نام</th><th>اسلاگ</th><th>والد</th><th>وضعیت</th><th>عملیات</th></tr>}>
-      {items.map(c=><tr key={c._id} className="[&>td]:px-4 [&>td]:py-3"><td className="font-medium">{c.name}</td><td>{c.slug}</td><td>{c.parent?.name||'-'}</td><td><span className={`rounded-full px-2 py-1 text-xs ${c.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{c.isActive?'فعال':'غیرفعال'}</span></td><td className="space-x-3 space-x-reverse"><button className="text-amber-700" onClick={()=>setForm({id:c._id,name:c.name,slug:c.slug,parent:c.parent?._id||'',isActive:c.isActive})}>ویرایش</button><button className="text-red-600" onClick={async()=>{await fetch(`/api/admin/categories/${c._id}`,{method:'DELETE'});void load();}}>حذف</button></td></tr>)}
-    </AdminTable></main>;
+    <AdminDataTable data={items} rowKey={(c)=>c._id} columns={[
+      {header:'نام', render:(c)=><span className='font-medium'>{c.name}</span>},
+      {header:'اسلاگ', render:(c)=>c.slug},
+      {header:'والد', render:(c)=>c.parent?.name||'-'},
+      {header:'وضعیت', render:(c)=><span className={`rounded-full px-2 py-1 text-xs ${c.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{c.isActive?'فعال':'غیرفعال'}</span>},
+      {header:'عملیات', render:(c)=><div className='space-x-2 space-x-reverse'><EditButton onClick={()=>setForm({id:c._id,name:c.name,slug:c.slug,parent:c.parent?._id||'',isActive:c.isActive})}/><DeleteButton onClick={async()=>{await fetch(`/api/admin/categories/${c._id}`,{method:'DELETE'});void load();}}/></div>}
+    ]} />
+  </main>;
 }
