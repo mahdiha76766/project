@@ -1,25 +1,67 @@
 import { Filters } from '@/components/shop/Filters';
 import { ProductCard } from '@/components/shop/ProductCard';
-import { filterProducts } from '@/lib/filters/products';
-import { products } from '@/lib/data/shop-data';
 import { buildMetadata } from '@/lib/seo/metadata';
+import { Product } from '@/models';
+import { connectToDatabase } from '@/lib/db/mongoose';
 
 export const metadata = buildMetadata('محصولات فروشگاه', 'لیست محصولات روغن، ادویه و عصاری با فیلتر و جستجو');
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const filtered = filterProducts(products, {
-    q: params.q,
-    category: params.category,
-    sort: (params.sort as 'newest' | 'best_selling' | 'cheapest' | 'expensive') ?? 'newest'
-  });
+  const q = String(params.q || '').trim();
+  const category = String(params.category || '').trim();
+  const sort = String(params.sort || 'newest');
+
+  await connectToDatabase();
+
+  const filter: Record<string, unknown> = { isActive: true };
+  if (category) filter.category = category;
+  if (q) {
+    filter.$or = [
+      { name: { $regex: q, $options: 'i' } },
+      { shortDescription: { $regex: q, $options: 'i' } },
+      { fullDescription: { $regex: q, $options: 'i' } },
+      { tags: { $regex: q, $options: 'i' } }
+    ];
+  }
+
+  const sortObj =
+    sort === 'cheapest'
+      ? { discountPrice: 1, price: 1 }
+      : sort === 'expensive'
+        ? { discountPrice: -1, price: -1 }
+        : sort === 'best_selling'
+          ? { isFeatured: -1, createdAt: -1 }
+          : { createdAt: -1 };
+
+  const items = await Product.find(filter).sort(sortObj).populate('category', 'slug').lean();
+
+  const products = items.map((p: any) => ({
+    id: String(p._id),
+    slug: p.slug,
+    name: p.name,
+    shortDescription: p.shortDescription,
+    fullDescription: p.fullDescription || '',
+    category: p.category?.slug || '',
+    tags: p.tags || [],
+    attributes: p.attributes || {},
+    images: p.images?.length ? p.images : ['https://via.placeholder.com/640x480'],
+    price: Number(p.price || 0),
+    discountPrice: typeof p.discountPrice === 'number' ? p.discountPrice : undefined,
+    stock: Number(p.stock || 0),
+    rating: 5,
+    reviewCount: 0,
+    type: 'normal' as const,
+    temperament: 'warm' as const,
+    bestSeller: Boolean(p.isFeatured)
+  }));
 
   return (
     <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 md:grid-cols-[280px_1fr]">
       <form><Filters /></form>
       <section>
         <h1 className="mb-4 text-2xl font-black text-amber-900">محصولات</h1>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filtered.map((p) => <ProductCard key={p.id} product={p} />)}</div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{products.map((p) => <ProductCard key={p.id} product={p} />)}</div>
       </section>
     </main>
   );
