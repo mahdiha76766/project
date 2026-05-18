@@ -14,6 +14,8 @@ async function guard() {
   return user && hasMinimumRole(user.role, 'ADMIN');
 }
 
+const normalizeStoredPath = (p: string) => (p.startsWith('/') ? p : `/${p}`);
+
 export async function POST(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
@@ -25,14 +27,16 @@ export async function POST(req: Request) {
 
     const filename = file.name ?? `category-${Date.now()}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'categories');
+    const relativeDir = path.join('uploads', 'categories');
+    const uploadsDir = path.join(process.cwd(), 'public', relativeDir);
     await fs.mkdir(uploadsDir, { recursive: true });
 
     const safeName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '-');
     const uniqueName = `${Date.now()}-${safeName}`;
+    const relativePath = path.join(relativeDir, uniqueName).replaceAll('\\', '/');
     await fs.writeFile(path.join(uploadsDir, uniqueName), buffer);
 
-    return NextResponse.json({ url: `/uploads/categories/${uniqueName}`, filename: uniqueName });
+    return NextResponse.json({ url: normalizeStoredPath(relativePath), filename: uniqueName });
   } catch (error) {
     console.error('Category upload error', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });

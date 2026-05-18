@@ -6,6 +6,11 @@ import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
 
 async function guard() { const user = await getSessionUser(); return user && hasMinimumRole(user.role, 'ADMIN'); }
+const normalizeImage = (image?: string) => {
+  if (!image) return '';
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')) return image;
+  return `/${image}`;
+};
 
 export async function GET() {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -22,7 +27,7 @@ export async function POST(req: Request) {
     name: body.name,
     slug: slugify(body.slug || body.name),
     description: body.description || '',
-    image: body.image || '',
+    image: normalizeImage(body.image),
     parent: body.parent || null,
     isActive: body.isActive ?? true
   });

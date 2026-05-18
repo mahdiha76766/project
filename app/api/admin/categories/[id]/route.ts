@@ -6,13 +6,19 @@ import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
 
 async function guard() { const user = await getSessionUser(); return user && hasMinimumRole(user.role, 'ADMIN'); }
+const normalizeImage = (image?: string) => {
+  if (!image) return '';
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')) return image;
+  return `/${image}`;
+};
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { id } = await params;
   const body = await req.json();
   await connectToDatabase();
-  const item = await Category.findByIdAndUpdate(id, { ...body, slug: slugify(body.slug || body.name || '') }, { new: true });
+  const payload = { ...body, slug: slugify(body.slug || body.name || ''), image: normalizeImage(body.image) };
+  const item = await Category.findByIdAndUpdate(id, payload, { new: true });
   return NextResponse.json({ item });
 }
 
