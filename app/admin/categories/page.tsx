@@ -12,6 +12,7 @@ export default function AdminCategoriesPage() {
   const [items, setItems] = useState<Cat[]>([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ id: '', name: '', slug: '', description: '', image: '', parent: '', isActive: true });
   const load = async () => setItems((await (await fetch('/api/admin/categories')).json()).items || []);
   useEffect(() => { void load(); }, []);
@@ -24,6 +25,7 @@ export default function AdminCategoriesPage() {
       return;
     }
     setError('');
+    setIsUploading(true);
     setMessage('در حال آپلود تصویر...');
     try {
       const fd = new FormData();
@@ -41,10 +43,16 @@ export default function AdminCategoriesPage() {
       console.error(err);
       setError('خطا در آپلود تصویر.');
       setMessage('');
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const save = async () => {
+    if (isUploading) {
+      setError('لطفاً تا پایان آپلود تصویر صبر کنید.');
+      return;
+    }
     setError('');
     const method = form.id ? 'PUT' : 'POST';
     const url = form.id ? `/api/admin/categories/${form.id}` : '/api/admin/categories';
@@ -65,11 +73,11 @@ export default function AdminCategoriesPage() {
         <div><FieldLabel text="دسته والد" /><SelectInput value={form.parent} onChange={(e)=>setForm({...form,parent:e.target.value})}><option value="">بدون والد</option>{items.filter(x=>x._id!==form.id).map(c=><option key={c._id} value={c._id}>{c.name}</option>)}</SelectInput></div>
         <label className="mt-7 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e)=>setForm({...form,isActive:e.target.checked})}/> فعال</label>
         <div className='xl:col-span-2'><FieldLabel text='توضیحات' /><TextArea value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} /></div>
-        <div className='xl:col-span-2'><FieldLabel text='تصویر دسته‌بندی' /><input type='file' accept='image/jpeg,image/png,image/webp,image/gif' className='block w-full rounded-lg border p-2' onChange={uploadImage} />{form.image ? <img src={form.image} alt='preview' className='mt-2 h-24 w-24 rounded-lg object-cover' /> : null}</div>
+        <div className='xl:col-span-2'><FieldLabel text='تصویر دسته‌بندی' /><TextInput value={form.image} onChange={(e)=>setForm({...form,image:e.target.value})} placeholder='/uploads/categories/...' /><input type='file' accept='image/jpeg,image/png,image/webp,image/gif' className='mt-2 block w-full rounded-lg border p-2' onChange={uploadImage} />{form.image ? <img src={form.image} alt='preview' className='mt-2 h-24 w-24 rounded-lg object-cover' /> : null}</div>
       </div>
       {error ? <p className='mt-3 text-sm text-red-600'>{error}</p> : null}
       {message ? <p className='mt-2 text-sm text-emerald-700'>{message}</p> : null}
-      <button className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white" onClick={save}>{form.id?'ذخیره تغییرات':'ایجاد دسته‌بندی'}</button>
+      <button disabled={isUploading} className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60" onClick={save}>{isUploading ? 'در حال آپلود...' : (form.id?'ذخیره تغییرات':'ایجاد دسته‌بندی')}</button>
     </AdminCard>
 
     <AdminDataTable data={items} rowKey={(c)=>c._id} columns={[
