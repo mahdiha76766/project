@@ -1,6 +1,9 @@
-import { storeCategories } from '@/lib/data/shop-data';
+export interface ProductFilterCategory {
+  slug: string;
+  name: string;
+}
 
-export const Filters = () => {
+export const Filters = ({ categories = [] }: { categories?: ProductFilterCategory[] }) => {
   return (
     <aside className="space-y-4 rounded-2xl border border-amber-100 bg-white p-4">
       <h3 className="font-bold text-amber-900">فیلترها</h3>
@@ -12,7 +15,7 @@ export const Filters = () => {
         <label className="mb-1 block text-sm">دسته‌بندی</label>
         <select name="category" className="w-full rounded-lg border p-2">
           <option value="">همه</option>
-          {storeCategories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+          {categories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
         </select>
       </div>
       <div>

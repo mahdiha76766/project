@@ -1,7 +1,7 @@
 import { Filters } from '@/components/shop/Filters';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { buildMetadata } from '@/lib/seo/metadata';
-import { Product } from '@/models';
+import { Category, Product } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
 
 export const metadata = buildMetadata('محصولات فروشگاه', 'لیست محصولات روغن، ادویه و عصاری با فیلتر و جستجو');
@@ -15,7 +15,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   await connectToDatabase();
 
   const filter: Record<string, unknown> = { isActive: true };
-  if (category) filter.category = category;
+  if (category) {
+    const foundCategory = await Category.findOne({ slug: category, isActive: true }).select('_id').lean();
+    filter.category = foundCategory?._id || null;
+  }
   if (q) {
     filter.$or = [
       { name: { $regex: q, $options: 'i' } },
@@ -34,7 +37,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           ? { isFeatured: -1, createdAt: -1 }
           : { createdAt: -1 };
 
-  const items = await Product.find(filter).sort(sortObj).populate('category', 'slug').lean();
+  const [items, categories] = await Promise.all([
+    Product.find(filter).sort(sortObj).populate('category', 'slug').lean(),
+    Category.find({ isActive: true }).sort({ name: 1 }).select('slug name').lean()
+  ]);
 
   const products = items.map((p: any) => ({
     id: String(p._id),
@@ -58,7 +64,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 md:grid-cols-[280px_1fr]">
-      <form><Filters /></form>
+      <form><Filters categories={categories.map((c: any) => ({ slug: c.slug, name: c.name }))} /></form>
       <section>
         <h1 className="mb-4 text-2xl font-black text-amber-900">محصولات</h1>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{products.map((p) => <ProductCard key={p.id} product={p} />)}</div>
