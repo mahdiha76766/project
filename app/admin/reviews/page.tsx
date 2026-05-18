@@ -1,18 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Pencil, Trash2, XCircle } from 'lucide-react';
 
 type Review={_id:string;title:string;comment:string;rating:number|string;status:'PENDING'|'APPROVED'|'REJECTED';adminReply?:string;createdAt:string;userName?:string;userId?:{name?:string;mobile?:string};productId?:{name?:string};reviewType?:'product'|'blog'};
 
 export default function AdminReviewsPage(){
   const [items,setItems]=useState<Review[]>([]);
+  const [page, setPage] = useState(1);
   const [filters,setFilters]=useState({type:'all',productId:'',userId:'',rating:'',status:'',dateFrom:'',dateTo:''});
 
   const load=async()=>{
     const q=new URLSearchParams(Object.entries(filters).filter(([,v])=>v));
-    const res=await fetch(`/api/admin/reviews?${q.toString()}`); const data=await res.json(); setItems(data.items||[]);
+    const res=await fetch(`/api/admin/reviews?${q.toString()}`); const data=await res.json(); setItems(data.items||[]); setPage(1);
   };
   useEffect(()=>{void load();},[]);
+
+  const pagedItems = useMemo(() => items.slice((page - 1) * 10, page * 10), [items, page]);
+  const totalPages = Math.max(1, Math.ceil(items.length / 10));
 
   const updateReview = async (review: Review,payload:Record<string,unknown>,msg:string)=>{ if(!confirm(msg)) return; const base = review.reviewType==='blog' ? '/api/admin/blog-comments' : '/api/admin/reviews'; await fetch(`${base}/${review._id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); void load(); };
 
@@ -26,6 +31,7 @@ export default function AdminReviewsPage(){
     <input className="h-11 rounded-xl border border-slate-200 px-3" type="date" value={filters.dateTo} onChange={(e)=>setFilters({...filters,dateTo:e.target.value})}/>
     <button onClick={load} className="h-11 rounded-xl bg-amber-600 px-4 text-white">اعمال فیلتر</button>
   </div>
-  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[980px] text-sm"><thead className="bg-slate-50 text-slate-600"><tr className="[&>th]:px-4 [&>th]:py-3 text-right"><th>نوع</th><th>کاربر</th><th>محصول/بلاگ</th><th>امتیاز</th><th>وضعیت</th><th>تاریخ</th><th>متن</th><th>پاسخ ادمین</th><th>عملیات</th></tr></thead><tbody className="divide-y divide-slate-100">{items.map(r=><tr key={r._id} className="[&>td]:px-4 [&>td]:py-3 align-top"><td>{(r as any).reviewType==='blog'?'بلاگ':'محصول'}</td><td>{r.userId?.name||r.userName||r.userId?.mobile||'-'}</td><td>{r.productId?.name||'-'}</td><td>{r.rating}</td><td>{r.status==='PENDING'?'در انتظار تایید':r.status==='APPROVED'?'تایید شده':'رد شده'}</td><td>{new Date(r.createdAt).toLocaleDateString('fa-IR')}</td><td><div className="max-w-xs"><p className="font-semibold">{r.title}</p><p className="text-xs text-slate-600 whitespace-pre-wrap">{r.comment}</p></div></td><td>{r.reviewType==='blog' ? <span className='text-xs text-slate-400'>---</span> : <input className="h-10 w-full rounded-xl border border-slate-200 px-3" defaultValue={r.adminReply||''} onBlur={(e)=>{ if(e.target.value !== (r.adminReply||'')) void updateReview(r,{adminReply:e.target.value},'ثبت پاسخ ادمین انجام شود؟'); }} />}</td><td className="space-y-1"><button className="block text-emerald-700" onClick={()=>void updateReview(r,{action:'approve'},'این نظر تایید شود؟')}>تایید</button><button className="block text-orange-700" onClick={()=>void updateReview(r,{action:'reject'},'این نظر رد شود؟')}>رد</button><button className="block text-amber-700" onClick={()=>{ const title=prompt('عنوان جدید',r.title)||r.title; const comment=prompt('متن جدید',r.comment)||r.comment; void updateReview(r,{title,comment},'نظر ویرایش شود؟'); }}>ویرایش</button><button className="block text-red-600" onClick={()=>void updateReview(r,{action:'soft_delete'},'حذف نرم انجام شود؟')}>حذف نرم</button></td></tr>)}</tbody></table></div></div>
+  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[980px] text-sm"><thead className="bg-slate-50 text-slate-600"><tr className="[&>th]:px-4 [&>th]:py-3 text-right"><th>نوع</th><th>کاربر</th><th>محصول/بلاگ</th><th>امتیاز</th><th>وضعیت</th><th>تاریخ</th><th>متن</th><th>پاسخ ادمین</th><th>عملیات</th></tr></thead><tbody className="divide-y divide-slate-100">{pagedItems.map(r=><tr key={r._id} className="[&>td]:px-4 [&>td]:py-3 align-top"><td>{(r as any).reviewType==='blog'?'بلاگ':'محصول'}</td><td>{r.userId?.name||r.userName||r.userId?.mobile||'-'}</td><td>{r.productId?.name||'-'}</td><td>{r.rating}</td><td>{r.status==='PENDING'?'در انتظار تایید':r.status==='APPROVED'?'تایید شده':'رد شده'}</td><td>{new Date(r.createdAt).toLocaleDateString('fa-IR')}</td><td><div className="max-w-xs"><p className="font-semibold">{r.title}</p><p className="text-xs text-slate-600 whitespace-pre-wrap">{r.comment}</p></div></td><td>{r.reviewType==='blog' ? <span className='text-xs text-slate-400'>---</span> : <input className="h-10 w-full rounded-xl border border-slate-200 px-3" defaultValue={r.adminReply||''} onBlur={(e)=>{ if(e.target.value !== (r.adminReply||'')) void updateReview(r,{adminReply:e.target.value},'ثبت پاسخ ادمین انجام شود؟'); }} />}</td><td className="space-y-1"><button className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-emerald-700" onClick={()=>void updateReview(r,{action:'approve'},'این نظر تایید شود؟')}><CheckCircle2 size={14}/>تایید</button><button className="inline-flex items-center gap-1 rounded-md bg-orange-50 px-2 py-1 text-orange-700" onClick={()=>void updateReview(r,{action:'reject'},'این نظر رد شود؟')}><XCircle size={14}/>رد</button><button className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-amber-700" onClick={()=>{ const title=prompt('عنوان جدید',r.title)||r.title; const comment=prompt('متن جدید',r.comment)||r.comment; void updateReview(r,{title,comment},'نظر ویرایش شود؟'); }}><Pencil size={14}/>ویرایش</button><button className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-red-700" onClick={()=>void updateReview(r,{action:'soft_delete'},'حذف نرم انجام شود؟')}><Trash2 size={14}/>حذف</button></td></tr>)}</tbody></table></div></div>
+  <div className="flex items-center justify-center gap-2">{Array.from({length:totalPages}).map((_,i)=><button key={i} onClick={()=>setPage(i+1)} className={`h-8 w-8 rounded ${page===i+1?'bg-amber-600 text-white':'border border-slate-200 bg-white'}`}>{i+1}</button>)}</div>
   </main>;
 }
