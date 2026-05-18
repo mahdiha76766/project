@@ -62,3 +62,5 @@ export const BlogComment = models.BlogComment || model('BlogComment', new Schema
   status: { type: String, enum: ['PENDING','APPROVED','REJECTED'], default: 'PENDING', index: true },
   isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true }));
+
+export const ReturnRequest = models.ReturnRequest || model('ReturnRequest', new Schema({ userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true }, reason: { type: String, required: true }, status: { type: String, enum: ['PENDING','APPROVED','REJECTED','COMPLETED'], default: 'PENDING' } }, { timestamps: true }));
