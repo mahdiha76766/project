@@ -40,6 +40,13 @@ export const BlogPost = models.BlogPost || model('BlogPost', new Schema({
   excerpt: { type: String, default: '' },
   coverImage: { type: String, default: '' },
   content: { type: String, required: true, default: '' },
+  category: { type: String, default: 'عمومی', index: true },
+  tags: [{ type: String }],
+  author: { type: String, default: 'تیم محتوای عصاره طبیعت' },
+  views: { type: Number, default: 0 },
+  seoMetaTitle: { type: String, default: '' },
+  seoMetaDescription: { type: String, default: '' },
+  relatedProductIds: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
   isPublished: { type: Boolean, default: false },
   publishedAt: Date
 }, { timestamps: true }));

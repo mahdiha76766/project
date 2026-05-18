@@ -12,6 +12,12 @@ const blogUpdateSchema = z.object({
   excerpt: z.string().trim().max(300).optional(),
   coverImage: z.string().trim().min(0).max(500000).optional(),
   content: z.string().trim().min(20).optional(),
+  category: z.string().trim().min(2).optional(),
+  tags: z.array(z.string().trim()).optional(),
+  author: z.string().trim().min(2).optional(),
+  seoMetaTitle: z.string().trim().max(120).optional(),
+  seoMetaDescription: z.string().trim().max(180).optional(),
+  relatedProductIds: z.array(z.string()).optional(),
   isPublished: z.boolean().optional()
 });
 
