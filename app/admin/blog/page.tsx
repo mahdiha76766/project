@@ -63,7 +63,20 @@ export default function AdminBlogPage() {
           <div><FieldLabel text="نویسنده" /><TextInput value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} /></div>
           <div className="md:col-span-2"><FieldLabel text="برچسب‌ها (با کاما)" /><TextInput value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></div>
           <div className="md:col-span-2"><FieldLabel text="خلاصه کوتاه" /><TextInput value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} /></div>
-          <div className="md:col-span-2"><FieldLabel text="تصویر شاخص (لینک مستقیم یا آپلود)" /><TextInput value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} placeholder="https://..." /><input type="file" accept="image/*" className="mt-2 text-xs" onChange={(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>setForm((prev)=>({...prev,coverImage:String(r.result||'')})); r.readAsDataURL(f); }} /></div>
+          <div className="md:col-span-2">
+            <FieldLabel text="تصویر شاخص (لینک مستقیم یا آپلود)" />
+            <TextInput value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} placeholder="https://..." />
+            <input
+              type="file"
+              accept="image/*"
+              className="mt-2 text-xs"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                setForm((prev) => ({ ...prev, coverImage: f.name }));
+              }}
+            />
+          </div>
           <div><FieldLabel text="Meta Title" /><TextInput value={form.seoMetaTitle} onChange={(e) => setForm({ ...form, seoMetaTitle: e.target.value })} /></div>
           <div><FieldLabel text="Meta Description" /><TextInput value={form.seoMetaDescription} onChange={(e) => setForm({ ...form, seoMetaDescription: e.target.value })} /></div>
           <div className="md:col-span-2"><FieldLabel text="متن کامل" /><TextArea className="min-h-52" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} /></div>

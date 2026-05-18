@@ -1,3 +1,9 @@
+@import './fonts/fonts.css';
+
+html, body {
+  font-family: 'IRANSansWeb', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -9,7 +9,7 @@ const menuItems = [
   { href: '/', label: 'خانه' },
   { href: '/products', label: 'محصولات' },
   { href: '/categories', label: 'دسته‌بندی‌ها' },
-  { href: '/blog/identify-original-oil', label: 'بلاگ' }
+  { href: '/blog/', label: 'بلاگ' }
 ];
 
 export const MainHeader = () => {

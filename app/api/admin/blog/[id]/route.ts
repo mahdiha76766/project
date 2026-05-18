@@ -29,10 +29,20 @@ async function guard() { const u = await getSessionUser(); return u && hasMinimu
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { id } = await params;
-  const parsed = blogUpdateSchema.parse(await req.json());
+  const body = await req.json();
+  const result = blogUpdateSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json({ error: 'Invalid input', issues: result.error.issues }, { status: 400 });
+  }
+  const parsed = result.data;
   await connectToDatabase();
 
-  const payload: Record<string, unknown> = { ...parsed };
+  const payload: Record<string, unknown> = {};
+  for (const key of Object.keys(parsed)) {
+    // only include defined values
+    const val = (parsed as any)[key];
+    if (val !== undefined) payload[key] = val;
+  }
   if (parsed.slug) payload.slug = slugify(parsed.slug);
   if (!parsed.slug && parsed.title) payload.slug = slugify(parsed.title);
   if (parsed.isPublished === true) payload.publishedAt = new Date();

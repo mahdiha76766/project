@@ -34,7 +34,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  const parsed = blogInputSchema.parse(await req.json());
+  const body = await req.json();
+  const result = blogInputSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json({ error: 'Invalid input', issues: result.error.issues }, { status: 400 });
+  }
+  const parsed = result.data;
+
   await connectToDatabase();
   const postSlug = slugify(parsed.slug || parsed.title);
   const item = await BlogPost.create({
