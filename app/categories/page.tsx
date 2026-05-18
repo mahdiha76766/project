@@ -7,8 +7,10 @@ export const metadata = buildMetadata('دسته‌بندی محصولات', 'م�
 
 const resolveImage = (image?: string) => {
   if (!image) return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5';
-  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')) return image;
-  return `/${image}`;
+  const cleaned = image.replaceAll('\\', '/').replace(/^public\//, '').trim();
+  if (!cleaned) return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5';
+  if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) return cleaned;
+  return cleaned.startsWith('/') ? cleaned : `/${cleaned}`;
 };
 
 export default async function CategoriesPage() {
