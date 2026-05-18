@@ -1,9 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { AdminCard } from '@/components/admin/ui/AdminCard';
-import { FieldLabel, SelectInput, TextInput } from '@/components/admin/ui/AdminField';
-import { AdminDataTable } from '@/components/admin/ui/AdminDataTable';
-import { DeleteButton, EditButton } from '@/components/admin/ui/AdminActionButtons';
+import { AdminCard, AdminDataTable, DeleteButton, EditButton, FieldLabel, SelectInput, TextInput } from '@/components/admin/ui';
 
 type Cat = { _id: string; name: string; slug: string; isActive: boolean; parent?: { _id: string; name: string } | null };
 
