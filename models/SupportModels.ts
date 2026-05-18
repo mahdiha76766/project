@@ -64,3 +64,5 @@ export const BlogComment = models.BlogComment || model('BlogComment', new Schema
 }, { timestamps: true }));
 
 export const ReturnRequest = models.ReturnRequest || model('ReturnRequest', new Schema({ userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true }, reason: { type: String, required: true }, status: { type: String, enum: ['PENDING','APPROVED','REJECTED','COMPLETED'], default: 'PENDING' } }, { timestamps: true }));
+
+export const UserAddress = models.UserAddress || model('UserAddress', new Schema({ userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, recipientName: { type: String, required: true }, phone: { type: String, required: true }, province: { type: String, required: true }, city: { type: String, required: true }, addressLine: { type: String, required: true }, postalCode: { type: String, required: true }, plaque: { type: String, default: '' }, unit: { type: String, default: '' }, isDefault: { type: Boolean, default: false } }, { timestamps: true }));
