@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { AdminCard } from '@/components/admin/ui/AdminCard';
 import { FieldLabel, TextArea, TextInput } from '@/components/admin/ui/AdminField';
 import { AdminTable } from '@/components/admin/ui/AdminTable';
@@ -70,10 +71,25 @@ export default function AdminBlogPage() {
               type="file"
               accept="image/*"
               className="mt-2 text-xs"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
+              onChange={async (e: ChangeEvent<HTMLInputElement>) => {
+                const f = e.currentTarget.files?.[0];
                 if (!f) return;
-                setForm((prev) => ({ ...prev, coverImage: f.name }));
+                setMessage('در حال آپلود تصویر...');
+                try {
+                  const fd = new FormData();
+                  fd.append('file', f);
+                  const res = await fetch('/api/admin/blog/upload', { method: 'POST', body: fd });
+                  if (!res.ok) {
+                    setMessage('خطا در آپلود تصویر.');
+                    return;
+                  }
+                  const data = await res.json();
+                  setForm((prev) => ({ ...prev, coverImage: data.url || prev.coverImage || f.name }));
+                  setMessage('');
+                } catch (err) {
+                  console.error(err);
+                  setMessage('خطا در آپلود تصویر.');
+                }
               }}
             />
           </div>
