@@ -6,6 +6,9 @@ import path from 'path';
 import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
 async function guard() {
   const user = await getSessionUser();
   return user && hasMinimumRole(user.role, 'ADMIN');
@@ -15,8 +18,10 @@ export async function POST(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as any;
+    const file = formData.get('file') as File | null;
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ error: 'فرمت تصویر مجاز نیست.' }, { status: 400 });
+    if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'حجم تصویر باید کمتر از ۲ مگابایت باشد.' }, { status: 400 });
 
     const filename = file.name ?? `category-${Date.now()}`;
     const buffer = Buffer.from(await file.arrayBuffer());

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { AdminCard } from '@/components/admin/ui/AdminCard';
 import { FieldLabel, SelectInput, TextArea, TextInput } from '@/components/admin/ui/AdminField';
 import { AdminDataTable } from '@/components/admin/ui/AdminDataTable';
@@ -10,17 +11,37 @@ type Cat = { _id: string; name: string; slug: string; description?: string; imag
 export default function AdminCategoriesPage() {
   const [items, setItems] = useState<Cat[]>([]);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [form, setForm] = useState({ id: '', name: '', slug: '', description: '', image: '', parent: '', isActive: true });
   const load = async () => setItems((await (await fetch('/api/admin/categories')).json()).items || []);
   useEffect(() => { void load(); }, []);
 
-  const uploadImage = async (file?: File) => {
+  const uploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
     if (!file) return;
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/admin/categories/upload', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (res.ok) setForm((f) => ({ ...f, image: data.url }));
+    if (file.size > 2 * 1024 * 1024) {
+      setError('حجم تصویر باید کمتر از ۲ مگابایت باشد.');
+      return;
+    }
+    setError('');
+    setMessage('در حال آپلود تصویر...');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/categories/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'خطا در آپلود تصویر.');
+        setMessage('');
+        return;
+      }
+      setForm((f) => ({ ...f, image: data.url }));
+      setMessage('آپلود تصویر با موفقیت انجام شد.');
+    } catch (err) {
+      console.error(err);
+      setError('خطا در آپلود تصویر.');
+      setMessage('');
+    }
   };
 
   const save = async () => {
@@ -31,6 +52,7 @@ export default function AdminCategoriesPage() {
     if (!res.ok) setError((await res.json()).error || 'خطا در ذخیره اطلاعات');
     else {
       setForm({ id: '', name: '', slug: '', description: '', image: '', parent: '', isActive: true });
+      setMessage('ذخیره دسته‌بندی با موفقیت انجام شد.');
       void load();
     }
   };
@@ -43,9 +65,10 @@ export default function AdminCategoriesPage() {
         <div><FieldLabel text="دسته والد" /><SelectInput value={form.parent} onChange={(e)=>setForm({...form,parent:e.target.value})}><option value="">بدون والد</option>{items.filter(x=>x._id!==form.id).map(c=><option key={c._id} value={c._id}>{c.name}</option>)}</SelectInput></div>
         <label className="mt-7 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e)=>setForm({...form,isActive:e.target.checked})}/> فعال</label>
         <div className='xl:col-span-2'><FieldLabel text='توضیحات' /><TextArea value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} /></div>
-        <div className='xl:col-span-2'><FieldLabel text='تصویر دسته‌بندی' /><input type='file' accept='image/*' className='block w-full rounded-lg border p-2' onChange={(e)=>void uploadImage(e.target.files?.[0])} />{form.image ? <img src={form.image} alt='preview' className='mt-2 h-24 w-24 rounded-lg object-cover' /> : null}</div>
+        <div className='xl:col-span-2'><FieldLabel text='تصویر دسته‌بندی' /><input type='file' accept='image/jpeg,image/png,image/webp,image/gif' className='block w-full rounded-lg border p-2' onChange={uploadImage} />{form.image ? <img src={form.image} alt='preview' className='mt-2 h-24 w-24 rounded-lg object-cover' /> : null}</div>
       </div>
       {error ? <p className='mt-3 text-sm text-red-600'>{error}</p> : null}
+      {message ? <p className='mt-2 text-sm text-emerald-700'>{message}</p> : null}
       <button className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white" onClick={save}>{form.id?'ذخیره تغییرات':'ایجاد دسته‌بندی'}</button>
     </AdminCard>
 
