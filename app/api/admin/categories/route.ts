@@ -18,6 +18,13 @@ export async function POST(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const body = await req.json();
   await connectToDatabase();
-  const item = await Category.create({ name: body.name, slug: slugify(body.slug || body.name), parent: body.parent || null, isActive: body.isActive ?? true });
+  const item = await Category.create({
+    name: body.name,
+    slug: slugify(body.slug || body.name),
+    description: body.description || '',
+    image: body.image || '',
+    parent: body.parent || null,
+    isActive: body.isActive ?? true
+  });
   return NextResponse.json({ item }, { status: 201 });
 }
