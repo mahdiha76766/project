@@ -6,17 +6,20 @@ import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
 
+const optionalShortText = (max: number) => z.string().trim().max(max).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
+const optionalMinText = (min: number) => z.string().trim().min(min).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
+
 const blogInputSchema = z.object({
   title: z.string().trim().min(3),
-  slug: z.string().trim().optional(),
-  excerpt: z.string().trim().max(300).optional(),
-  coverImage: z.string().trim().min(0).max(500000).optional(),
+  slug: optionalShortText(200),
+  excerpt: optionalShortText(300),
+  coverImage: optionalShortText(500000),
   content: z.string().trim().min(20),
-  category: z.string().trim().min(2).optional(),
+  category: optionalMinText(2),
   tags: z.array(z.string().trim()).optional(),
-  author: z.string().trim().min(2).optional(),
-  seoMetaTitle: z.string().trim().max(120).optional(),
-  seoMetaDescription: z.string().trim().max(180).optional(),
+  author: optionalMinText(2),
+  seoMetaTitle: optionalShortText(120),
+  seoMetaDescription: optionalShortText(180),
   relatedProductIds: z.array(z.string()).optional(),
   isPublished: z.boolean().optional()
 });
