@@ -1,6 +1,8 @@
-/** آدرس پیش‌فرض دیتابیس production — فقط اگر MONGODB_URI در env نباشد */
+/** آدرس پیش‌فرض دیتابیس — فقط اگر MONGODB_URI در env نباشد */
 export const DEFAULT_MONGODB_URI =
-  'mongodb://nedicon1_web:ZaminKavan1388@212.33.203.189:27017/nedicon1_web';
+  process.env.NODE_ENV === 'production'
+    ? ''
+    : 'mongodb://localhost:27017/nedico_dev';
 
 export function parseDbNameFromUri(uri: string): string | undefined {
   const base = uri.split('?')[0];
