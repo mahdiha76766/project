@@ -45,7 +45,7 @@ export function buildEnvFile(config: DeployConfig) {
     `NODE_ENV=${config.nodeEnv}`,
     '',
     '# دیتابیس MongoDB — فقط در فایل .env روی سرور (از پنل ادمین قابل تغییر نیست)',
-    'MONGODB_URI=mongodb://nedicon1_web:ZaminKavan1388@212.33.203.189:27017/nedicon1_web',
+    '# MONGODB_URI=mongodb://user:pass@host:port/dbname',
     '',
     '# احراز هویت و آدرس سایت',
     `AUTH_SECRET=${config.authSecret}`,
