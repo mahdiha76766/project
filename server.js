@@ -137,6 +137,15 @@ const next = require('next');
 const app = next({ dev, hostname, port, dir: __dirname });
 const handle = app.getRequestHandler();
 
+// Try to initialize backup cron job
+try {
+  const { initializeCronJob } = require('./lib/admin/backup.ts');
+  initializeCronJob();
+} catch (e) {
+  // Ignore in case TS requires build first or transpilation
+  console.log('[server] backup cron initialization skipped (requires transpilation first or dev start).');
+}
+
 app
   .prepare()
   .then(() => {
