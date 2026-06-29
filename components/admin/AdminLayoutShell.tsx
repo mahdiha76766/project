@@ -17,6 +17,7 @@ import {
   Image,
   Settings,
   Server,
+  Save,
   X,
   CreditCard,
   BarChart3,
@@ -26,6 +27,7 @@ import {
   MessageSquareText
 } from 'lucide-react';
 import { useState } from 'react';
+import { CronInit } from './init/CronInit';
 
 const navItems = [
   { href: '/admin/analytics', label: 'آمار بازدید', icon: BarChart3 },
@@ -47,7 +49,8 @@ const navItems = [
   { href: '/admin/banners', label: 'بنرها', icon: Image },
   { href: '/admin/slider', label: 'اسلایدر صفحه اصلی', icon: Image },
   { href: '/admin/settings', label: 'سئو و تنظیمات سایت', icon: Settings },
-  { href: '/admin/server', label: 'راه‌اندازی سرور', icon: Server }
+  { href: '/admin/server', label: 'راه‌اندازی سرور', icon: Server },
+  { href: '/admin/backups', label: 'بک‌آپ و بازیابی', icon: Save }
 ];
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
@@ -105,6 +108,7 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      <CronInit />
       <div className="mx-auto grid max-w-[1600px] gap-5 p-4 lg:grid-cols-[270px,1fr]">
         <aside className="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-4 lg:block lg:h-[calc(100vh-2rem)]">
           {sidebar}
