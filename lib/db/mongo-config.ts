@@ -2,7 +2,7 @@
 export const DEFAULT_MONGODB_URI =
   process.env.NODE_ENV === 'production'
     ? ''
-    : 'mongodb://localhost:27017/nedico_dev';
+    : 'mongodb://localhost:27017/shop_db';
 
 export function parseDbNameFromUri(uri: string): string | undefined {
   const base = uri.split('?')[0];
