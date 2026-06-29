@@ -24,8 +24,7 @@ export async function createBackupZip(): Promise<string> {
   const filePath = path.join(TEMP_DIR, filename);
 
   const output = fs.createWriteStream(filePath);
-  // @ts-ignore
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  const archive = new archiver.ZipArchive({ zlib: { level: 9 } });
 
   return new Promise(async (resolve, reject) => {
     // output.on('close', () => resolve(filePath)); // Handled after db stream
