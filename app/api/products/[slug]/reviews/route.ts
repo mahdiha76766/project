@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { Product, Review, User } from '@/models';
 import { getSessionUser } from '@/lib/auth/session';
+import { verifyCaptchaFromBody } from '@/lib/captcha/verify-request';
 
 const createReviewSchema = z.object({ rating: z.number().min(1).max(5), title: z.string().trim().min(3).max(120), comment: z.string().trim().min(10).max(2000) });
 
@@ -21,12 +22,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'برای ثبت نظر باید وارد حساب کاربری شوید.' }, { status: 401 });
 
+  const raw = await req.json();
+  const captcha = await verifyCaptchaFromBody(raw, 'reviews');
+  if (!captcha.ok) return NextResponse.json({ error: captcha.error }, { status: 400 });
+  const parsed = createReviewSchema.parse(raw);
   const { slug } = await params;
   await connectToDatabase();
   const product = await Product.findOne({ slug, isActive: true }).select('_id');
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-
-  const parsed = createReviewSchema.parse(await req.json());
   const user = await User.findById(session.userId).select('name');
 
   const existing = await Review.findOne({ productId: product._id, userId: session.userId, isDeleted: false });

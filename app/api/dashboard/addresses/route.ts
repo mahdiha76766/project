@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getSessionUser } from '@/lib/auth/session';
 import { connectToDatabase } from '@/lib/db/mongoose';
+import { parseAddressBody } from '@/lib/dashboard/address-schema';
 import { UserAddress } from '@/models';
-
-const schema = z.object({ recipientName: z.string().min(2), phone: z.string().min(8), province: z.string().min(2), city: z.string().min(2), addressLine: z.string().min(5), postalCode: z.string().min(5), plaque: z.string().optional(), unit: z.string().optional(), isDefault: z.boolean().optional() });
 
 export async function GET() {
   const user = await getSessionUser();
@@ -17,9 +15,13 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const parsed = schema.parse(await req.json());
+
+  const body = await req.json();
+  const parsed = parseAddressBody(body);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+
   await connectToDatabase();
-  if (parsed.isDefault) await UserAddress.updateMany({ userId: user.userId }, { isDefault: false });
-  const item = await UserAddress.create({ ...parsed, userId: user.userId });
+  if (parsed.data.isDefault) await UserAddress.updateMany({ userId: user.userId }, { isDefault: false });
+  const item = await UserAddress.create({ ...parsed.data, userId: user.userId });
   return NextResponse.json({ item }, { status: 201 });
 }

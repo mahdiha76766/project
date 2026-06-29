@@ -1,0 +1,47 @@
+/* Prevent Tailwind/global img rules from stretching Leaflet markers */
+.leaflet-marker-icon.custom-map-marker,
+.leaflet-marker-icon.custom-map-marker img {
+  width: 25px !important;
+  height: 41px !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+}
+
+.custom-map-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-marker-shadow {
+  display: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-container {
+  font-family: 'IRANSansWeb', inherit !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: none !important;
+}
+
+@keyframes map-ping {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+.map-ping-anim {
+  animation: map-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

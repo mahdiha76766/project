@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { Schema, model, models } from 'mongoose';
+import { Schema } from 'mongoose';
+import { registerModel } from '@/lib/db/register-model';
 import { USER_ROLES } from '@/constants/roles';
 
 const UserSchema = new Schema(
@@ -9,7 +10,8 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true, minlength: 8, select: false },
     role: { type: String, enum: USER_ROLES, default: 'CUSTOMER' },
-    isBlocked: { type: Boolean, default: false }
+    isBlocked: { type: Boolean, default: false },
+    mobileVerified: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
@@ -20,4 +22,4 @@ UserSchema.pre('save', async function hashPassword(next) {
   next();
 });
 
-export const User = models.User || model('User', UserSchema);
+export const User = registerModel('User', UserSchema);

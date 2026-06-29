@@ -5,9 +5,16 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
+import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
 
 const optionalShortText = (max: number) => z.string().trim().max(max).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
 const optionalMinText = (min: number) => z.string().trim().min(min).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
+
+const mediaItemSchema = z.object({
+  type: z.enum(['image', 'video']).default('image'),
+  url: z.string().trim().min(1),
+  poster: z.string().trim().optional()
+});
 
 const blogInputSchema = z.object({
   title: z.string().trim().min(3),
@@ -21,15 +28,21 @@ const blogInputSchema = z.object({
   seoMetaTitle: optionalShortText(120),
   seoMetaDescription: optionalShortText(180),
   relatedProductIds: z.array(z.string()).optional(),
-  isPublished: z.boolean().optional()
+  isPublished: z.boolean().optional(),
+  media: z.array(mediaItemSchema).optional()
 });
 
 async function guard() { const u = await getSessionUser(); return u && hasMinimumRole(u.role, 'ADMIN'); }
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const { page, limit, skip } = getPaginationParams(req.url);
   await connectToDatabase();
-  return NextResponse.json({ items: await BlogPost.find().sort({ createdAt: -1 }).lean() });
+  const [items, total] = await Promise.all([
+    BlogPost.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    BlogPost.countDocuments()
+  ]);
+  return NextResponse.json(paginatedResponse(items, total, page, limit));
 }
 
 export async function POST(req: Request) {
@@ -51,10 +64,11 @@ export async function POST(req: Request) {
     content: parsed.content,
     category: parsed.category || 'عمومی',
     tags: parsed.tags || [],
-    author: parsed.author || 'تیم محتوای عصاره طبیعت',
+    author: parsed.author || 'تیم محتوای نابسرا',
     seoMetaTitle: parsed.seoMetaTitle || '',
     seoMetaDescription: parsed.seoMetaDescription || '',
     relatedProductIds: parsed.relatedProductIds || [],
+    media: parsed.media || [],
     isPublished: parsed.isPublished ?? true,
     publishedAt: parsed.isPublished === false ? undefined : new Date()
   });

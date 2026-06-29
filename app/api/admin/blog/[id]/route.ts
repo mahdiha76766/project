@@ -9,6 +9,12 @@ import { slugify } from '@/lib/utils/slugify';
 const optionalShortText = (max: number) => z.string().trim().max(max).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
 const optionalMinText = (min: number) => z.string().trim().min(min).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
 
+const mediaItemSchema = z.object({
+  type: z.enum(['image', 'video']).default('image'),
+  url: z.string().trim().min(1),
+  poster: z.string().trim().optional()
+});
+
 const blogUpdateSchema = z.object({
   title: z.string().trim().min(3).optional(),
   slug: optionalShortText(200),
@@ -21,7 +27,8 @@ const blogUpdateSchema = z.object({
   seoMetaTitle: optionalShortText(120),
   seoMetaDescription: optionalShortText(180),
   relatedProductIds: z.array(z.string()).optional(),
-  isPublished: z.boolean().optional()
+  isPublished: z.boolean().optional(),
+  media: z.array(mediaItemSchema).optional()
 });
 
 async function guard() { const u = await getSessionUser(); return u && hasMinimumRole(u.role, 'ADMIN'); }

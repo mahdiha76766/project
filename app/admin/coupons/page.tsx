@@ -1,22 +1,256 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AdminCard } from '@/components/admin/ui/AdminCard';
-import { FieldLabel, SelectInput, TextInput } from '@/components/admin/ui/AdminField';
-import { AdminTable } from '@/components/admin/ui/AdminTable';
+import { Calendar, Hash, Percent, Tag, Ticket } from 'lucide-react';
+import {
+  AdminAlert,
+  AdminCard,
+  AdminCheckbox,
+  AdminPageHeader,
+  AdminPagination,
+  AdminPrimaryButton,
+  AdminProTable,
+  FieldLabel,
+  JalaliDateInput,
+  SelectInput,
+  TextArea,
+  TextInput
+} from '@/components/admin/ui';
+import { adminFetch } from '@/lib/admin/client';
+import { formatJalaliDate } from '@/lib/admin/jalali';
+import { DISCOUNT_TYPE_LABELS, labelOf } from '@/lib/admin/labels';
+import { useAdminList } from '@/hooks/useAdminList';
 
-type Coupon = { _id: string; code: string; discountType: 'PERCENT'|'FIXED'|'FREE_SHIPPING'; value: number; startsAt: string; expiresAt: string; usageLimit: number; usagePerUserLimit: number; isActive: boolean };
+type Cat = { _id: string; name: string };
+
+type Coupon = {
+  _id: string;
+  code: string;
+  title?: string;
+  description?: string;
+  discountType: 'PERCENT' | 'FIXED' | 'FREE_SHIPPING';
+  value: number;
+  startsAt: string;
+  expiresAt: string;
+  usageLimit: number;
+  usagePerUserLimit: number;
+  minPurchaseAmount?: number;
+  maxDiscountAmount?: number;
+  allowedCategories?: string[] | Cat[];
+  isActive: boolean;
+};
+
+const emptyForm = {
+  id: '',
+  code: '',
+  title: '',
+  description: '',
+  discountType: 'PERCENT',
+  value: '',
+  startsAt: '',
+  expiresAt: '',
+  usageLimit: '0',
+  usagePerUserLimit: '1',
+  minPurchaseAmount: '0',
+  maxDiscountAmount: '',
+  allowedCategories: [] as string[],
+  isActive: true
+};
 
 export default function AdminCouponsPage() {
-  const [items, setItems] = useState<Coupon[]>([]);
-  const [form, setForm] = useState({ id:'', code:'', discountType:'PERCENT', value:'', startsAt:'', expiresAt:'', usageLimit:'0', usagePerUserLimit:'1', minPurchaseAmount:'0', maxDiscountAmount:'', isActive:true });
-  const load = async () => setItems((await (await fetch('/api/admin/coupons')).json()).items || []);
-  useEffect(() => { void load(); }, []);
-  const save = async () => { const method=form.id?'PUT':'POST'; const url=form.id?`/api/admin/coupons/${form.id}`:'/api/admin/coupons'; await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify({...form, value:Number(form.value||0), usageLimit:Number(form.usageLimit||0), usagePerUserLimit:Number(form.usagePerUserLimit||1), minPurchaseAmount:Number(form.minPurchaseAmount||0), maxDiscountAmount:form.maxDiscountAmount?Number(form.maxDiscountAmount):undefined})}); setForm({ id:'', code:'', discountType:'PERCENT', value:'', startsAt:'', expiresAt:'', usageLimit:'0', usagePerUserLimit:'1', minPurchaseAmount:'0', maxDiscountAmount:'', isActive:true }); void load(); };
+  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Coupon>('/api/admin/coupons');
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [form, setForm] = useState(emptyForm);
+  const [formError, setFormError] = useState('');
+  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  return <main className="space-y-6"><h1 className="text-2xl font-black text-slate-900">مدیریت کدهای تخفیف</h1><AdminCard title={form.id?'ویرایش کد تخفیف':'ایجاد کد تخفیف'}><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><div><FieldLabel text="کد"/><TextInput value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/></div><div><FieldLabel text="نوع تخفیف"/><SelectInput value={form.discountType} onChange={e=>setForm({...form,discountType:e.target.value})}><option value="PERCENT">درصدی</option><option value="FIXED">مبلغی</option><option value="FREE_SHIPPING">ارسال رایگان</option></SelectInput></div><div><FieldLabel text="مقدار"/><TextInput value={form.value} onChange={e=>setForm({...form,value:e.target.value})}/></div><div><FieldLabel text="سقف تخفیف"/><TextInput value={form.maxDiscountAmount} onChange={e=>setForm({...form,maxDiscountAmount:e.target.value})}/></div><div><FieldLabel text="حداقل خرید"/><TextInput value={form.minPurchaseAmount} onChange={e=>setForm({...form,minPurchaseAmount:e.target.value})}/></div><div><FieldLabel text="شروع"/><TextInput type="date" value={form.startsAt} onChange={e=>setForm({...form,startsAt:e.target.value})}/></div><div><FieldLabel text="انقضا"/><TextInput type="date" value={form.expiresAt} onChange={e=>setForm({...form,expiresAt:e.target.value})}/></div><div><FieldLabel text="حد استفاده"/><TextInput value={form.usageLimit} onChange={e=>setForm({...form,usageLimit:e.target.value})}/></div><div><FieldLabel text="حد هر کاربر"/><TextInput value={form.usagePerUserLimit} onChange={e=>setForm({...form,usagePerUserLimit:e.target.value})}/></div><label className="inline-flex items-center gap-2 pt-8 text-sm"><input type="checkbox" checked={form.isActive} onChange={e=>setForm({...form,isActive:e.target.checked})}/> فعال</label></div><button className="mt-4 h-11 rounded-xl bg-amber-600 px-4 text-white" onClick={save}>{form.id?'ذخیره تغییرات':'ایجاد کد'}</button></AdminCard>
+  useEffect(() => {
+    void (async () => {
+      const { ok, data } = await adminFetch<{ items: Cat[] }>('/api/admin/categories?all=1');
+      if (ok) setCats(data.items || []);
+    })();
+  }, []);
 
-  <AdminTable head={<tr className="[&>th]:px-4 [&>th]:py-3 [&>th]:text-right"><th>کد</th><th>نوع</th><th>مقدار</th><th>بازه</th><th>استفاده</th><th>وضعیت</th><th>عملیات</th></tr>}>
-    {items.map(c => <tr key={c._id} className="[&>td]:px-4 [&>td]:py-3"><td className="font-bold">{c.code}</td><td>{c.discountType}</td><td>{c.value}</td><td>{new Date(c.startsAt).toLocaleDateString('fa-IR')} - {new Date(c.expiresAt).toLocaleDateString('fa-IR')}</td><td>{c.usagePerUserLimit}/{c.usageLimit || '∞'}</td><td><span className={`rounded-full px-2 py-1 text-xs ${c.isActive?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-600'}`}>{c.isActive?'فعال':'غیرفعال'}</span></td><td className="space-x-3 space-x-reverse"><button className="text-amber-700" onClick={()=>setForm({id:c._id,code:c.code,discountType:c.discountType,value:String(c.value),startsAt:c.startsAt?.slice(0,10),expiresAt:c.expiresAt?.slice(0,10),usageLimit:String(c.usageLimit||0),usagePerUserLimit:String(c.usagePerUserLimit||1),minPurchaseAmount:'0',maxDiscountAmount:'',isActive:c.isActive})}>ویرایش</button><button className="text-red-600" onClick={async()=>{await fetch(`/api/admin/coupons/${c._id}`,{method:'DELETE'});void load();}}>حذف</button></td></tr>)}
-  </AdminTable></main>;
+  const resetForm = () => setForm(emptyForm);
+  const isFreeShipping = form.discountType === 'FREE_SHIPPING';
+
+  const save = async () => {
+    setSaving(true);
+    setFormError('');
+    setMessage('');
+    const payload = {
+      code: form.code.trim(),
+      title: form.title.trim(),
+      description: form.description.trim(),
+      discountType: form.discountType,
+      value: isFreeShipping ? 0 : Number(form.value || 0),
+      startsAt: form.startsAt,
+      expiresAt: form.expiresAt,
+      usageLimit: Number(form.usageLimit || 0),
+      usagePerUserLimit: Number(form.usagePerUserLimit || 1),
+      minPurchaseAmount: Number(form.minPurchaseAmount || 0),
+      maxDiscountAmount: form.maxDiscountAmount ? Number(form.maxDiscountAmount) : undefined,
+      allowedCategories: form.allowedCategories,
+      isActive: form.isActive
+    };
+    const method = form.id ? 'PUT' : 'POST';
+    const url = form.id ? `/api/admin/coupons/${form.id}` : '/api/admin/coupons';
+    const { ok, error: saveError } = await adminFetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    setSaving(false);
+    if (!ok) {
+      setFormError(saveError);
+      return;
+    }
+    setMessage(form.id ? 'کد تخفیف ویرایش شد.' : 'کد تخفیف ایجاد شد.');
+    resetForm();
+    reload();
+  };
+
+  const editItem = (c: Coupon) => {
+    setFormError('');
+    setMessage('');
+    const categoryIds = (c.allowedCategories || []).map((cat) =>
+      typeof cat === 'object' && cat ? cat._id : String(cat)
+    );
+    setForm({
+      id: c._id,
+      code: c.code,
+      title: c.title || '',
+      description: c.description || '',
+      discountType: c.discountType,
+      value: String(c.value),
+      startsAt: c.startsAt || '',
+      expiresAt: c.expiresAt || '',
+      usageLimit: String(c.usageLimit || 0),
+      usagePerUserLimit: String(c.usagePerUserLimit || 1),
+      minPurchaseAmount: String(c.minPurchaseAmount || 0),
+      maxDiscountAmount: c.maxDiscountAmount ? String(c.maxDiscountAmount) : '',
+      allowedCategories: categoryIds,
+      isActive: c.isActive
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const removeItem = async (id: string) => {
+    if (!confirm('این کد تخفیف حذف شود؟')) return;
+    const { ok, error: deleteError } = await adminFetch(`/api/admin/coupons/${id}`, { method: 'DELETE' });
+    if (!ok) setFormError(deleteError);
+    else {
+      setMessage('کد تخفیف حذف شد.');
+      reload();
+    }
+  };
+
+  const toggleCategory = (id: string) => {
+    setForm((prev) => ({
+      ...prev,
+      allowedCategories: prev.allowedCategories.includes(id)
+        ? prev.allowedCategories.filter((c) => c !== id)
+        : [...prev.allowedCategories, id]
+    }));
+  };
+
+  return (
+    <main>
+      <AdminPageHeader title="مدیریت کدهای تخفیف" description="کدهای درصدی، مبلغ ثابت و ارسال رایگان اختصاصی" />
+
+      <AdminCard title={form.id ? 'ویرایش کد تخفیف' : 'ایجاد کد تخفیف'}>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div><FieldLabel text="کد" /><TextInput value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} dir="ltr" className="text-right uppercase" /></div>
+          <div>
+            <FieldLabel text="نوع تخفیف" />
+            <SelectInput value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })}>
+              <option value="PERCENT">درصدی</option>
+              <option value="FIXED">مبلغ ثابت</option>
+              <option value="FREE_SHIPPING">ارسال رایگان</option>
+            </SelectInput>
+          </div>
+          <div className="md:col-span-2"><FieldLabel text="عنوان نمایشی" /><TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="مثلاً ارسال رایگان ویژه" /></div>
+          <div className="md:col-span-2 xl:col-span-4">
+            <FieldLabel text="توضیحات" />
+            <TextArea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="شرایط استفاده برای مشتری" />
+          </div>
+          {!isFreeShipping ? (
+            <>
+              <div><FieldLabel text={form.discountType === 'PERCENT' ? 'درصد تخفیف' : 'مبلغ تخفیف (ریال)'} /><TextInput inputMode="numeric" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} dir="ltr" className="text-right" /></div>
+              {form.discountType === 'PERCENT' ? (
+                <div><FieldLabel text="سقف تخفیف (ریال)" /><TextInput inputMode="numeric" value={form.maxDiscountAmount} onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })} dir="ltr" className="text-right" /></div>
+              ) : null}
+            </>
+          ) : (
+            <div className="md:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              این کد هزینه ارسال (آنلاین و پرداخت در محل) را صفر می‌کند.
+            </div>
+          )}
+          <div><FieldLabel text="حداقل خرید (ریال)" /><TextInput inputMode="numeric" value={form.minPurchaseAmount} onChange={(e) => setForm({ ...form, minPurchaseAmount: e.target.value })} dir="ltr" className="text-right" /></div>
+          <JalaliDateInput label="تاریخ شروع" value={form.startsAt} onChange={(startsAt) => setForm({ ...form, startsAt })} />
+          <JalaliDateInput label="تاریخ انقضا" value={form.expiresAt} onChange={(expiresAt) => setForm({ ...form, expiresAt })} />
+          <div><FieldLabel text="حد کل استفاده (۰ = نامحدود)" /><TextInput inputMode="numeric" value={form.usageLimit} onChange={(e) => setForm({ ...form, usageLimit: e.target.value })} dir="ltr" className="text-right" /></div>
+          <div><FieldLabel text="حد استفاده هر کاربر" /><TextInput inputMode="numeric" value={form.usagePerUserLimit} onChange={(e) => setForm({ ...form, usagePerUserLimit: e.target.value })} dir="ltr" className="text-right" /></div>
+          <div className="md:col-span-2 xl:col-span-4">
+            <FieldLabel text="محدود به دسته‌بندی‌ها (اختیاری — خالی = همه)" />
+            <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              {cats.map((c) => (
+                <label key={c._id} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold">
+                  <input
+                    type="checkbox"
+                    checked={form.allowedCategories.includes(c._id)}
+                    onChange={() => toggleCategory(c._id)}
+                  />
+                  {c.name}
+                </label>
+              ))}
+              {!cats.length ? <span className="text-xs text-slate-500">دسته‌بندی‌ای یافت نشد</span> : null}
+            </div>
+          </div>
+          <AdminCheckbox label="فعال" checked={form.isActive} onChange={(isActive) => setForm({ ...form, isActive })} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <AdminPrimaryButton onClick={save} disabled={saving}>{saving ? 'در حال ذخیره...' : form.id ? 'ذخیره تغییرات' : 'ایجاد کد'}</AdminPrimaryButton>
+          {form.id ? <button type="button" onClick={resetForm} className="h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600">انصراف</button> : null}
+        </div>
+        {formError ? <div className="mt-3"><AdminAlert tone="error">{formError}</AdminAlert></div> : null}
+        {message ? <div className="mt-3"><AdminAlert tone="success">{message}</AdminAlert></div> : null}
+      </AdminCard>
+
+      <AdminCard title="لیست کدهای تخفیف">
+        {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
+        <AdminProTable
+          data={items}
+          loading={loading}
+          rowKey={(c) => c._id}
+          columns={[
+            { id: 'code', header: 'کد', icon: <Ticket className="h-3.5 w-3.5" />, type: 'ltr', accessor: (c) => c.code, sortable: true, searchable: true },
+            { id: 'title', header: 'عنوان', accessor: (c) => c.title || '—', sortable: true, searchable: true },
+            { id: 'discountType', header: 'نوع', icon: <Percent className="h-3.5 w-3.5" />, accessor: (c) => labelOf(DISCOUNT_TYPE_LABELS, c.discountType), sortable: true },
+            {
+              id: 'value',
+              header: 'مقدار',
+              render: (c) =>
+                c.discountType === 'FREE_SHIPPING'
+                  ? 'ارسال رایگان'
+                  : c.discountType === 'PERCENT'
+                    ? `${c.value.toLocaleString('fa-IR')}٪`
+                    : `${c.value.toLocaleString('fa-IR')} ریال`,
+              sortable: true,
+              accessor: (c) => c.value
+            },
+            { id: 'range', header: 'بازه زمانی', icon: <Calendar className="h-3.5 w-3.5" />, accessor: (c) => `${formatJalaliDate(c.startsAt)} - ${formatJalaliDate(c.expiresAt)}` },
+            { id: 'limits', header: 'محدودیت', icon: <Hash className="h-3.5 w-3.5" />, accessor: (c) => `${c.usagePerUserLimit} / ${c.usageLimit || '∞'}` },
+            { id: 'isActive', header: 'وضعیت', icon: <Tag className="h-3.5 w-3.5" />, type: 'badge', badge: (c) => ({ label: c.isActive ? 'فعال' : 'غیرفعال', tone: c.isActive ? 'success' : 'neutral' }), sortable: true }
+          ]}
+          actions={[
+            { id: 'edit', label: 'ویرایش', icon: 'edit', tone: 'primary', onClick: editItem },
+            { id: 'delete', label: 'حذف', icon: 'delete', tone: 'danger', onClick: (c) => removeItem(c._id) }
+          ]}
+        />
+        <AdminPagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
+      </AdminCard>
+    </main>
+  );
 }

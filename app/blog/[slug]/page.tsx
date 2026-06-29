@@ -1,67 +1,112 @@
 import Link from 'next/link';
-import { CalendarDays, UserRound, Tag } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { BlogPost, Product } from '@/models';
-import { connectToDatabase } from '@/lib/db/mongoose';
+import { CalendarDays, Tag, UserRound } from 'lucide-react';
+import { Container } from '@/components/ui/Container';
+import { StorePageHeader, StoreSidebar } from '@/components/shop/store/StorePageHeader';
+import { StoreBlogCompact } from '@/components/shop/store/StoreBlogCard';
+import { StoreRelatedProducts } from '@/components/shop/store/StoreProductCard';
 import { BlogCommentsSection } from '@/components/shop/BlogCommentsSection';
+import { ProductMediaGallery } from '@/components/shop/ProductMediaGallery';
+import { RichHtmlContent } from '@/components/shop/RichHtmlContent';
+import { normalizeGalleryMedia } from '@/lib/media/gallery';
+import { RtlForwardArrow } from '@/components/home/RtlForwardArrow';
+import { BlogPost, Product } from '@/models';
+import { withDatabase } from '@/lib/db/safe-query';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  await connectToDatabase();
-  const post = await BlogPost.findOne({ slug, isPublished: true }).lean();
-  if (!post) return { title: 'مقاله یافت نشد' };
-  return {
-    title: post.seoMetaTitle || `${post.title} | بلاگ عصاره طبیعت`,
-    description: post.seoMetaDescription || String(post.excerpt || post.content || '').slice(0, 160),
-    alternates: { canonical: `/blog/${post.slug}` }
-  };
+  return withDatabase(async () => {
+    const post: any = await BlogPost.findOne({ slug, isPublished: true }).lean();
+    if (!post) return { title: 'مقاله یافت نشد' };
+    return {
+      title: post.seoMetaTitle || `${post.title} | مجله`,
+      description: post.seoMetaDescription || String(post.excerpt || post.content || '').slice(0, 160),
+      alternates: { canonical: `/blog/${post.slug}` }
+    };
+  }, { title: 'مقاله یافت نشد' });
 }
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  await connectToDatabase();
-  const post: any = await BlogPost.findOneAndUpdate({ slug, isPublished: true }, { $inc: { views: 1 } }, { new: true }).lean();
+  const post: any = await withDatabase(
+    () => BlogPost.findOneAndUpdate({ slug, isPublished: true }, { $inc: { views: 1 } }, { new: true }).lean(),
+    null
+  );
   if (!post) notFound();
 
-  const sidePosts = await BlogPost.find({ isPublished: true, slug: { $ne: post.slug } }).sort({ publishedAt: -1, createdAt: -1 }).limit(8).lean();
-  const relatedPosts = await BlogPost.find({ isPublished: true, _id: { $ne: post._id }, $or: [{ category: post.category }, { tags: { $in: post.tags || [] } }] }).sort({ publishedAt: -1 }).limit(3).lean();
-  const relatedProducts = post.relatedProductIds?.length ? await Product.find({ _id: { $in: post.relatedProductIds }, isActive: true }).select('name slug price discountPrice images').lean() : [];
+  const [sidePosts, relatedPosts, relatedProducts] = await withDatabase(
+    () =>
+      Promise.all([
+        BlogPost.find({ isPublished: true, slug: { $ne: post.slug } }).sort({ publishedAt: -1 }).limit(8).lean(),
+        BlogPost.find({ isPublished: true, _id: { $ne: post._id }, category: post.category }).sort({ publishedAt: -1 }).limit(3).lean(),
+        post.relatedProductIds?.length
+          ? Product.find({ _id: { $in: post.relatedProductIds }, isActive: true }).select('name slug price discountPrice images').lean()
+          : Promise.resolve([])
+      ]),
+    [[], [], []] as [unknown[], unknown[], unknown[]]
+  );
+
+  const media = normalizeGalleryMedia(post.media, post.coverImage ? [post.coverImage] : []);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      <div className="grid gap-6 lg:grid-cols-[300px,1fr]">
-        <aside className="order-2 lg:order-1">
-          <div className="top-6 rounded-3xl border border-[#e6dcc8] bg-white p-4 shadow-sm lg:sticky">
-            <h3 className="mb-3 text-lg font-black text-[#4d382b]">سایر مقالات</h3>
-            <div className="space-y-3">
-              {sidePosts.map((p: any) => (
-                <Link key={String(p._id)} href={`/blog/${p.slug}`} className="group flex gap-3 rounded-2xl border border-[#efe4d0] p-2 transition hover:bg-[#faf5ea]">
-                  <img src={p.coverImage || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5'} alt={p.title} className="h-16 w-16 rounded-xl object-cover" />
-                  <div><p className="line-clamp-2 text-sm font-bold text-[#5a3e2b]">{p.title}</p></div>
-                </Link>
-              ))}
-            </div>
+    <>
+      <StorePageHeader
+        label={post.category || 'مقاله'}
+        title={post.title}
+        breadcrumbs={[
+          { label: 'خانه', href: '/' },
+          { label: 'وبلاگ', href: '/blog' },
+          { label: post.title }
+        ]}
+      />
+      <Container className="py-10 lg:py-12">
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          <StoreSidebar title="مقالات دیگر">
+            {sidePosts.map((p: any) => (
+              <StoreBlogCompact key={String(p._id)} slug={p.slug} title={p.title} coverImage={p.coverImage} />
+            ))}
+          </StoreSidebar>
+
+          <div className="space-y-8">
+            <article className="overflow-hidden rounded-2xl border border-surface-200 bg-surface-0">
+              <div className="p-4 sm:p-6">
+                <ProductMediaGallery media={media} name={post.title} />
+              </div>
+              <div className="p-6 sm:p-8 pt-0">
+                <div className="flex flex-wrap gap-4 text-xs text-surface-500">
+                  <span className="inline-flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />{post.author || 'تیم محتوا'}</span>
+                  <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fa-IR') : '-'}</span>
+                  <span className="inline-flex items-center gap-1"><Tag className="h-3.5 w-3.5" />{post.category || 'عمومی'}</span>
+                </div>
+                {post.excerpt ? (
+                  <p className="mt-6 rounded-xl bg-brand-50 p-4 text-sm leading-7 text-surface-700">{post.excerpt}</p>
+                ) : null}
+                <div className="mt-8">
+                  <RichHtmlContent html={post.content} />
+                </div>
+              </div>
+            </article>
+
+            {relatedProducts.length ? <StoreRelatedProducts title="محصولات مرتبط" products={relatedProducts as unknown as Parameters<typeof StoreRelatedProducts>[0]['products']} /> : null}
+
+            {relatedPosts.length ? (
+              <section className="rounded-2xl border border-surface-200 bg-surface-0 p-6">
+                <h3 className="font-bold text-surface-900">مقالات مرتبط</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {relatedPosts.map((p: any) => (
+                    <Link key={String(p._id)} href={`/blog/${p.slug}`} className="group rounded-xl border border-surface-200 p-4 transition hover:shadow-soft">
+                      <p className="line-clamp-3 text-sm font-semibold text-surface-900 group-hover:text-brand-700">{p.title}</p>
+                      <span className="site-link mt-2 text-xs">مطالعه<RtlForwardArrow className="h-3 w-3" /></span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <BlogCommentsSection slug={post.slug} />
           </div>
-        </aside>
-
-        <div className="order-1 lg:order-2">
-          <article className="overflow-hidden rounded-3xl border border-[#e6dcc8] bg-white shadow-sm">
-            <img src={post.coverImage || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5'} alt={post.title} className="h-72 w-full object-cover" />
-            <div className="p-6">
-              <h1 className="text-3xl font-black text-[#4d382b]">{post.title}</h1>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#7d6b5b]"><span className='inline-flex items-center gap-1'><UserRound size={14}/>{post.author || 'تیم محتوا'}</span><span className='inline-flex items-center gap-1'><CalendarDays size={14}/>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fa-IR') : '-'}</span><span className='inline-flex items-center gap-1'><Tag size={14}/>{post.category || 'عمومی'}</span></div>
-              {post.excerpt ? <p className="mt-4 rounded-xl bg-[#f7f2e8] p-4 text-sm leading-7 text-[#5f4a3c]">{post.excerpt}</p> : null}
-              <article className="mt-6 whitespace-pre-wrap leading-8 text-[#5f4a3c]">{post.content}</article>
-            </div>
-          </article>
-
-          {relatedProducts.length ? <section className='mt-8 rounded-3xl border border-[#e6dcc8] bg-white p-5'><h3 className='text-lg font-black text-[#4d382b]'>محصولات مرتبط</h3><div className='mt-4 grid gap-3 md:grid-cols-3'>{relatedProducts.map((p:any)=><Link key={String(p._id)} href={`/products/${p.slug}`} className='rounded-xl border border-[#eee2cf] p-3'><img src={p.images?.[0] || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5'} alt={p.name} className='h-28 w-full rounded-lg object-cover'/><p className='mt-2 text-sm font-bold text-[#5a3e2b]'>{p.name}</p><p className='text-xs text-[#6f5a4a]'>{(p.discountPrice ?? p.price).toLocaleString('fa-IR')} تومان</p></Link>)}</div></section> : null}
-
-          {relatedPosts.length ? <section className='mt-8 rounded-3xl border border-[#e6dcc8] bg-white p-5'><h3 className='text-lg font-black text-[#4d382b]'>مقالات مرتبط</h3><div className='mt-4 grid gap-3 md:grid-cols-3'>{relatedPosts.map((p:any)=><Link key={String(p._id)} href={`/blog/${p.slug}`} className='rounded-xl border border-[#eee2cf] p-3 text-sm font-bold text-[#5a3e2b]'>{p.title}</Link>)}</div></section> : null}
-
-          <BlogCommentsSection slug={post.slug} />
         </div>
-      </div>
-    </main>
+      </Container>
+    </>
   );
 }

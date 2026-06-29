@@ -1,29 +1,26 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { MainHeader } from '@/components/shop/MainHeader';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
+/** داده‌ها از MongoDB می‌آیند — در زمان build به DB وصل نمی‌شود */
+export const dynamic = 'force-dynamic';
+import { ShopChromeWrapper } from '@/components/layout/ShopChromeWrapper';
+import { SiteScripts } from '@/components/seo/SiteScripts';
+import { getSiteSeoSettings } from '@/lib/admin/site-settings';
+import { buildSiteMetadata } from '@/lib/seo/site-metadata';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-  title: 'فروشگاه روغن و ادویه | عصاره طبیعت',
-  description: 'خرید آنلاین روغن‌های طبیعی، ادویه‌های اصیل و محصولات عصاری با ارسال سریع.',
-  alternates: { canonical: '/' },
-  openGraph: {
-    title: 'فروشگاه روغن و ادویه | عصاره طبیعت',
-    description: 'محصولات طبیعی و تازه با ضمانت کیفیت.',
-    url: BASE_URL,
-    type: 'website',
-    images: [{ url: '/og-default.jpg', width: 1200, height: 630 }]
-  }
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSiteSeoSettings();
+  return buildSiteMetadata(seo);
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const seo = await getSiteSeoSettings();
+
   return (
     <html lang="fa" dir="rtl">
-      <body>
-        <MainHeader />
-        {children}
+      <body className="flex min-h-screen flex-col">
+        <SiteScripts seo={seo} />
+        <ShopChromeWrapper>{children}</ShopChromeWrapper>
       </body>
     </html>
   );

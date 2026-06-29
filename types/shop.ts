@@ -25,6 +25,8 @@ export interface ShopProduct {
   temperament?: string;
   featured?: boolean;
   bestSeller?: boolean;
+  hasVariants?: boolean;
+  discountLabel?: string;
   freshPressed?: boolean;
   popularSpice?: boolean;
   productionDate?: string;

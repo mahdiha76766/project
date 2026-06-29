@@ -1,23 +1,54 @@
 import { notFound } from 'next/navigation';
-import { products, storeCategories } from '@/lib/data/shop-data';
-import { ProductCard } from '@/components/shop/ProductCard';
+import { Container } from '@/components/ui/Container';
+import { StorePageHeader, StoreEmpty } from '@/components/shop/store/StorePageHeader';
+import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
+import { mapProductListing } from '@/lib/shop/map-product-listing';
+import { Category, Product } from '@/models';
+import { withDatabase } from '@/lib/db/safe-query';
+import type { ShopProduct } from '@/types/shop';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = storeCategories.find((c) => c.slug === slug);
-  if (!category) return { title: 'دسته‌بندی یافت نشد' };
-  return {
-    title: `${category.name} | فروشگاه عصاره طبیعت`,
-    description: category.description,
-    alternates: { canonical: `/categories/${category.slug}` }
-  };
+  return withDatabase(async () => {
+    const category: any = await Category.findOne({ slug, isActive: true }).lean();
+    if (!category) return { title: 'دسته یافت نشد' };
+    return { title: `${category.name} | نابسرا`, description: category.description };
+  }, { title: 'دسته یافت نشد' });
 }
 
 export default async function CategoryDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = storeCategories.find((c) => c.slug === slug);
+  const category: any = await withDatabase(
+    () => Category.findOne({ slug, isActive: true }).lean(),
+    null
+  );
   if (!category) notFound();
-  const items = products.filter((p) => p.category === slug);
 
-  return <main className="mx-auto max-w-6xl p-6"><h1 className="text-2xl font-bold">{category.name}</h1><div className="mt-4 grid gap-4 md:grid-cols-3">{items.map((p) => <ProductCard key={p.id} product={p} />)}</div></main>;
+  const items = await withDatabase(
+    () => Product.find({ isActive: true, category: category._id }).sort({ isFeatured: -1, createdAt: -1 }).lean(),
+    []
+  );
+  const products: ShopProduct[] = items.map((p: any) => mapProductListing(p, slug));
+
+  return (
+    <>
+      <StorePageHeader
+        label="دسته"
+        title={category.name}
+        description={category.description}
+        breadcrumbs={[
+          { label: 'خانه', href: '/' },
+          { label: 'دسته‌بندی‌ها', href: '/categories' },
+          { label: category.name }
+        ]}
+      />
+      <Container className="py-10 lg:py-12">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {products.length ? products.map((p) => <StoreProductCard key={p.id} product={p} />) : (
+            <StoreEmpty message="محصولی در این دسته نیست." />
+          )}
+        </div>
+      </Container>
+    </>
+  );
 }

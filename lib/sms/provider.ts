@@ -1,4 +1,2 @@
-export const sendOrderConfirmationSms = async (mobile: string, orderId: string) => {
-  console.log(`[SMS] Order ${orderId} confirmed for ${mobile}`);
-  return { success: true };
-};
+/** @deprecated Import from @/lib/sms/sms-service */
+export { sendManualSms, sendEventSms, sendOrderSms } from './sms-service';

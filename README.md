@@ -30,6 +30,28 @@
 - ایندکس MongoDB روی product text search
 - پایه cache/بهینه‌سازی query و آماده pagination
 
+## Deploy on cPanel (shared hosting)
+
+Build **locally** (prefer WSL/Linux), upload to `/home/nedicon1/web`. Do **not** run `npm run build` on the server.
+
+```bash
+# In WSL Ubuntu (recommended — Linux node_modules + SWC)
+npm ci
+npm run build
+npm run deploy:prune
+npm run deploy:check
+```
+
+**Upload:** `.next/`, `node_modules/`, `public/`, `server.js`, `next.config.js`, `package.json`, `ecosystem.config.cjs`, `.env`
+
+**Do not upload:** `app/`, `components/`, dev caches (`.next/cache/webpack/*-development*`), `.git`
+
+**cPanel Node.js:** startup file `server.js`, `NODE_ENV=production`, Node 20.x
+
+**On server (SSH):** `chmod +x node_modules/.bin/*` then `pm2 start ecosystem.config.cjs`
+
+See `deploy-manifest.txt` after `npm run deploy:check`.
+
 ## Operations & Monitoring
 - endpoint سلامت: `GET /api/health`
 - لاگ پرداخت، سفارش، خطا قابل اتصال به Sentry/ELK

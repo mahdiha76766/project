@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BlogComment, BlogPost, User } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { getSessionUser } from '@/lib/auth/session';
+import { verifyCaptchaFromBody } from '@/lib/captcha/verify-request';
 
 const commentSchema = z.object({ comment: z.string().trim().min(5).max(1000) });
 
@@ -18,7 +19,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'برای ارسال دیدگاه باید وارد حساب کاربری شوید.' }, { status: 401 });
-  const parsed = commentSchema.parse(await req.json());
+  const raw = await req.json();
+  const captcha = await verifyCaptchaFromBody(raw, 'comments');
+  if (!captcha.ok) return NextResponse.json({ error: captcha.error }, { status: 400 });
+  const parsed = commentSchema.parse(raw);
   const { slug } = await params;
   await connectToDatabase();
   const post = await BlogPost.findOne({ slug, isPublished: true }).select('_id');

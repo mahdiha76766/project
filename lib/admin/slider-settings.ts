@@ -1,25 +1,40 @@
-import { Setting } from '@/models';
+import { Setting } from '@/models/SupportModels';
 import { connectToDatabase } from '@/lib/db/mongoose';
+import {
+  defaultSliderConfig,
+  defaultSlides,
+  type HeroSliderConfig
+} from '@/lib/admin/slider-config';
 
-export interface HeroSlide {
-  title: string;
-  subtitle: string;
-  image: string;
-  ctaText: string;
-  ctaLink: string;
+export type { HeroSlide, HeroSliderConfig } from '@/lib/admin/slider-config';
+export { defaultSlides, defaultSliderConfig } from '@/lib/admin/slider-config';
+
+function normalizeConfig(value: unknown): HeroSliderConfig {
+  if (Array.isArray(value) && value.length) {
+    return { slides: value as HeroSliderConfig['slides'], autoplayInterval: 6000 };
+  }
+  if (value && typeof value === 'object' && Array.isArray((value as HeroSliderConfig).slides)) {
+    const cfg = value as HeroSliderConfig;
+    return {
+      slides: cfg.slides.length ? cfg.slides : defaultSlides,
+      autoplayInterval: cfg.autoplayInterval || 6000
+    };
+  }
+  return defaultSliderConfig;
 }
 
-export const defaultSlides: HeroSlide[] = [
-  { title: 'روغن‌های تازه‌گیری‌شده', subtitle: 'کیفیت ممتاز و طبیعی', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5', ctaText: 'خرید روغن‌ها', ctaLink: '/products?category=oils' },
-  { title: 'ادویه‌های خوش‌عطر', subtitle: 'طعم اصیل ایرانی', image: 'https://images.unsplash.com/photo-1615485291234-9fbc5ec80a8f', ctaText: 'مشاهده ادویه‌ها', ctaLink: '/products?category=spices' }
-];
-
-export const getHeroSlides = async (): Promise<HeroSlide[]> => {
+export const getHeroSliderConfig = async (): Promise<HeroSliderConfig> => {
   try {
     await connectToDatabase();
-    const setting = await Setting.findOne({ key: 'home_hero_slides' }).lean();
-    return (setting?.value as HeroSlide[])?.length ? (setting.value as HeroSlide[]) : defaultSlides;
+    const setting = await Setting.findOne({ key: 'home_hero_slides' }).lean() as { value?: unknown } | null;
+    return normalizeConfig(setting?.value);
   } catch {
-    return defaultSlides;
+    return defaultSliderConfig;
   }
+};
+
+/** @deprecated use getHeroSliderConfig */
+export const getHeroSlides = async () => {
+  const cfg = await getHeroSliderConfig();
+  return cfg.slides;
 };
