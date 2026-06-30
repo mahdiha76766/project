@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import * as archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { google } from 'googleapis';
@@ -25,7 +25,7 @@ export async function createBackupZip(): Promise<string> {
 
   const output = fs.createWriteStream(filePath);
   // @ts-ignore
-  const archive = archiver('zip', { zlib: { level: 9 } });
+  const archive = new ZipArchive({ zlib: { level: 9 } });
 
   return new Promise(async (resolve, reject) => {
     // output.on('close', () => resolve(filePath)); // Handled after db stream
