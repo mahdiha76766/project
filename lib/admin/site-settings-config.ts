@@ -25,7 +25,7 @@ export const defaultSiteSeoSettings: SiteSeoSettings = {
   keywords: ['روغن طبیعی', 'ادویه اصیل', 'عطاری آنلاین', 'روغن زیتون', 'زعفران', 'نابسرا'],
   faviconUrl: '/og-default.jpg',
   ogImageUrl: '/og-default.jpg',
-  canonicalBaseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com',
+  canonicalBaseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://nabsara.ir',
   googleSiteVerification: '',
   googleAnalyticsId: '',
   googleTagManagerId: '',

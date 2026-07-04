@@ -88,7 +88,7 @@ export default function AdminSettingsPage() {
               className="text-left"
               value={form.canonicalBaseUrl}
               onChange={(e) => setForm({ ...form, canonicalBaseUrl: e.target.value })}
-              placeholder="https://example.com"
+              placeholder="https://nabsara.ir"
             />
           </div>
           <div className="md:col-span-2">
