@@ -21,7 +21,7 @@ export default function AdminReviewsPage() {
 
   const updateReview = async (review: Review, payload: Record<string, unknown>, msg: string) => { if (!confirm(msg)) return; const base = review.reviewType === 'blog' ? '/api/admin/blog-comments' : '/api/admin/reviews'; await fetch(`${base}/${review._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); void load(); };
 
-  return <main><h1 className="text-2xl font-black">مدیریت نظرات</h1>
+  return <main className="space-y-6"><h1 className="text-2xl font-black">مدیریت نظرات</h1>
     <div className="grid gap-3 rounded-xl border bg-white p-4 md:grid-cols-3 xl:grid-cols-7">
       <select className="h-11 rounded-xl border border-slate-200 px-3" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}><option value="all">همه نظرات</option><option value="product">نظرات محصولات</option><option value="blog">نظرات بلاگ</option></select><input className="h-11 rounded-xl border border-slate-200 px-3" placeholder="Product ID" value={filters.productId} onChange={(e) => setFilters({ ...filters, productId: e.target.value })} />
       <input className="h-11 rounded-xl border border-slate-200 px-3" placeholder="User ID" value={filters.userId} onChange={(e) => setFilters({ ...filters, userId: e.target.value })} />

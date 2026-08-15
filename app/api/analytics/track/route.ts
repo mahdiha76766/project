@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { endSession, trackHeartbeat, trackLeave, trackPageView } from '@/lib/analytics/tracker-service';
+import { extractClientIp } from '@/lib/analytics/visitor-key';
 import { getSessionUser } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 
@@ -10,7 +11,9 @@ const pageViewSchema = z.object({
   visitorId: z.string().min(8).max(80),
   path: z.string().min(1).max(500),
   title: z.string().max(300).optional(),
-  referrer: z.string().max(500).optional()
+  referrer: z.string().max(500).optional(),
+  screenWidth: z.number().min(0).max(10000).optional(),
+  screenHeight: z.number().min(0).max(10000).optional()
 });
 
 const heartbeatSchema = z.object({
@@ -37,7 +40,7 @@ const endSchema = z.object({
 const bodySchema = z.discriminatedUnion('type', [pageViewSchema, heartbeatSchema, leaveSchema, endSchema]);
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const ip = extractClientIp(req);
   const rate = checkRateLimit(`analytics:${ip}`, 120, 60_000);
   if (!rate.allowed) {
     return NextResponse.json({ ok: false }, { status: 429 });
@@ -56,9 +59,17 @@ export async function POST(req: Request) {
         path: body.path,
         title: body.title,
         referrer: body.referrer,
-        userAgent: ua
+        userAgent: ua,
+        ip,
+        screenWidth: body.screenWidth,
+        screenHeight: body.screenHeight
       });
-      return NextResponse.json({ ok: true, pageViewId: result?.pageViewId || null });
+      return NextResponse.json({
+        ok: true,
+        pageViewId: result?.pageViewId || null,
+        sessionId: result?.sessionId || body.sessionId,
+        deduplicated: result?.deduplicated || false
+      });
     }
 
     if (body.type === 'heartbeat') {

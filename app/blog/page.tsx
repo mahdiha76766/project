@@ -2,11 +2,23 @@ import { Container } from '@/components/ui/Container';
 import { StorePageHeader, StoreEmpty } from '@/components/shop/store/StorePageHeader';
 import { StoreBlogCard } from '@/components/shop/store/StoreBlogCard';
 import { StoreBlogToolbar } from '@/components/shop/store/StoreFilters';
-import { buildMetadata } from '@/lib/seo/metadata';
+import { buildQueryListMetadata } from '@/lib/seo/metadata';
 import { BlogPost } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
-export const metadata = buildMetadata('مجله سلامت', 'مقالات تخصصی عطاری');
+export async function generateMetadata({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  return buildQueryListMetadata(
+    'مجله سلامت',
+    'مقالات تخصصی روغن، ادویه و گیاهان دارویی — مجله ناب سرا',
+    '/blog',
+    params
+  );
+}
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;

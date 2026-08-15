@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const displayName = user?.mobile || 'کاربر عزیز';
 
   return (
-    <div  >
+    <div className="space-y-6">
       <DashPageHeader
         title={`سلام ${displayName} 👋`}
         subtitle="از اینجا می‌توانید سفارش‌ها، کیف پول، فاکتورها و حساب کاربری خود را مدیریت کنید."

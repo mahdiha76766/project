@@ -3,13 +3,25 @@ import { StorePageHeader } from '@/components/shop/store/StorePageHeader';
 import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
 import { StoreFilters } from '@/components/shop/store/StoreFilters';
 import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
-import { buildMetadata } from '@/lib/seo/metadata';
+import { buildQueryListMetadata } from '@/lib/seo/metadata';
 import { mapProductListing } from '@/lib/shop/map-product-listing';
 import { Category, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 import type { ShopProduct } from '@/types/shop';
 
-export const metadata = buildMetadata('محصولات', 'لیست محصولات عطاری');
+export async function generateMetadata({
+  searchParams
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  return buildQueryListMetadata(
+    'محصولات',
+    'خرید روغن، ادویه و محصولات گیاهی — فروشگاه آنلاین ناب سرا',
+    '/products',
+    params
+  );
+}
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;

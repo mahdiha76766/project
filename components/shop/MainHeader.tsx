@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -37,7 +37,7 @@ export const MainHeader = () => {
         </div>
       ) : isAdmin && editMode ? (
         <div className="border-b border-dashed border-amber-200 bg-amber-50/90 px-4 py-1.5 text-center">
-          <button type="button" onClick={() => void saveHeader('announcement', 'ارسال رایگان برای سفارش‌های بالای ۵۰۰ هزار ریال')} className="text-xs font-bold text-amber-800">
+          <button type="button" onClick={() => void saveHeader('announcement', 'ارسال رایگان برای سفارش‌های بالای ۵۰۰ هزار تومان')} className="text-xs font-bold text-amber-800">
             + افزودن نوار اعلان
           </button>
         </div>

@@ -12,6 +12,7 @@ const {
   maskMongoUri,
   resolveMongoUri
 } = require('./lib/db/mongo-config.cjs');
+const { resolveUploadsRoot } = require('./lib/admin/upload-storage.cjs');
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return false;
@@ -77,8 +78,14 @@ if (!dev) {
   }
 }
 
-const UPLOADS_ROOT = path.join(__dirname, 'uploads');
-const UPLOAD_FOLDERS = ['banners', 'products', 'blog', 'categories', 'videos'];
+let UPLOADS_ROOT;
+try {
+  UPLOADS_ROOT = resolveUploadsRoot();
+} catch (err) {
+  console.error('[server] uploads config error:', err.message || err);
+  process.exit(1);
+}
+const UPLOAD_FOLDERS = ['banners', 'products', 'blog', 'categories', 'videos', 'receipts'];
 for (const folder of UPLOAD_FOLDERS) {
   const dir = path.join(UPLOADS_ROOT, folder);
   if (!fs.existsSync(dir)) {
@@ -87,6 +94,8 @@ for (const folder of UPLOAD_FOLDERS) {
   }
 }
 console.log('[server] uploads root:', UPLOADS_ROOT);
+console.log('[server] cwd:', process.cwd());
+console.log('[server] UPLOADS_DIR env:', process.env.UPLOADS_DIR || '(not set)');
 
 const MIME = {
   '.jpg': 'image/jpeg',

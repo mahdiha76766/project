@@ -1,7 +1,8 @@
 import type { SiteSeoSettings } from '@/lib/admin/site-settings-config';
+import { absoluteUrl, getSiteUrl } from '@/lib/seo/site-url';
 
 export function HomeJsonLd({ seo }: { seo: SiteSeoSettings }) {
-  const base = seo.canonicalBaseUrl.replace(/\/$/, '');
+  const base = getSiteUrl();
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -23,7 +24,7 @@ export function HomeJsonLd({ seo }: { seo: SiteSeoSettings }) {
         '@id': `${base}/#organization`,
         name: seo.organizationName || seo.siteName,
         url: base,
-        logo: `${base}${seo.faviconUrl.startsWith('/') ? seo.faviconUrl : `/${seo.faviconUrl}`}`,
+        logo: absoluteUrl(seo.faviconUrl.startsWith('/') ? seo.faviconUrl : `/${seo.faviconUrl}`),
         ...(seo.organizationPhone ? { telephone: seo.organizationPhone } : {})
       },
       {
@@ -32,7 +33,7 @@ export function HomeJsonLd({ seo }: { seo: SiteSeoSettings }) {
         name: seo.siteName,
         description: seo.siteDescription,
         url: base,
-        image: `${base}${seo.ogImageUrl.startsWith('/') ? seo.ogImageUrl : `/${seo.ogImageUrl}`}`,
+        image: absoluteUrl(seo.ogImageUrl.startsWith('/') ? seo.ogImageUrl : `/${seo.ogImageUrl}`),
         priceRange: '$$'
       }
     ]

@@ -1,4 +1,4 @@
-import { Tag } from 'lucide-react';
+﻿import { Tag } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 type DiscountBadgeProps = {
@@ -80,10 +80,10 @@ export function ProductPriceWithDiscount({
       <p className="text-base font-black text-brand-600">
         {hasVariants ? <span className="ml-1 text-xs font-normal text-surface-400">از</span> : null}
         {salePrice.toLocaleString('fa-IR')}{' '}
-        <span className="text-xs font-normal text-surface-400">ریال</span>
+        <span className="text-xs font-normal text-surface-400">تومان</span>
       </p>
       {hasDiscount && originalPrice > salePrice ? (
-        <p className="mt-0.5 text-xs text-surface-400 line-through">{originalPrice.toLocaleString('fa-IR')} ریال</p>
+        <p className="mt-0.5 text-xs text-surface-400 line-through">{originalPrice.toLocaleString('fa-IR')} تومان</p>
       ) : null}
     </div>
   );

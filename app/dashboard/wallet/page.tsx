@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import {
@@ -168,7 +168,7 @@ export default function WalletPage() {
             <input
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
-              placeholder="مبلغ شارژ (ریال)"
+              placeholder="مبلغ شارژ (تومان)"
               className="h-11 w-full rounded-xl border border-slate-200 px-3"
             />
             {depositMethod === 'card_to_card' ? (
@@ -201,7 +201,7 @@ export default function WalletPage() {
             <input
               value={transferAmount}
               onChange={(e) => setTransferAmount(e.target.value)}
-              placeholder="مبلغ انتقال (ریال)"
+              placeholder="مبلغ انتقال (تومان)"
               className="h-11 w-full rounded-xl border border-slate-200 px-3"
             />
             <button

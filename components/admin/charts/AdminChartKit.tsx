@@ -216,7 +216,7 @@ export function AdminDonutChart({
           <PieChart>
             <Pie data={data} dataKey="value" nameKey="name" innerRadius="62%" outerRadius="88%" paddingAngle={2}>
               {data.map((entry, i) => (
-                <Cell key={entry.name} fill={entry.color || CHART_COLORS[i % CHART_COLORS.length]} />
+                <Cell key={`${entry.name}-${i}`} fill={entry.color || CHART_COLORS[i % CHART_COLORS.length]} />
               ))}
             </Pie>
             <Tooltip content={<ChartTooltip />} />
@@ -229,7 +229,7 @@ export function AdminDonutChart({
       </div>
       <div className="space-y-2">
         {data.map((d, i) => (
-          <div key={d.name} className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50">
+          <div key={`${d.name}-${i}`} className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50">
             <span className="h-3 w-3 rounded-full" style={{ background: d.color || CHART_COLORS[i % CHART_COLORS.length] }} />
             <span className="flex-1 text-xs font-bold text-slate-700">{d.name}</span>
             <span className="text-xs font-black text-slate-900">{formatFa(d.value)}</span>

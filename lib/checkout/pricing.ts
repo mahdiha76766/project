@@ -1,4 +1,4 @@
-import { Coupon, CouponUsage, Order } from '@/models';
+﻿import { Coupon, CouponUsage, Order } from '@/models';
 import {
   computeCartWeightGrams,
   computeShippingAmount,
@@ -46,7 +46,7 @@ export const validateAndComputeCoupon = async ({
   const now = new Date();
   if (now < coupon.startsAt || now > coupon.expiresAt) throw new Error('کد تخفیف منقضی یا غیرفعال است.');
   if (subtotal < coupon.minPurchaseAmount) {
-    throw new Error(`حداقل مبلغ سفارش برای این کد ${coupon.minPurchaseAmount.toLocaleString('fa-IR')} ریال است.`);
+    throw new Error(`حداقل مبلغ سفارش برای این کد ${coupon.minPurchaseAmount.toLocaleString('fa-IR')} تومان است.`);
   }
 
   if (coupon.allowedProducts?.length) {
@@ -88,7 +88,7 @@ export const validateAndComputeCoupon = async ({
       coupon,
       discount: Math.min(coupon.value, subtotal),
       freeShipping: false,
-      couponLabel: coupon.title || `تخفیف ${coupon.value.toLocaleString('fa-IR')} ریالی`
+      couponLabel: coupon.title || `تخفیف ${coupon.value.toLocaleString('fa-IR')} تومانی`
     };
   }
 

@@ -1,4 +1,4 @@
-export const SMS_SETTINGS_KEY = 'sms_config';
+﻿export const SMS_SETTINGS_KEY = 'sms_config';
 
 export type SmsEventKey =
   | 'ORDER_CREATED'
@@ -73,7 +73,7 @@ export const defaultSmsSettings: SmsSettings = {
     }),
     ORDER_CREATED: defaultEvent({
       enabled: false,
-      messageTemplate: '{name} عزیز، سفارش #{orderId} ثبت شد. مبلغ: {amount} ریال — نابسرا'
+      messageTemplate: '{name} عزیز، سفارش #{orderId} ثبت شد. مبلغ: {amount} تومان — نابسرا'
     }),
     ORDER_PAID: defaultEvent({
       enabled: false,

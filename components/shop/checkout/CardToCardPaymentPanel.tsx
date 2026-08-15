@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useState } from 'react';
 import { Upload, ImageIcon } from 'lucide-react';
@@ -59,7 +59,7 @@ export function CardToCardPaymentPanel({ bankInfo, amount, onFileSelect, file, e
 
       {amount ? (
         <p className="text-sm font-black text-slate-800">
-          مبلغ قابل پرداخت: <span className="text-emerald-700">{amount.toLocaleString('fa-IR')} ریال</span>
+          مبلغ قابل پرداخت: <span className="text-emerald-700">{amount.toLocaleString('fa-IR')} تومان</span>
         </p>
       ) : null}
 

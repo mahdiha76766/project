@@ -1,4 +1,4 @@
-import mongoose, { type ClientSession } from 'mongoose';
+﻿import mongoose, { type ClientSession } from 'mongoose';
 import { Wallet, WalletHold, WalletTransaction } from '@/models';
 import { env } from '@/server/config/env';
 import { writeAuditLog } from '@/lib/finance/audit';
@@ -241,7 +241,7 @@ export async function withdraw(
   opts?: SessionOpts
 ) {
   if (amount < env.WALLET_MIN_WITHDRAWAL) {
-    throw new Error(`حداقل مبلغ برداشت ${env.WALLET_MIN_WITHDRAWAL.toLocaleString('fa-IR')} ریال است`);
+    throw new Error(`حداقل مبلغ برداشت ${env.WALLET_MIN_WITHDRAWAL.toLocaleString('fa-IR')} تومان است`);
   }
   return withOptionalSession(async (session) => {
     const wallet = await getOrCreateWallet(userId, { session });

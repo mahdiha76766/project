@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { Plus, Trash2 } from 'lucide-react';
-import { FieldLabel, SelectInput, TextInput } from '@/components/admin/ui';
+import { AdminCheckbox, FieldLabel, SelectInput, TextInput } from '@/components/admin/ui';
 import { weightUnitOptions } from '@/lib/product/specs';
+import { isInStock, statusToStockNumber } from '@/lib/shop/stock-status';
 
 export type VariantFormRow = {
   _id?: string;
@@ -22,7 +23,7 @@ export const emptyVariantRow = (): VariantFormRow => ({
   sku: '',
   price: '',
   discountPrice: '',
-  stock: '',
+  stock: '999',
   weight: '',
   weightUnit: 'g',
   containerSize: '',
@@ -115,16 +116,23 @@ export function AdminProductVariantsEditor({
                   <TextInput dir="ltr" className="text-right" value={row.sku} onChange={(e) => updateRow(index, { sku: e.target.value })} />
                 </div>
                 <div>
-                  <FieldLabel text="قیمت (ریال)" />
+                  <FieldLabel text="قیمت (تومان)" />
                   <TextInput inputMode="numeric" dir="ltr" className="text-right" value={row.price} onChange={(e) => updateRow(index, { price: e.target.value })} />
                 </div>
                 <div>
                   <FieldLabel text="قیمت با تخفیف" />
                   <TextInput inputMode="numeric" dir="ltr" className="text-right" value={row.discountPrice} onChange={(e) => updateRow(index, { discountPrice: e.target.value })} />
                 </div>
-                <div>
-                  <FieldLabel text="موجودی" />
-                  <TextInput inputMode="numeric" dir="ltr" className="text-right" value={row.stock} onChange={(e) => updateRow(index, { stock: e.target.value })} />
+                <div className="flex items-end pb-1">
+                  <AdminCheckbox
+                    label={isInStock(row.stock) ? 'موجود هست' : 'ناموجود'}
+                    checked={isInStock(row.stock)}
+                    onChange={(available) =>
+                      updateRow(index, {
+                        stock: String(statusToStockNumber(available, Number(row.stock || 0)))
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <FieldLabel text="اندازه / حجم" />

@@ -1,6 +1,7 @@
 import { formatJalaliDate } from '@/lib/admin/jalali';
+import { PRICE_CURRENCY_LABEL } from '@/lib/shop/price-currency';
 
-export const formatCurrency = (value: unknown, suffix = 'ریال') => {
+export const formatCurrency = (value: unknown, suffix = PRICE_CURRENCY_LABEL) => {
   const num = Number(value);
   if (Number.isNaN(num)) return '-';
   return `${num.toLocaleString('fa-IR')} ${suffix}`;

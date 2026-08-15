@@ -1,4 +1,4 @@
-import { Notification } from '@/models';
+﻿import { Notification } from '@/models';
 import { ORDER_STATUS_LABELS } from '@/lib/admin/labels';
 import { resolveUserId } from '@/lib/utils/resolve-user-id';
 import { sendOrderStatusSms, sendOrderSms, notifyPaymentFailedSms } from '@/lib/sms/sms-service';
@@ -19,7 +19,7 @@ export async function notifyPaymentStatus(userId: string, status: string, invoic
 }
 
 export async function notifyWalletTransaction(userId: string, type: string, amount: number) {
-  await notifyUser(userId, 'تراکنش کیف پول', `تراکنش ${type} به مبلغ ${amount.toLocaleString('fa-IR')} ریال ثبت شد.`);
+  await notifyUser(userId, 'تراکنش کیف پول', `تراکنش ${type} به مبلغ ${amount.toLocaleString('fa-IR')} تومان ثبت شد.`);
 }
 
 export async function notifyOrderStatus(

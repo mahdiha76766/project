@@ -14,7 +14,7 @@ type Withdrawal = {
 };
 
 export default function AdminWithdrawalsPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Withdrawal>('/api/admin/finance/withdrawals');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Withdrawal>('/api/admin/finance/withdrawals');
   const [message, setMessage] = useState('');
 
   const updateStatus = async (id: string, status: string) => {
@@ -28,7 +28,7 @@ export default function AdminWithdrawalsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="درخواست‌های برداشت" description="بررسی و تأیید برداشت‌های کاربران" />
       {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
       {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
@@ -37,6 +37,10 @@ export default function AdminWithdrawalsPage() {
           data={items}
           loading={loading}
           rowKey={(r) => r._id}
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             { id: 'user', header: 'کاربر', accessor: (r) => r.user?.mobile ?? '-' },
             { id: 'amount', header: 'مبلغ', type: 'currency', accessor: (r) => r.amount },

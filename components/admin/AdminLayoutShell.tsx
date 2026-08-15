@@ -24,7 +24,8 @@ import {
   Banknote,
   Shield,
   Store,
-  MessageSquareText
+  MessageSquareText,
+  DollarSign
 } from 'lucide-react';
 import { useState } from 'react';
 import { CronInit } from './init/CronInit';
@@ -33,6 +34,7 @@ const navItems = [
   { href: '/admin/analytics', label: 'آمار بازدید', icon: BarChart3 },
   { href: '/admin', label: 'داشبورد', icon: LayoutDashboard },
   { href: '/admin/products', label: 'محصولات', icon: Package },
+  { href: '/admin/price_product', label: 'پورتال قیمت', icon: DollarSign },
   { href: '/admin/categories', label: 'دسته‌بندی‌ها', icon: Shapes },
   { href: '/admin/orders', label: 'سفارش‌ها', icon: ShoppingCart },
   { href: '/admin/finance/transactions', label: 'تراکنش‌ها', icon: CreditCard },
@@ -128,7 +130,7 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
               <Bell size={18} />
             </button>
           </header>
-          <main>{children}</main>
+          <main className="space-y-6">{children}</main>
         </div>
       </div>
       {open ? (

@@ -147,7 +147,7 @@ export default function AdminSmsPage() {
   ];
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="مدیریت پیامک SMS.ir"
         description="تنظیم OTP، اطلاع‌رسانی سفارش، ارسال گروهی کد تخفیف و گزارش کامل"

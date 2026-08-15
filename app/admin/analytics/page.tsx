@@ -10,7 +10,15 @@ import {
   HiOutlineUsers
 } from 'react-icons/hi';
 import { BsLightningChargeFill } from 'react-icons/bs';
-import { AdminChartCard, AdminAreaTrendChart, AdminDonutChart, formatDayLabel, formatDuration } from '@/components/admin/charts/AdminChartKit';
+import {
+  AdminChartCard,
+  AdminAreaTrendChart,
+  AdminBarTrendChart,
+  AdminDonutChart,
+  formatDayLabel,
+  formatDuration,
+  CHART_COLORS
+} from '@/components/admin/charts/AdminChartKit';
 import { AdminLoading, AdminPageBanner, AdminStatCard } from '@/components/admin/AdminUI';
 import { adminFetch } from '@/lib/admin/client';
 import type { CaptchaSettings } from '@/lib/admin/captcha-settings-config';
@@ -24,10 +32,25 @@ type Summary = {
   activeNow: number;
   avgDurationSec: number;
   trend: Array<{ date: string; views: number; visitors: number }>;
+  weeklyTrend: Array<{ week: string; label: string; views: number; visitors: number }>;
+  monthlyTrend: Array<{ month: string; label: string; views: number; visitors: number }>;
+  hourlyTrend: Array<{ hour: string; label: string; activeUsers: number; sessions: number }>;
   topPages: Array<{ path: string; title: string; views: number; avgDurationSec: number }>;
-  topProducts: Array<{ slug: string; views: number; avgDurationSec: number }>;
-  topBlogs: Array<{ slug: string; views: number; avgDurationSec: number }>;
+  topProducts: Array<{ slug: string; title: string; views: number; avgDurationSec: number }>;
+  topBlogs: Array<{ slug: string; title: string; views: number; avgDurationSec: number }>;
   deviceBreakdown: Array<{ device: string; count: number }>;
+  browserBreakdown: Array<{ name: string; count: number }>;
+  osBreakdown: Array<{ name: string; count: number }>;
+  deviceDetailBreakdown: Array<{
+    label: string;
+    deviceType: string;
+    browser: string;
+    os: string;
+    vendor: string;
+    model: string;
+    screen: string;
+    count: number;
+  }>;
   contentTypeBreakdown: Array<{ type: string; count: number }>;
 };
 
@@ -41,6 +64,12 @@ const RANGE_OPTIONS = [
   { value: 14, label: '۱۴ روز' },
   { value: 30, label: '۳۰ روز' },
   { value: 90, label: '۹۰ روز' }
+] as const;
+
+const TREND_TABS = [
+  { id: 'daily' as const, label: 'روزانه' },
+  { id: 'weekly' as const, label: 'هفتگی' },
+  { id: 'monthly' as const, label: 'ماهانه' }
 ];
 
 const DEVICE_LABELS: Record<string, string> = {
@@ -59,6 +88,8 @@ const CONTENT_LABELS: Record<string, string> = {
   dashboard: 'پنل کاربری',
   other: 'سایر'
 };
+
+const TOP_LIST_CLASS = 'max-h-64 space-y-2 overflow-y-auto pr-1';
 
 function SettingsPanel({
   analytics,
@@ -153,8 +184,32 @@ function SettingsPanel({
   );
 }
 
+function TopListItem({
+  title,
+  subtitle,
+  views,
+  duration
+}: {
+  title: string;
+  subtitle?: string;
+  views: number;
+  duration: number;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-100 px-3 py-2 text-xs">
+      <p className="line-clamp-2 font-bold text-slate-800">{title}</p>
+      {subtitle ? <p className="mt-0.5 truncate text-[10px] text-slate-400">{subtitle}</p> : null}
+      <p className="mt-1 flex justify-between text-slate-500">
+        <span>{views.toLocaleString('fa-IR')} بازدید</span>
+        <span>{formatDuration(duration)}</span>
+      </p>
+    </div>
+  );
+}
+
 export default function AdminAnalyticsPage() {
   const [range, setRange] = useState(7);
+  const [trendTab, setTrendTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [summary, setSummary] = useState<Summary | null>(null);
   const [realtime, setRealtime] = useState<Realtime | null>(null);
   const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings | null>(null);
@@ -190,16 +245,25 @@ export default function AdminAnalyticsPage() {
     return () => clearInterval(id);
   }, [range]);
 
-  const trendData = useMemo(
+  const dailyTrendData = useMemo(
     () => (summary?.trend || []).map((d) => ({ ...d, label: formatDayLabel(d.date) })),
     [summary?.trend]
   );
+
+  const trendChartData = useMemo(() => {
+    if (!summary) return [];
+    if (trendTab === 'weekly') return summary.weeklyTrend.map((w) => ({ ...w, label: w.label }));
+    if (trendTab === 'monthly') return summary.monthlyTrend.map((m) => ({ ...m, label: m.label }));
+    return dailyTrendData;
+  }, [summary, trendTab, dailyTrendData]);
+
+  const hourlyData = useMemo(() => summary?.hourlyTrend || [], [summary?.hourlyTrend]);
 
   const deviceData = useMemo(
     () => (summary?.deviceBreakdown || []).map((d, i) => ({
       name: DEVICE_LABELS[d.device] || d.device,
       value: d.count,
-      color: ['#0ea5e9', '#d97706', '#8b5cf6', '#94a3b8'][i % 4]
+      color: CHART_COLORS[i % CHART_COLORS.length]
     })),
     [summary?.deviceBreakdown]
   );
@@ -208,16 +272,34 @@ export default function AdminAnalyticsPage() {
     () => (summary?.contentTypeBreakdown || []).map((d, i) => ({
       name: CONTENT_LABELS[d.type] || d.type,
       value: d.count,
-      color: ['#d97706', '#10b981', '#6366f1', '#f43f5e', '#0ea5e9', '#8b5cf6'][i % 6]
+      color: CHART_COLORS[i % CHART_COLORS.length]
     })),
     [summary?.contentTypeBreakdown]
   );
 
+  const browserData = useMemo(
+    () => (summary?.browserBreakdown || []).map((d, i) => ({
+      name: d.name,
+      value: d.count,
+      color: CHART_COLORS[i % CHART_COLORS.length]
+    })),
+    [summary?.browserBreakdown]
+  );
+
+  const osData = useMemo(
+    () => (summary?.osBreakdown || []).map((d, i) => ({
+      name: d.name,
+      value: d.count,
+      color: CHART_COLORS[i % CHART_COLORS.length]
+    })),
+    [summary?.osBreakdown]
+  );
+
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageBanner
         title="آمار بازدید و رفتار کاربران"
-        subtitle="بازدید واقعی، زمان ماندگاری، صفحات پربازدید و کاربران آنلاین"
+        subtitle="بازدید واقعی بر اساس IP و مرورگر — بدون شمارش تکراری بستن/باز کردن"
       />
 
       {loading ? (
@@ -228,10 +310,10 @@ export default function AdminAnalyticsPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <AdminStatCard title="بازدید صفحات" value={`${summary.totalPageViews.toLocaleString('fa-IR')}`} hint={`${summary.rangeDays} روز اخیر`} icon={HiOutlineEye} accent="amber" />
-            <AdminStatCard title="بازدیدکنندگان یکتا" value={`${summary.uniqueVisitors.toLocaleString('fa-IR')}`} hint={`${summary.uniqueSessions.toLocaleString('fa-IR')} نشست`} icon={HiOutlineUsers} accent="sky" />
+            <AdminStatCard title="بازدیدکنندگان یکتا" value={`${summary.uniqueVisitors.toLocaleString('fa-IR')}`} hint="بر اساس IP + مرورگر" icon={HiOutlineUsers} accent="sky" />
             <AdminStatCard title="آنلاین هم‌اکنون" value={`${(realtime?.activeCount ?? summary.activeNow).toLocaleString('fa-IR')}`} hint="۵ دقیقه اخیر" icon={BsLightningChargeFill} accent="emerald" />
             <AdminStatCard title="میانگین ماندگاری" value={formatDuration(summary.avgDurationSec)} icon={HiOutlineClock} accent="violet" />
-            <AdminStatCard title="پربازدیدترین نوع" value={CONTENT_LABELS[summary.contentTypeBreakdown[0]?.type] || '—'} icon={HiOutlineChartBar} accent="rose" />
+            <AdminStatCard title="نشست‌ها" value={`${summary.uniqueSessions.toLocaleString('fa-IR')}`} hint="بازه ۳۰ دقیقه‌ای" icon={HiOutlineChartBar} accent="rose" />
             <AdminStatCard title="دستگاه غالب" value={DEVICE_LABELS[summary.deviceBreakdown[0]?.device] || '—'} icon={HiOutlineDeviceMobile} accent="emerald" />
           </div>
 
@@ -248,27 +330,58 @@ export default function AdminAnalyticsPage() {
             ))}
           </div>
 
+          {/* Trend charts with tabs */}
+          <AdminChartCard
+            title="روند بازدید"
+            subtitle="روزانه · هفتگی · ماهانه"
+            icon={<HiOutlineChartBar />}
+            accent="amber"
+            action={
+              <div className="flex gap-1 rounded-lg bg-slate-100 p-0.5">
+                {TREND_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setTrendTab(tab.id)}
+                    className={`rounded-md px-2.5 py-1 text-[11px] font-bold ${trendTab === tab.id ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-500'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            }
+          >
+            <AdminAreaTrendChart
+              data={trendChartData}
+              xKey="label"
+              series={[
+                { key: 'views', name: 'بازدید', color: '#d97706' },
+                { key: 'visitors', name: 'بازدیدکننده یکتا', color: '#0ea5e9' }
+              ]}
+            />
+          </AdminChartCard>
+
           <div className="grid gap-4 xl:grid-cols-2">
-            <AdminChartCard title="روند بازدید و بازدیدکنندگان" subtitle="نمودار روزانه" icon={<HiOutlineChartBar />} accent="amber">
-              <AdminAreaTrendChart
-                data={trendData}
+            <AdminChartCard title="کاربران آنلاین — ۲۴ ساعت گذشته" subtitle="تعداد بازدیدکننده یکتا در هر ساعت" icon={<BsLightningChargeFill />} accent="emerald">
+              <AdminBarTrendChart
+                data={hourlyData}
                 xKey="label"
-                series={[
-                  { key: 'views', name: 'بازدید', color: '#d97706' },
-                  { key: 'visitors', name: 'بازدیدکننده یکتا', color: '#0ea5e9' }
-                ]}
+                yKey="activeUsers"
+                name="کاربر فعال"
+                color="#10b981"
+                height={260}
               />
             </AdminChartCard>
 
-            <AdminChartCard title="کاربران آنلاین" subtitle="صفحات فعال در لحظه" icon={<BsLightningChargeFill />} accent="emerald">
-              <div className="max-h-72 space-y-2 overflow-y-auto">
-                {(realtime?.activePages || []).length ? realtime!.activePages.map((p, i) => (
+            <AdminChartCard title="کاربران آنلاین" subtitle="صفحات فعال در لحظه" icon={<BsLightningChargeFill />} accent="sky">
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {(realtime?.activePages || []).length ? realtime!.activePages.slice(0, 12).map((p, i) => (
                   <div key={`${p.path}-${i}`} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-xs">
-                    <div>
-                      <p className="font-bold text-slate-800">{p.title || p.path}</p>
-                      <p className="mt-0.5 text-slate-500">{p.path}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold text-slate-800">{p.title || p.path}</p>
+                      <p className="mt-0.5 truncate text-slate-500">{p.path}{p.device ? ` · ${p.device}` : ''}</p>
                     </div>
-                    <span className="rounded-lg bg-emerald-50 px-2 py-1 font-bold text-emerald-700">
+                    <span className="mr-2 shrink-0 rounded-lg bg-emerald-50 px-2 py-1 font-bold text-emerald-700">
                       {formatDuration(p.durationSec || 0)}
                     </span>
                   </div>
@@ -279,53 +392,80 @@ export default function AdminAnalyticsPage() {
             </AdminChartCard>
           </div>
 
+          {/* Device distribution - detailed */}
           <div className="grid gap-4 xl:grid-cols-2">
-            <AdminChartCard title="توزیع دستگاه" icon={<HiOutlineDeviceMobile />} accent="sky">
-              {deviceData.length ? <AdminDonutChart data={deviceData} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
+            <AdminChartCard title="مرورگرها" icon={<HiOutlineGlobeAlt />} accent="sky">
+              {browserData.length ? <AdminDonutChart data={browserData} height={220} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
             </AdminChartCard>
-            <AdminChartCard title="نوع محتوا" icon={<HiOutlineGlobeAlt />} accent="violet">
-              {contentData.length ? <AdminDonutChart data={contentData} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
+            <AdminChartCard title="سیستم‌عامل" icon={<HiOutlineDeviceMobile />} accent="violet">
+              {osData.length ? <AdminDonutChart data={osData} height={220} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
             </AdminChartCard>
           </div>
 
+          <AdminChartCard
+            title="جزئیات دستگاه‌ها"
+            subtitle={`حداکثر ${summary.deviceDetailBreakdown.length} مورد · مرورگر · سیستم‌عامل · مدل · رزولوشن`}
+            icon={<HiOutlineDeviceMobile />}
+            accent="emerald"
+          >
+            {summary.deviceDetailBreakdown.length ? (
+              <div className={`${TOP_LIST_CLASS} overflow-x-auto`}>
+                <table className="w-full min-w-[520px] text-xs">
+                  <thead className="sticky top-0 z-10 bg-white">
+                    <tr className="border-b border-slate-100 text-right text-slate-500">
+                      <th className="px-3 py-2 font-bold">دستگاه</th>
+                      <th className="px-3 py-2 font-bold">نوع</th>
+                      <th className="px-3 py-2 font-bold">صفحه‌نمایش</th>
+                      <th className="px-3 py-2 font-bold">بازدید</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.deviceDetailBreakdown.map((d, i) => (
+                      <tr key={`${d.label}-${i}`} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="px-3 py-2.5">
+                          <p className="font-bold text-slate-800">{d.label}</p>
+                          {d.vendor || d.model ? (
+                            <p className="mt-0.5 text-[10px] text-slate-400">{[d.vendor, d.model].filter(Boolean).join(' ')}</p>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2.5 text-slate-600">{DEVICE_LABELS[d.deviceType] || d.deviceType}</td>
+                        <td className="px-3 py-2.5 text-slate-500">{d.screen || '—'}</td>
+                        <td className="px-3 py-2.5 font-black text-slate-900">{d.count.toLocaleString('fa-IR')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {deviceData.length ? <AdminDonutChart data={deviceData} height={200} /> : null}
+                {contentData.length ? <AdminDonutChart data={contentData} height={200} /> : null}
+                {!deviceData.length && !contentData.length ? <p className="text-sm text-slate-500">داده‌ای نیست — پس از ثبت بازدید واقعی نمایش داده می‌شود</p> : null}
+              </div>
+            )}
+          </AdminChartCard>
+
+          {/* Top lists with scroll limit */}
           <div className="grid gap-4 xl:grid-cols-3">
-            <AdminChartCard title="صفحات پربازدید" accent="amber">
-              <div className="space-y-2">
-                {summary.topPages.map((p) => (
-                  <div key={p.path} className="rounded-xl border border-slate-100 px-3 py-2 text-xs">
-                    <p className="font-bold text-slate-800">{p.title}</p>
-                    <p className="mt-1 flex justify-between text-slate-500">
-                      <span>{p.views.toLocaleString('fa-IR')} بازدید</span>
-                      <span>{formatDuration(p.avgDurationSec)}</span>
-                    </p>
-                  </div>
-                ))}
+            <AdminChartCard title="صفحات پربازدید" accent="amber" subtitle={`حداکثر ${summary.topPages.length} مورد`}>
+              <div className={TOP_LIST_CLASS}>
+                {summary.topPages.length ? summary.topPages.map((p) => (
+                  <TopListItem key={p.path} title={p.title} subtitle={p.path} views={p.views} duration={p.avgDurationSec} />
+                )) : <p className="py-6 text-center text-sm text-slate-500">داده‌ای نیست</p>}
               </div>
             </AdminChartCard>
-            <AdminChartCard title="محصولات پربازدید" accent="emerald">
-              <div className="space-y-2">
-                {summary.topProducts.map((p) => (
-                  <div key={p.slug} className="rounded-xl border border-slate-100 px-3 py-2 text-xs">
-                    <p className="font-bold text-slate-800">{p.slug}</p>
-                    <p className="mt-1 flex justify-between text-slate-500">
-                      <span>{p.views.toLocaleString('fa-IR')} بازدید</span>
-                      <span>{formatDuration(p.avgDurationSec)}</span>
-                    </p>
-                  </div>
-                ))}
+            <AdminChartCard title="محصولات پربازدید" accent="emerald" subtitle={`حداکثر ${summary.topProducts.length} مورد`}>
+              <div className={TOP_LIST_CLASS}>
+                {summary.topProducts.length ? summary.topProducts.map((p) => (
+                  <TopListItem key={p.slug} title={p.title || p.slug} subtitle={`/products/${p.slug}`} views={p.views} duration={p.avgDurationSec} />
+                )) : <p className="py-6 text-center text-sm text-slate-500">داده‌ای نیست</p>}
               </div>
             </AdminChartCard>
-            <AdminChartCard title="پست‌های پربازدید" accent="violet">
-              <div className="space-y-2">
-                {summary.topBlogs.map((p) => (
-                  <div key={p.slug} className="rounded-xl border border-slate-100 px-3 py-2 text-xs">
-                    <p className="font-bold text-slate-800">{p.slug}</p>
-                    <p className="mt-1 flex justify-between text-slate-500">
-                      <span>{p.views.toLocaleString('fa-IR')} بازدید</span>
-                      <span>{formatDuration(p.avgDurationSec)}</span>
-                    </p>
-                  </div>
-                ))}
+            <AdminChartCard title="پست‌های پربازدید" accent="violet" subtitle={`حداکثر ${summary.topBlogs.length} مورد`}>
+              <div className={TOP_LIST_CLASS}>
+                {summary.topBlogs.length ? summary.topBlogs.map((p) => (
+                  <TopListItem key={p.slug} title={p.title || p.slug} subtitle={`/blog/${p.slug}`} views={p.views} duration={p.avgDurationSec} />
+                )) : <p className="py-6 text-center text-sm text-slate-500">داده‌ای نیست</p>}
               </div>
             </AdminChartCard>
           </div>

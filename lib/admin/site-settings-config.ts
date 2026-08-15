@@ -1,3 +1,5 @@
+import { normalizeSiteUrl, DEFAULT_SITE_URL } from '@/lib/seo/site-url';
+
 export type SiteSeoSettings = {
   siteName: string;
   siteTitle: string;
@@ -25,7 +27,7 @@ export const defaultSiteSeoSettings: SiteSeoSettings = {
   keywords: ['روغن طبیعی', 'ادویه اصیل', 'عطاری آنلاین', 'روغن زیتون', 'زعفران', 'نابسرا'],
   faviconUrl: '/og-default.jpg',
   ogImageUrl: '/og-default.jpg',
-  canonicalBaseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://nabsara.ir',
+  canonicalBaseUrl: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL),
   googleSiteVerification: '',
   googleAnalyticsId: '',
   googleTagManagerId: '',
@@ -44,6 +46,14 @@ function normalizeKeywords(value: unknown): string[] {
   return defaultSiteSeoSettings.keywords;
 }
 
+function sanitizeCanonicalBaseUrl(value?: string) {
+  const raw = value?.trim() || '';
+  if (!raw || /example\.com|your-domain/i.test(raw)) {
+    return normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL);
+  }
+  return normalizeSiteUrl(raw);
+}
+
 export function normalizeSiteSeoSettings(value: unknown): SiteSeoSettings {
   if (!value || typeof value !== 'object') return defaultSiteSeoSettings;
   const v = value as Partial<SiteSeoSettings>;
@@ -54,7 +64,7 @@ export function normalizeSiteSeoSettings(value: unknown): SiteSeoSettings {
     keywords: normalizeKeywords(v.keywords).length ? normalizeKeywords(v.keywords) : defaultSiteSeoSettings.keywords,
     faviconUrl: v.faviconUrl?.trim() || defaultSiteSeoSettings.faviconUrl,
     ogImageUrl: v.ogImageUrl?.trim() || defaultSiteSeoSettings.ogImageUrl,
-    canonicalBaseUrl: v.canonicalBaseUrl?.trim() || defaultSiteSeoSettings.canonicalBaseUrl,
+    canonicalBaseUrl: sanitizeCanonicalBaseUrl(v.canonicalBaseUrl),
     googleSiteVerification: v.googleSiteVerification?.trim() || '',
     googleAnalyticsId: v.googleAnalyticsId?.trim() || '',
     googleTagManagerId: v.googleTagManagerId?.trim() || '',

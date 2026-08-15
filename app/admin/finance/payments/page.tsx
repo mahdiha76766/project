@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { CreditCard, FileText, Hash, User, Wallet } from 'lucide-react';
@@ -43,7 +43,7 @@ const statusTone = (status: string) => {
 export default function AdminFinancePaymentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const listUrl = statusFilter ? `/api/admin/finance/payments?status=${statusFilter}` : '/api/admin/finance/payments';
-  const { items, page, setPage, totalPages, total, loading, error } = useAdminList<Payment>(listUrl);
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error } = useAdminList<Payment>(listUrl);
 
   const stats = useMemo(() => {
     const paid = items.filter((p) => p.status === 'PAID');
@@ -56,7 +56,7 @@ export default function AdminFinancePaymentsPage() {
   }, [items]);
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="پرداخت‌ها"
         description="پیگیری پرداخت‌های درگاه، کیف پول و کارت به کارت"
@@ -67,7 +67,7 @@ export default function AdminFinancePaymentsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <AdminCard title="پرداخت موفق (صفحه جاری)">
           <p className="text-2xl font-black text-emerald-700">{stats.paidCount.toLocaleString('fa-IR')}</p>
-          <p className="mt-1 text-xs text-slate-500">جمع: {stats.paidSum.toLocaleString('fa-IR')} ریال</p>
+          <p className="mt-1 text-xs text-slate-500">جمع: {stats.paidSum.toLocaleString('fa-IR')} تومان</p>
         </AdminCard>
         <AdminCard title="ناموفق (صفحه جاری)">
           <p className="text-2xl font-black text-rose-700">{stats.failedCount.toLocaleString('fa-IR')}</p>
@@ -94,6 +94,10 @@ export default function AdminFinancePaymentsPage() {
           data={items}
           loading={loading}
           rowKey={(r) => r._id}
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             {
               id: 'invoiceNumber',
@@ -137,7 +141,7 @@ export default function AdminFinancePaymentsPage() {
               id: 'walletAmount',
               header: 'کیف پول',
               icon: <Wallet className="h-3.5 w-3.5" />,
-              render: (r) => (r.walletAmount > 0 ? `${r.walletAmount.toLocaleString('fa-IR')} ریال` : '-'),
+              render: (r) => (r.walletAmount > 0 ? `${r.walletAmount.toLocaleString('fa-IR')} تومان` : '-'),
               sortable: true,
               accessor: (r) => r.walletAmount
             },
@@ -145,7 +149,7 @@ export default function AdminFinancePaymentsPage() {
               id: 'gatewayAmount',
               header: 'مبلغ درگاه / C2C',
               icon: <CreditCard className="h-3.5 w-3.5" />,
-              render: (r) => (r.gatewayAmount > 0 ? `${r.gatewayAmount.toLocaleString('fa-IR')} ریال` : '-'),
+              render: (r) => (r.gatewayAmount > 0 ? `${r.gatewayAmount.toLocaleString('fa-IR')} تومان` : '-'),
               sortable: true,
               accessor: (r) => r.gatewayAmount
             },

@@ -1,10 +1,26 @@
 import type { MetadataRoute } from 'next';
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nabsara.ir';
+import { absoluteUrl } from '@/lib/seo/site-url';
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: [
+        '/dashboard',
+        '/dashboard/',
+        '/auth',
+        '/auth/',
+        '/admin',
+        '/admin/',
+        '/profile',
+        '/profile/',
+        '/cart',
+        '/checkout',
+        '/orders',
+        '/orders/'
+      ]
+    },
+    sitemap: absoluteUrl('/sitemap.xml')
   };
 }

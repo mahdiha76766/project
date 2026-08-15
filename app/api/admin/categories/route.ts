@@ -5,6 +5,7 @@ import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
+import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
 
 async function guard() {
   const user = await getSessionUser();
@@ -20,16 +21,18 @@ const normalizeImage = (image?: string) => {
 export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { all, page, limit, skip } = getPaginationParams(req.url);
+  const q = getListSearchQuery(req.url);
+  const filter = mergeMongoFilters(buildDocumentSearchFilter(q, ['name', 'slug', 'description']));
   await connectToDatabase();
 
   if (all) {
-    const items = await Category.find().populate('parent', 'name').sort({ name: 1 }).lean();
+    const items = await Category.find(filter).populate('parent', 'name').sort({ name: 1 }).lean();
     return NextResponse.json({ items });
   }
 
   const [items, total] = await Promise.all([
-    Category.find().populate('parent', 'name').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    Category.countDocuments()
+    Category.find(filter).populate('parent', 'name').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Category.countDocuments(filter)
   ]);
   return NextResponse.json(paginatedResponse(items, total, page, limit));
 }

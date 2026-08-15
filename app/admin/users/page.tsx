@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
   }, []);
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="مدیریت کاربران" description="مشاهده تاریخچه خرید و تراکنش‌های هر کاربر" />
       <AdminTable
         head={

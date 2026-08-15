@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { adminFetch } from '@/lib/admin/client';
+import { buildAdminListUrl } from '@/lib/admin/list-search';
 
 type ListResponse<T> = {
   items: T[];
@@ -14,18 +15,29 @@ type ListResponse<T> = {
 export function useAdminList<T>(endpoint: string, pageSize = 10) {
   const [items, setItems] = useState<T[]>([]);
   const [page, setPage] = useState(1);
+  const [search, setSearchState] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const setSearch = useCallback((value: string) => {
+    setSearchState(value);
+    setPage(1);
+  }, []);
+
   const load = useCallback(
-    async (targetPage: number) => {
+    async (targetPage: number, q: string) => {
       setLoading(true);
       setError('');
-      const { ok, data, error: fetchError } = await adminFetch<ListResponse<T>>(
-        `${endpoint}?page=${targetPage}&limit=${pageSize}`
-      );
+      const url = buildAdminListUrl(endpoint, targetPage, pageSize, q || undefined);
+      const { ok, data, error: fetchError } = await adminFetch<ListResponse<T>>(url);
       setLoading(false);
       if (!ok) {
         setError(fetchError);
@@ -41,17 +53,19 @@ export function useAdminList<T>(endpoint: string, pageSize = 10) {
   );
 
   useEffect(() => {
-    void load(page);
-  }, [load, page]);
+    void load(page, debouncedSearch);
+  }, [load, page, debouncedSearch]);
 
   return {
     items,
     page,
     setPage,
+    search,
+    setSearch,
     totalPages,
     total,
     loading,
     error,
-    reload: () => load(page)
+    reload: () => load(page, debouncedSearch)
   };
 }

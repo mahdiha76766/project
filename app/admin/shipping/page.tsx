@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Clock, Hash, Tag, Truck } from 'lucide-react';
@@ -45,7 +45,7 @@ const emptyForm = {
 };
 
 export default function AdminShippingPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Ship>('/api/admin/shipping');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Ship>('/api/admin/shipping');
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [message, setMessage] = useState('');
@@ -114,7 +114,7 @@ export default function AdminShippingPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="مدیریت روش‌های ارسال"
         description="برای روش‌هایی مثل تیپاکس، هزینه ارسال توسط مشتری مستقیم به پیک پرداخت می‌شود و در فاکتور فروشگاه نمی‌آید"
@@ -142,12 +142,12 @@ export default function AdminShippingPage() {
             </SelectInput>
           </div>
           <div><FieldLabel text="نام نمایشی" /><TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-          <div><FieldLabel text="هزینه پایه (ریال)" /><TextInput inputMode="numeric" value={form.baseCost} onChange={(e) => setForm({ ...form, baseCost: e.target.value })} dir="ltr" className="text-right" /></div>
+          <div><FieldLabel text="هزینه پایه (تومان)" /><TextInput inputMode="numeric" value={form.baseCost} onChange={(e) => setForm({ ...form, baseCost: e.target.value })} dir="ltr" className="text-right" /></div>
           {form.code === 'POST' ? (
-            <div><FieldLabel text="هزینه هر کیلو (ریال) — پست" /><TextInput inputMode="numeric" value={form.costPerKg} onChange={(e) => setForm({ ...form, costPerKg: e.target.value })} dir="ltr" className="text-right" /></div>
+            <div><FieldLabel text="هزینه هر کیلو (تومان) — پست" /><TextInput inputMode="numeric" value={form.costPerKg} onChange={(e) => setForm({ ...form, costPerKg: e.target.value })} dir="ltr" className="text-right" /></div>
           ) : null}
           <div><FieldLabel text="زمان تحویل (روز)" /><TextInput inputMode="numeric" value={form.estimatedDays} onChange={(e) => setForm({ ...form, estimatedDays: e.target.value })} dir="ltr" className="text-right" /></div>
-          <div><FieldLabel text="ارسال رایگان از مبلغ (ریال)" /><TextInput inputMode="numeric" value={form.freeAboveAmount} onChange={(e) => setForm({ ...form, freeAboveAmount: e.target.value })} dir="ltr" className="text-right" /></div>
+          <div><FieldLabel text="ارسال رایگان از مبلغ (تومان)" /><TextInput inputMode="numeric" value={form.freeAboveAmount} onChange={(e) => setForm({ ...form, freeAboveAmount: e.target.value })} dir="ltr" className="text-right" /></div>
           <AdminCheckbox label="فقط ارسال شهری" checked={form.cityOnly} onChange={(cityOnly) => setForm({ ...form, cityOnly })} />
           <AdminCheckbox
             label="هزینه ارسال توسط مشتری به پیک (خارج از فاکتور)"
@@ -170,6 +170,10 @@ export default function AdminShippingPage() {
           data={items}
           loading={loading}
           rowKey={(s) => s._id}
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             {
               id: 'code',
@@ -205,7 +209,7 @@ export default function AdminShippingPage() {
             {
               id: 'freeAboveAmount',
               header: 'ارسال رایگان از',
-              render: (s) => (s.freeAboveAmount ? `${s.freeAboveAmount.toLocaleString('fa-IR')} ریال` : '-'),
+              render: (s) => (s.freeAboveAmount ? `${s.freeAboveAmount.toLocaleString('fa-IR')} تومان` : '-'),
               sortable: true,
               accessor: (s) => s.freeAboveAmount
             },

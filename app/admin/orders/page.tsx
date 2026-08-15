@@ -49,7 +49,7 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <main >
+    <main className="space-y-6">
       <AdminPageHeader
         title="مدیریت سفارش‌ها"
         description={userId ? 'فیلتر بر اساس کاربر انتخاب‌شده' : `${total.toLocaleString('fa-IR')} سفارش — ویرایش وضعیت، اقلام و پیگیری`}

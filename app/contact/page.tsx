@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
 import { ContactPageContent } from '@/components/contact/ContactPageContent';
-import { getSiteSeoSettings } from '@/lib/admin/site-settings';
-import { buildSiteMetadata } from '@/lib/seo/site-metadata';
+import { buildPublicMetadata } from '@/lib/seo/metadata';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getSiteSeoSettings();
-  return buildSiteMetadata(seo, {
+  return buildPublicMetadata({
     title: 'تماس با ما',
-    alternates: { canonical: '/contact' }
+    description: 'راه‌های ارتباط با فروشگاه ناب سرا — پشتیبانی، سفارش و مشاوره محصولات گیاهی',
+    canonicalPath: '/contact'
   });
 }
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Package } from 'lucide-react';
 import { formatCurrency } from '@/lib/admin/table-formats';
@@ -44,12 +44,12 @@ export function AdminOrderItemsList({ order }: { order: AdminOrderRow }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-slate-800">{productName(it)}</p>
                 <p className="text-[10px] text-slate-400">
-                  {formatCurrency(it.price, 'ریال')} × {Number(it.quantity).toLocaleString('fa-IR')}
+                  {formatCurrency(it.price, 'تومان')} × {Number(it.quantity).toLocaleString('fa-IR')}
                   {it.sku ? ` · SKU: ${it.sku}` : ''}
                 </p>
               </div>
               <span className="shrink-0 text-xs font-black text-slate-900">
-                {formatCurrency(it.price * it.quantity, 'ریال')}
+                {formatCurrency(it.price * it.quantity, 'تومان')}
               </span>
             </li>
           );
@@ -57,7 +57,7 @@ export function AdminOrderItemsList({ order }: { order: AdminOrderRow }) {
       </ul>
       <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-3 py-2 text-[10px]">
         <span className="font-bold text-slate-500">جمع اقلام</span>
-        <span className="font-black text-slate-800">{formatCurrency(subtotal, 'ریال')}</span>
+        <span className="font-black text-slate-800">{formatCurrency(subtotal, 'تومان')}</span>
       </div>
     </div>
   );

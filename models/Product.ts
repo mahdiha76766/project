@@ -16,6 +16,23 @@ const ProductVariantSchema = new Schema(
     sku: { type: String, default: '', trim: true },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
+    /** Base price from price portal / excel price_toman */
+    portalPrice: { type: Number, min: 0 },
+    hasSitePrice: { type: Boolean, default: false },
+    /** Markup percent 1–100 when hasSitePrice */
+    sitePercent: { type: Number, min: 0, max: 100 },
+    hasWholesale: { type: Boolean, default: false },
+    /** less = base − ; more = base + */
+    wholesaleDirection: { type: String, enum: ['less', 'more'], default: 'less' },
+    /** percent | amount */
+    wholesaleMode: { type: String, enum: ['percent', 'amount'], default: 'percent' },
+    wholesalePercent: { type: Number, min: 0, max: 100 },
+    /** مبلغ ثابت تومان وقتی wholesaleMode=amount */
+    wholesaleAmount: { type: Number, min: 0 },
+    /** @deprecated ضریب عمده حذف شد */
+    wholesaleMultiplier: { type: Number, min: 0, max: 999, default: 1 },
+    /** e.g. «۱ کیلوگرم» → excel قیمت!G */
+    wholesaleQty: { type: String, default: '', trim: true },
     stock: { type: Number, required: true, min: 0, default: 0 },
     weight: { type: Number, min: 0 },
     weightUnit: { type: String, enum: PRODUCT_WEIGHT_UNITS, default: 'g' },
@@ -36,6 +53,17 @@ const ProductSchema = new Schema(
     media: { type: [MediaItemSchema], default: [] },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
+    /** Base price from price portal / excel price_toman (when no variants) */
+    portalPrice: { type: Number, min: 0 },
+    hasSitePrice: { type: Boolean, default: false },
+    sitePercent: { type: Number, min: 0, max: 100 },
+    hasWholesale: { type: Boolean, default: false },
+    wholesaleDirection: { type: String, enum: ['less', 'more'], default: 'less' },
+    wholesaleMode: { type: String, enum: ['percent', 'amount'], default: 'percent' },
+    wholesalePercent: { type: Number, min: 0, max: 100 },
+    wholesaleAmount: { type: Number, min: 0 },
+    wholesaleMultiplier: { type: Number, min: 0, max: 999, default: 1 },
+    wholesaleQty: { type: String, default: '', trim: true },
     stock: { type: Number, required: true, min: 0, default: 0 },
     sku: { type: String, unique: true, sparse: true },
     unit: { type: String, default: 'piece' },

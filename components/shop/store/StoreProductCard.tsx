@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { DiscountBadge, ProductPriceWithDiscount } from '@/components/shop/DiscountBadge';
 import { getProductDiscountInfo } from '@/lib/product/discount';
@@ -99,7 +99,7 @@ export function StoreProductCompact({
       <div className="min-w-0">
         <p className="line-clamp-2 text-sm font-semibold text-surface-900">{name}</p>
         <p className="mt-0.5 text-xs font-bold text-brand-600">
-          {salePrice.toLocaleString('fa-IR')} ریال
+          {salePrice.toLocaleString('fa-IR')} تومان
         </p>
         {discount.hasDiscount ? (
           <p className="text-[10px] text-surface-400 line-through">{price.toLocaleString('fa-IR')}</p>
@@ -138,7 +138,7 @@ export function StoreRelatedProducts({
               <div className="p-3">
                 <p className="line-clamp-2 text-sm font-semibold text-surface-900">{p.name}</p>
                 <p className="mt-1 text-xs font-bold text-brand-600">
-                  {(p.discountPrice ?? p.price).toLocaleString('fa-IR')} ریال
+                  {(p.discountPrice ?? p.price).toLocaleString('fa-IR')} تومان
                 </p>
                 {discount.hasDiscount ? (
                   <p className="text-[10px] text-surface-400 line-through">{p.price.toLocaleString('fa-IR')}</p>

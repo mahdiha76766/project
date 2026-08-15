@@ -7,3 +7,4 @@ export * from './SupportModels';
 export * from './Finance';
 export * from './Invoice';
 export * from './Analytics';
+export * from './PriceHistory';

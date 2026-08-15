@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   ChevronDown,
@@ -96,7 +96,7 @@ export function AdminOrderCard({
             <p className="mt-0.5 font-mono text-xs font-bold text-slate-500">#{shortId(o._id)}</p>
           </div>
           <div className="text-left">
-            <p className="text-sm font-black text-slate-900">{formatCurrency(o.totalAmount, 'ریال')}</p>
+            <p className="text-sm font-black text-slate-900">{formatCurrency(o.totalAmount, 'تومان')}</p>
             <p className="text-[11px] text-slate-400">{formatDate(o.createdAt)}</p>
           </div>
         </div>

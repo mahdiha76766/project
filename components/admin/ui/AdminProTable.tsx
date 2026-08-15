@@ -157,7 +157,11 @@ export function AdminProTable<T>({
   searchable = true,
   searchPlaceholder = 'جستجو در جدول...',
   emptyMessage = 'موردی یافت نشد.',
-  striped = true
+  striped = true,
+  query: controlledQuery,
+  onQueryChange,
+  serverSearch = false,
+  totalCount
 }: {
   data: T[];
   columns: ProColumn<T>[];
@@ -168,15 +172,23 @@ export function AdminProTable<T>({
   searchPlaceholder?: string;
   emptyMessage?: string;
   striped?: boolean;
+  /** Controlled search (from useAdminList). Resets server pagination to page 1. */
+  query?: string;
+  onQueryChange?: (value: string) => void;
+  /** When true, data is already filtered/paginated by the server — skip client filter. */
+  serverSearch?: boolean;
+  totalCount?: number;
 }) {
-  const [query, setQuery] = useState('');
+  const [internalQuery, setInternalQuery] = useState('');
+  const query = controlledQuery ?? internalQuery;
+  const setQuery = onQueryChange ?? setInternalQuery;
   const [sort, setSort] = useState<{ id: string; dir: 'asc' | 'desc' } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     let rows = [...data];
     const q = query.trim().toLowerCase();
-    if (q) {
+    if (q && !serverSearch) {
       rows = rows.filter((row) =>
         columns.some((col) => {
           if (col.searchable === false) return false;
@@ -229,7 +241,9 @@ export function AdminProTable<T>({
             />
           </div>
           <p className="text-xs font-medium text-slate-500">
-            {filtered.length.toLocaleString('fa-IR')} از {data.length.toLocaleString('fa-IR')} مورد
+            {serverSearch && totalCount != null
+              ? `${totalCount.toLocaleString('fa-IR')} مورد${query.trim() ? ' (فیلتر شده)' : ''}`
+              : `${filtered.length.toLocaleString('fa-IR')} از ${data.length.toLocaleString('fa-IR')} مورد`}
           </p>
         </div>
       ) : null}

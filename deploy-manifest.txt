@@ -1,0 +1,43 @@
+# Upload to /home/nedicon1/web
+# Do NOT upload: .git, app/, components/, src/, devDependencies source
+
+## Directories
+- .next/
+- node_modules/
+- public/
+
+## Files
+- server.js
+- next.config.js
+- postcss.config.js
+- tailwind.config.js
+- package.json
+- package-lock.json
+- ecosystem.config.cjs
+- .npmrc
+- lib/db/mongo-config.cjs
+
+## On server create manually
+- .env  (copy from .env.example, set MONGODB_URI, AUTH_SECRET, APP_BASE_URL, PORT)
+- uploads/  (auto-created by server.js — persist user images; do NOT delete on redeploy)
+
+## cPanel Node.js Application
+- Application root: /home/nedicon1/web
+- Application startup file: server.js
+- Node.js version: 20.x
+- Environment: NODE_ENV=production
+
+## After upload (SSH)
+chmod +x node_modules/.bin/*
+pm2 delete nedico.net || true
+pm2 start ecosystem.config.cjs
+pm2 save
+
+## IMPORTANT — CSS / Tailwind
+- Always build locally: npm ci && npm run build && npm run deploy:check
+- Upload the whole .next/ folder from that build
+- Do NOT run npm run build on server after npm prune --omit=dev
+- If styles break, CSS contains raw @tailwind — rebuild and re-upload .next/static/css/
+
+## Or cPanel UI
+Stop app → Start app (ensures NODE_ENV=production)

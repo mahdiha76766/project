@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { Category, Product } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { getUploadsRoot } from '@/lib/admin/upload-storage';
+import { updateDocByAnyId } from '@/lib/db/find-by-any-id';
 import { slugify } from '@/lib/utils/slugify';
 import { syncProductFieldsFromVariants, type ProductVariant } from '@/lib/product/variants';
 
@@ -49,11 +50,13 @@ function toAsciiDigits(value: string) {
 
 /** تمیزسازی قیمت از فرمت‌های متنی، جداکننده و کاراکتر اضافی */
 export function parseExcelPrice(raw: unknown, fallbackToman?: unknown): number {
-  if (typeof fallbackToman === 'number' && Number.isFinite(fallbackToman) && fallbackToman > 0) {
-    return Math.round(fallbackToman);
+  if (typeof fallbackToman === 'number' && Number.isFinite(fallbackToman) && fallbackToman >= 0) {
+    if (fallbackToman === 0 && (raw === '' || raw == null)) return 0;
+    if (fallbackToman > 0) return Math.round(fallbackToman);
   }
 
-  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    if (raw <= 0) return 0;
     // اگر عدد کوچک است (مثل 600) احتمالاً هزار تومان است
     if (raw < 10000) return Math.round(raw * 1000);
     return Math.round(raw);
@@ -61,6 +64,11 @@ export function parseExcelPrice(raw: unknown, fallbackToman?: unknown): number {
 
   let text = toAsciiDigits(String(raw ?? '').trim());
   if (!text) return 0;
+
+  // علامت‌ها و متن‌های جایگزین → ۰
+  if (/^(?:[?؟\-–—_./\\*xX×#]+|n\/?a|null|none|نامشخص|ندارد)$/i.test(text)) {
+    return 0;
+  }
 
   text = text
     .replace(/ریال|تومان|toman|rial/gi, '')
@@ -121,29 +129,81 @@ function rowToExcelItem(row: Record<string, unknown>): ExcelPriceRow | null {
   };
 }
 
-export function resolveProductsExcelPath(customPath?: string) {
-  if (customPath) return customPath;
+export function resolveProductsExcelPath(_customPath?: string) {
+  // Always store/read products.xlsx under UPLOADS_DIR — ignore arbitrary relative paths.
   return path.join(getUploadsRoot(), PRODUCTS_EXCEL_FILENAME);
+}
+
+const LEGACY_SHEET = 'قیمت';
+const LEGACY_NAME_COL = 'نام محصولات';
+const LEGACY_VARIANT_SLOTS = [
+  { priceKey: 'قیمت', weightKey: 'وزن' },
+  { priceKey: 'قیمت_1', weightKey: 'وزن_1' },
+  { priceKey: '__EMPTY', weightKey: '__EMPTY_1' }
+] as const;
+
+/** Read site_prices or fall back to legacy قیمت sheet. */
+export function readActivePriceRowsFromWorkbook(workbook: XLSX.WorkBook) {
+  const siteSheet = workbook.Sheets[PRODUCTS_EXCEL_SHEET];
+  if (siteSheet) {
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(siteSheet, { defval: '' });
+    if (rows.length) return { sheet: PRODUCTS_EXCEL_SHEET, rows };
+  }
+
+  const legacySheet = workbook.Sheets[LEGACY_SHEET];
+  if (!legacySheet) return null;
+
+  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(legacySheet, { defval: '' });
+  const normalized: Record<string, unknown>[] = [];
+
+  for (const row of raw) {
+    const name = String(row[LEGACY_NAME_COL] || '').trim();
+    if (!name) continue;
+
+    for (const slot of LEGACY_VARIANT_SLOTS) {
+      const rawPrice = row[slot.priceKey];
+      if (rawPrice === '' || rawPrice == null) continue;
+      const priceToman = parseExcelPrice(rawPrice);
+      if (!priceToman) continue;
+
+      const variantName = String(row[slot.weightKey] || 'پیش‌فرض').trim() || 'پیش‌فرض';
+      normalized.push({
+        'نام محصول': name,
+        product_id: `${normalizeProductText(name)}_${normalizeProductText(variantName)}`,
+        site_key: `${normalizeProductText(name)}_${normalizeProductText(variantName)}`,
+        slug: '',
+        'دسته‌بندی': '',
+        'نوع/وزن': variantName,
+        واحد: variantName,
+        'قیمت خام': rawPrice,
+        price_toman: priceToman,
+        وضعیت: 'فعال',
+        source_row: 0
+      });
+    }
+  }
+
+  return { sheet: LEGACY_SHEET, rows: normalized };
 }
 
 export async function readSitePricesSheet(filePath = resolveProductsExcelPath()) {
   const buffer = await fs.readFile(filePath);
   const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const sheet = workbook.Sheets[PRODUCTS_EXCEL_SHEET];
-  if (!sheet) {
-    throw new Error(`شیت ${PRODUCTS_EXCEL_SHEET} در فایل اکسل یافت نشد`);
+
+  const active = readActivePriceRowsFromWorkbook(workbook);
+  if (!active?.rows.length) {
+    throw new Error(`شیت ${PRODUCTS_EXCEL_SHEET} یا ${'قیمت'} در فایل اکسل یافت نشد`);
   }
 
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
-  const parsed = rawRows
+  const parsed = active.rows
     .map(rowToExcelItem)
     .filter((row): row is ExcelPriceRow => Boolean(row))
-    .filter((row) => row.status === 'فعال');
+    .filter((row) => row.status === 'فعال' || row.status === '');
 
   return {
     filePath,
-    sheet: PRODUCTS_EXCEL_SHEET,
-    totalRows: rawRows.length,
+    sheet: active.sheet,
+    totalRows: active.rows.length,
     activeRows: parsed,
     grouped: groupRowsByProduct(parsed)
   };
@@ -152,7 +212,12 @@ export async function readSitePricesSheet(filePath = resolveProductsExcelPath())
 export function groupRowsByProduct(rows: ExcelPriceRow[]) {
   const map = new Map<string, ExcelPriceRow[]>();
   for (const row of rows) {
-    const key = normalizeProductText(row.name);
+    // هر ردیف شیت «قیمت» (source_row) = یک محصول منطقی
+    // مثلاً روغن کرچک نیم‌لیتر/۱لیتر جدا از ۳۰میل/۶۰میل
+    const key =
+      row.sourceRow > 0
+        ? `source:${row.sourceRow}`
+        : `name:${normalizeProductText(row.name)}`;
     const list = map.get(key) || [];
     list.push(row);
     map.set(key, list);
@@ -235,17 +300,8 @@ export function findMatchingProduct(
   const exactName = index.byName.get(normalizeProductText(first.name));
   if (exactName) return exactName;
 
-  const normalizedExcelName = normalizeProductText(first.name);
-  for (const product of index.all) {
-    const normalizedSiteName = normalizeProductText(product.name);
-    if (
-      normalizedSiteName === normalizedExcelName ||
-      normalizedSiteName.includes(normalizedExcelName) ||
-      normalizedExcelName.includes(normalizedSiteName)
-    ) {
-      return product;
-    }
-  }
+  // مچ فازی (includes) عمداً حذف شد — «روغن کرچک» را به
+  // «روغن کرچک برای مو و ابرو» قاطی می‌کرد و نام/قیمت‌ها خراب می‌شد
 
   return null;
 }
@@ -254,8 +310,13 @@ function variantKey(name: string) {
   return normalizeProductText(name);
 }
 
-function buildVariantsFromRows(rows: ExcelPriceRow[], existing: ProductVariant[] = []) {
-  const variants: ProductVariant[] = existing.map((v) => ({ ...v }));
+function buildVariantsFromRows(
+  rows: ExcelPriceRow[],
+  existing: ProductVariant[] = [],
+  options?: { replace?: boolean }
+) {
+  const replace = Boolean(options?.replace);
+  const variants: ProductVariant[] = replace ? [] : existing.map((v) => ({ ...v }));
   let changed = 0;
 
   for (const row of rows) {
@@ -275,6 +336,7 @@ function buildVariantsFromRows(rows: ExcelPriceRow[], existing: ProductVariant[]
         name: vName,
         sku,
         price,
+        portalPrice: price,
         stock: 0,
         containerSize: vName,
         isDefault: variants.length === 0
@@ -288,8 +350,27 @@ function buildVariantsFromRows(rows: ExcelPriceRow[], existing: ProductVariant[]
       variant.price = price;
       changed += 1;
     }
-    if (!variant.sku && sku) variant.sku = sku;
-    if (!variant.containerSize) variant.containerSize = vName;
+    if (variant.portalPrice !== price) {
+      variant.portalPrice = price;
+      changed += 1;
+    }
+    if (variant.name !== vName) {
+      variant.name = vName;
+      changed += 1;
+    }
+    if (variant.containerSize !== vName) {
+      variant.containerSize = vName;
+      changed += 1;
+    }
+    if (!variant.sku && sku) {
+      variant.sku = sku;
+      changed += 1;
+    }
+  }
+
+  if (replace) {
+    // فقط واریانت‌های همین source_row — باقی‌مانده‌های ادغام‌شده حذف می‌شوند
+    changed = Math.max(changed, 1);
   }
 
   if (variants.length && !variants.some((v) => v.isDefault)) {
@@ -338,7 +419,14 @@ async function ensureUniqueSlug(baseSlug: string) {
   return slug;
 }
 
-export async function syncProductsFromExcel(options?: { filePath?: string; dryRun?: boolean }) {
+export async function syncProductsFromExcel(options?: {
+  filePath?: string;
+  dryRun?: boolean;
+  /** واریانت‌ها دقیقاً مطابق اکسل (جداسازی source_rowهای ادغام‌شده) */
+  replaceVariants?: boolean;
+  /** نام محصول را از اکسل روی Mongo بنویس */
+  updateNames?: boolean;
+}) {
   const { filePath, activeRows, grouped, totalRows, sheet } = await readSitePricesSheet(options?.filePath);
   await connectToDatabase();
 
@@ -346,6 +434,7 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
   const index = buildMatchIndex(products);
   const categoryCache = new Map<string, string>();
   const matchedIds = new Set<string>();
+  const claimedSkus = new Set<string>();
 
   const result: ProductImportResult = {
     ok: true,
@@ -360,27 +449,37 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
     errors: []
   };
 
+  const replaceVariants = Boolean(options?.replaceVariants);
+  const updateNames = options?.updateNames !== false;
+
   for (const [, rows] of grouped) {
     const first = rows[0];
     if (!first) continue;
 
     try {
-      const existing = findMatchingProduct(rows, index);
+      // اگر SKU این گروه قبلاً به محصول دیگری اختصاص داده شده، محصول جدید بساز
+      const groupSkus = rows.map((r) => normalizeSlug(r.productId)).filter(Boolean);
+      const skuAlreadyClaimed = groupSkus.some((s) => claimedSkus.has(s));
+
+      let existing = skuAlreadyClaimed ? null : findMatchingProduct(rows, index);
+
+      // اگر محصول قبلاً برای source_row دیگری پردازش شده، این گروه را محصول جدا کن
+      if (existing && matchedIds.has(existing._id) && replaceVariants) {
+        existing = null;
+      }
 
       if (existing) {
-        if (matchedIds.has(existing._id)) {
-          result.skipped.push({ name: first.name, reason: 'محصول قبلاً در این اجرا پردازش شده' });
-          continue;
-        }
         matchedIds.add(existing._id);
+        for (const s of groupSkus) claimedSkus.add(s);
 
-        const { variants, changed } = buildVariantsFromRows(rows, existing.variants || []);
-        const priceChanges = variants.filter((v, i) => {
-          const prev = existing.variants?.[i];
-          return prev && prev.price !== v.price;
-        }).length;
+        const { variants, changed } = buildVariantsFromRows(rows, existing.variants || [], {
+          replace: replaceVariants
+        });
+        const nameChanged =
+          updateNames && normalizeProductText(existing.name) !== normalizeProductText(first.name);
+        const sourceRow = first.sourceRow > 0 ? first.sourceRow : undefined;
 
-        if (changed === 0) {
+        if (changed === 0 && !nameChanged && !sourceRow) {
           result.unchanged += 1;
           continue;
         }
@@ -388,31 +487,44 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
         if (!options?.dryRun) {
           const payload = syncProductFieldsFromVariants({
             variants,
-            price: existing.price,
+            price: variants[0]?.price || existing.price,
+            portalPrice: (variants[0]?.portalPrice ?? variants[0]?.price) || existing.price,
             stock: existing.variants?.reduce((s, v) => s + Number(v.stock || 0), 0) || 0,
-            sku: existing.sku
+            sku: variants[0]?.sku || existing.sku
           });
-          await Product.findByIdAndUpdate(existing._id, {
+          const patch: Record<string, unknown> = {
             variants: payload.variants,
             price: payload.price,
+            portalPrice: (payload as { portalPrice?: number }).portalPrice ?? payload.price,
             stock: payload.stock,
-            sku: (payload as { sku?: string }).sku || existing.sku
-          });
+            sku: (payload as { sku?: string }).sku || existing.sku,
+            'attributes.sourceRow': sourceRow,
+            'attributes.excelSlug': first.slug || existing.slug
+          };
+          if (nameChanged) {
+            patch.name = first.name;
+            patch.shortDescription = first.name;
+          }
+          await updateDocByAnyId(Product, existing._id, patch);
         }
 
         result.updated.push({
-          name: existing.name,
+          name: nameChanged ? first.name : existing.name,
           slug: existing.slug,
-          priceChanges,
+          priceChanges: changed,
           variantChanges: changed
         });
         continue;
       }
 
       const slugBase = deriveProductSlug(rows);
-      const slug = await ensureUniqueSlug(slugBase);
+      const slug = await ensureUniqueSlug(
+        replaceVariants && first.sourceRow > 0
+          ? `${slugBase || slugify(first.name)}_r${first.sourceRow}`
+          : slugBase
+      );
       const categoryId = await resolveCategoryId(first.categoryName, categoryCache);
-      const { variants } = buildVariantsFromRows(rows);
+      const { variants } = buildVariantsFromRows(rows, [], { replace: true });
 
       if (!options?.dryRun) {
         const payload = syncProductFieldsFromVariants({
@@ -424,12 +536,17 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
           images: [],
           media: [],
           price: variants[0]?.price || 0,
+          portalPrice: (variants[0]?.portalPrice ?? variants[0]?.price) || 0,
           stock: 0,
           sku: variants[0]?.sku,
           unit: first.unit || 'piece',
           containerSize: first.variantName,
           usageType: 'EDIBLE',
-          attributes: { source: 'excel-import', excelSlug: first.slug },
+          attributes: {
+            source: 'excel-import',
+            excelSlug: first.slug,
+            sourceRow: first.sourceRow > 0 ? first.sourceRow : undefined
+          },
           tags: [first.categoryName].filter(Boolean),
           variants,
           isActive: true,
@@ -437,6 +554,7 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
         });
 
         await Product.create(payload);
+        for (const s of groupSkus) claimedSkus.add(s);
         index.bySlug.set(normalizeSlug(slug), {
           _id: 'new',
           name: first.name,
@@ -444,6 +562,15 @@ export async function syncProductsFromExcel(options?: { filePath?: string; dryRu
           price: payload.price as number,
           variants
         });
+        for (const v of variants) {
+          if (v.sku) index.bySku.set(normalizeSlug(v.sku), {
+            _id: 'new',
+            name: first.name,
+            slug,
+            price: payload.price as number,
+            variants
+          });
+        }
       }
 
       result.imported.push({ name: first.name, slug, variants: variants.length });

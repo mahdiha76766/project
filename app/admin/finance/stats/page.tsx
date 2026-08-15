@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { AdminCard, AdminPageHeader } from '@/components/admin/ui';
@@ -22,7 +22,7 @@ export default function AdminFinanceStatsPage() {
   }, []);
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="آمار مالی" description="گزارش روزانه و ماهانه تراکنش‌ها و پرداخت‌ها" />
       {loading ? <p>در حال بارگذاری...</p> : (
         <>
@@ -45,7 +45,7 @@ export default function AdminFinanceStatsPage() {
               {trend.payments.map((p) => (
                 <div key={p._id} className="flex justify-between rounded-xl border px-3 py-2 text-sm">
                   <span>{p._id}</span>
-                  <span>{p.count} پرداخت — {p.amount.toLocaleString('fa-IR')} ریال</span>
+                  <span>{p.count} پرداخت — {p.amount.toLocaleString('fa-IR')} تومان</span>
                 </div>
               ))}
             </div>

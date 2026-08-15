@@ -6,6 +6,7 @@ import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 import { slugify } from '@/lib/utils/slugify';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
+import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
 
 const optionalShortText = (max: number) => z.string().trim().max(max).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
 const optionalMinText = (min: number) => z.string().trim().min(min).optional().or(z.literal('')).transform((v) => (v === '' ? undefined : v));
@@ -37,10 +38,12 @@ async function guard() { const u = await getSessionUser(); return u && hasMinimu
 export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { page, limit, skip } = getPaginationParams(req.url);
+  const q = getListSearchQuery(req.url);
+  const filter = mergeMongoFilters(buildDocumentSearchFilter(q, ['title', 'slug', 'excerpt', 'category', 'author', 'tags']));
   await connectToDatabase();
   const [items, total] = await Promise.all([
-    BlogPost.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    BlogPost.countDocuments()
+    BlogPost.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    BlogPost.countDocuments(filter)
   ]);
   return NextResponse.json(paginatedResponse(items, total, page, limit));
 }

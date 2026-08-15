@@ -16,6 +16,20 @@ export function formatJalaliDateTime(value?: string | Date | null) {
   return new DateObject({ date, calendar: persian, locale: persian_fa }).format('YYYY/MM/DD HH:mm');
 }
 
+export function formatJalaliTime(value?: string | Date | null) {
+  if (!value) return '-';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new DateObject({ date, calendar: persian, locale: persian_fa }).format('HH:mm');
+}
+
+export function formatJalaliNowParts(date = new Date()) {
+  return {
+    date: formatJalaliDate(date),
+    time: formatJalaliTime(date)
+  };
+}
+
 export function isoToDateObject(value?: string | null) {
   if (!value) return undefined;
   const date = new Date(value);

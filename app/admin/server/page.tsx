@@ -112,7 +112,7 @@ export default function AdminServerPage() {
   if (loading) return <p className="text-sm text-slate-500">در حال بارگذاری...</p>;
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="راه‌اندازی سرور"
         description="تنظیم پورت، دیتابیس، آدرس سایت و تولید فایل .env برای استقرار روی سرور"

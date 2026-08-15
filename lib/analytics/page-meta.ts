@@ -1,4 +1,5 @@
 import type { AnalyticsContentType } from '@/models/Analytics';
+import { parseUserAgent } from '@/lib/analytics/user-agent-parser';
 
 const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|whatsapp/i;
 
@@ -6,12 +7,9 @@ export function isBotUserAgent(ua: string) {
   return BOT_RE.test(ua);
 }
 
+/** @deprecated use parseUserAgent from user-agent-parser */
 export function detectDevice(ua: string): 'mobile' | 'tablet' | 'desktop' | 'unknown' {
-  if (!ua) return 'unknown';
-  if (/ipad|tablet/i.test(ua)) return 'tablet';
-  if (/mobile|android|iphone/i.test(ua)) return 'mobile';
-  if (/windows|macintosh|linux/i.test(ua)) return 'desktop';
-  return 'unknown';
+  return parseUserAgent(ua).deviceType;
 }
 
 export function resolvePageMeta(path: string, title?: string): {

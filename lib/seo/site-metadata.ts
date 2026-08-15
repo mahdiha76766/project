@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import type { SiteSeoSettings } from '@/lib/admin/site-settings-config';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export function buildSiteMetadata(seo: SiteSeoSettings, overrides?: Partial<Metadata>): Metadata {
-  const base = seo.canonicalBaseUrl.replace(/\/$/, '');
+  const base = getSiteUrl();
 
   const metadata: Metadata = {
     metadataBase: new URL(base),

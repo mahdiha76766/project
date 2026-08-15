@@ -1,10 +1,11 @@
 import { formatJalaliDate, formatJalaliDateTime } from '@/lib/admin/jalali';
+import { PRICE_CURRENCY_LABEL } from '@/lib/shop/price-currency';
 
 export const formatDashDate = (value?: string | Date | null) => formatJalaliDate(value);
 
 export const formatDashDateTime = (value?: string | Date | null) => formatJalaliDateTime(value);
 
-export const formatDashCurrency = (value: unknown, suffix = 'ریال') => {
+export const formatDashCurrency = (value: unknown, suffix = PRICE_CURRENCY_LABEL) => {
   const num = Number(value);
   if (Number.isNaN(num)) return '-';
   return `${num.toLocaleString('fa-IR')} ${suffix}`;

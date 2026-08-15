@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { Droplets, Leaf, Package, Shield, Tag } from 'lucide-react';
@@ -119,7 +119,7 @@ export function ProductDetailClient({
                     >
                       <span>{variant.name}</span>
                       <span className="mt-0.5 block text-[11px] font-normal text-surface-500">
-                        {(variant.discountPrice ?? variant.price).toLocaleString('fa-IR')} ریال
+                        {(variant.discountPrice ?? variant.price).toLocaleString('fa-IR')} تومان
                         {!available ? ' — ناموجود' : ''}
                       </span>
                     </button>
@@ -131,7 +131,7 @@ export function ProductDetailClient({
 
           <div className="mt-4 flex flex-wrap gap-2">
             <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${inStock ? 'bg-brand-100 text-brand-700' : 'bg-surface-100 text-surface-500'}`}>
-              {inStock ? `موجود (${selected.stock.toLocaleString('fa-IR')} عدد)` : 'ناموجود'}
+              {inStock ? 'موجود' : 'ناموجود'}
             </span>
             {selected.sku ? (
               <span className="inline-flex items-center gap-1 rounded-md bg-surface-100 px-2 py-0.5 text-xs font-medium text-surface-600">
@@ -143,10 +143,10 @@ export function ProductDetailClient({
 
           <p className="mt-6 text-3xl font-bold text-brand-600">
             {finalPrice.toLocaleString('fa-IR')}
-            <span className="mr-1 text-sm font-normal text-surface-400">ریال</span>
+            <span className="mr-1 text-sm font-normal text-surface-400">تومان</span>
           </p>
           {variantDiscount.hasDiscount ? (
-            <p className="mt-1 text-sm text-surface-400 line-through">{selected.price.toLocaleString('fa-IR')} ریال</p>
+            <p className="mt-1 text-sm text-surface-400 line-through">{selected.price.toLocaleString('fa-IR')} تومان</p>
           ) : null}
 
           <div className="mt-6 grid gap-2 sm:grid-cols-2">

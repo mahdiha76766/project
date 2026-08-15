@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import {
@@ -79,7 +79,7 @@ export default function AdminPage() {
   }, [chartRange]);
 
   return (
-    <div >
+    <div className="space-y-6">
       <AdminPageBanner
         title="داشبورد مدیریت"
         subtitle="آمار لحظه‌ای فروش، نمودارها و مدیریت سفارش‌ها بدون نیاز به رفرش"
@@ -94,14 +94,14 @@ export default function AdminPage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <AdminStatCard
               title="فروش امروز"
-              value={formatCurrency(summary.salesToday, 'ریال')}
+              value={formatCurrency(summary.salesToday, 'تومان')}
               hint={`${summary.salesTodayCount.toLocaleString('fa-IR')} پرداخت موفق`}
               icon={Banknote}
               accent="amber"
             />
             <AdminStatCard
               title="فروش این ماه"
-              value={formatCurrency(summary.salesMonth, 'ریال')}
+              value={formatCurrency(summary.salesMonth, 'تومان')}
               hint={`${summary.salesMonthCount.toLocaleString('fa-IR')} پرداخت`}
               icon={CalendarDays}
               accent="emerald"

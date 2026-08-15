@@ -54,7 +54,7 @@ const initialForm = {
 };
 
 export default function AdminBlogPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Post>('/api/admin/blog');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Post>('/api/admin/blog');
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
@@ -134,7 +134,7 @@ export default function AdminBlogPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="مدیریت بلاگ" description="ایجاد، ویرایش و انتشار مقالات با ویرایشگر متنی پیشرفته" />
 
       <AdminCard title={form.id ? 'ویرایش مقاله' : 'ایجاد مقاله جدید'}>
@@ -200,6 +200,10 @@ export default function AdminBlogPage() {
           loading={loading}
           rowKey={(p) => p._id}
           searchPlaceholder="جستجو در عنوان، دسته، نویسنده..."
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             {
               id: 'cover',

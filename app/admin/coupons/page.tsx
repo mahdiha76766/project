@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Calendar, Hash, Percent, Tag, Ticket } from 'lucide-react';
@@ -58,7 +58,7 @@ const emptyForm = {
 };
 
 export default function AdminCouponsPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Coupon>('/api/admin/coupons');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Coupon>('/api/admin/coupons');
   const [cats, setCats] = useState<Cat[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
@@ -156,7 +156,7 @@ export default function AdminCouponsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="مدیریت کدهای تخفیف" description="کدهای درصدی، مبلغ ثابت و ارسال رایگان اختصاصی" />
 
       <AdminCard title={form.id ? 'ویرایش کد تخفیف' : 'ایجاد کد تخفیف'}>
@@ -177,9 +177,9 @@ export default function AdminCouponsPage() {
           </div>
           {!isFreeShipping ? (
             <>
-              <div><FieldLabel text={form.discountType === 'PERCENT' ? 'درصد تخفیف' : 'مبلغ تخفیف (ریال)'} /><TextInput inputMode="numeric" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} dir="ltr" className="text-right" /></div>
+              <div><FieldLabel text={form.discountType === 'PERCENT' ? 'درصد تخفیف' : 'مبلغ تخفیف (تومان)'} /><TextInput inputMode="numeric" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} dir="ltr" className="text-right" /></div>
               {form.discountType === 'PERCENT' ? (
-                <div><FieldLabel text="سقف تخفیف (ریال)" /><TextInput inputMode="numeric" value={form.maxDiscountAmount} onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })} dir="ltr" className="text-right" /></div>
+                <div><FieldLabel text="سقف تخفیف (تومان)" /><TextInput inputMode="numeric" value={form.maxDiscountAmount} onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })} dir="ltr" className="text-right" /></div>
               ) : null}
             </>
           ) : (
@@ -187,7 +187,7 @@ export default function AdminCouponsPage() {
               این کد هزینه ارسال (آنلاین و پرداخت در محل) را صفر می‌کند.
             </div>
           )}
-          <div><FieldLabel text="حداقل خرید (ریال)" /><TextInput inputMode="numeric" value={form.minPurchaseAmount} onChange={(e) => setForm({ ...form, minPurchaseAmount: e.target.value })} dir="ltr" className="text-right" /></div>
+          <div><FieldLabel text="حداقل خرید (تومان)" /><TextInput inputMode="numeric" value={form.minPurchaseAmount} onChange={(e) => setForm({ ...form, minPurchaseAmount: e.target.value })} dir="ltr" className="text-right" /></div>
           <JalaliDateInput label="تاریخ شروع" value={form.startsAt} onChange={(startsAt) => setForm({ ...form, startsAt })} />
           <JalaliDateInput label="تاریخ انقضا" value={form.expiresAt} onChange={(expiresAt) => setForm({ ...form, expiresAt })} />
           <div><FieldLabel text="حد کل استفاده (۰ = نامحدود)" /><TextInput inputMode="numeric" value={form.usageLimit} onChange={(e) => setForm({ ...form, usageLimit: e.target.value })} dir="ltr" className="text-right" /></div>
@@ -224,6 +224,10 @@ export default function AdminCouponsPage() {
           data={items}
           loading={loading}
           rowKey={(c) => c._id}
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             { id: 'code', header: 'کد', icon: <Ticket className="h-3.5 w-3.5" />, type: 'ltr', accessor: (c) => c.code, sortable: true, searchable: true },
             { id: 'title', header: 'عنوان', accessor: (c) => c.title || '—', sortable: true, searchable: true },
@@ -236,7 +240,7 @@ export default function AdminCouponsPage() {
                   ? 'ارسال رایگان'
                   : c.discountType === 'PERCENT'
                     ? `${c.value.toLocaleString('fa-IR')}٪`
-                    : `${c.value.toLocaleString('fa-IR')} ریال`,
+                    : `${c.value.toLocaleString('fa-IR')} تومان`,
               sortable: true,
               accessor: (c) => c.value
             },

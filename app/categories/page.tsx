@@ -7,7 +7,11 @@ import { resolveImage } from '@/lib/shop/resolve-image';
 import { Category } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
-export const metadata = buildMetadata('دسته‌بندی‌ها', 'دسته‌بندی محصولات عطاری');
+export const metadata = buildMetadata(
+  'دسته‌بندی‌ها',
+  'دسته‌بندی محصولات عطاری — روغن، ادویه و گیاهان دارویی در ناب سرا',
+  { canonical: '/categories' }
+);
 
 export default async function CategoriesPage() {
   const categories = await withDatabase(

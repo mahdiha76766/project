@@ -7,6 +7,15 @@ export type ProductVariant = {
   sku?: string;
   price: number;
   discountPrice?: number;
+  portalPrice?: number;
+  hasSitePrice?: boolean;
+  sitePercent?: number;
+  hasWholesale?: boolean;
+  wholesaleDirection?: 'less' | 'more';
+  wholesaleMode?: 'percent' | 'amount';
+  wholesalePercent?: number;
+  wholesaleAmount?: number;
+  wholesaleQty?: string;
   stock: number;
   weight?: number;
   weightUnit?: (typeof PRODUCT_WEIGHT_UNITS)[number];
@@ -118,6 +127,46 @@ export function normalizeVariantsInput(raw: unknown): ProductVariant[] {
         sku: String(v.sku || '').trim(),
         price: Math.max(0, Number(v.price || 0)),
         discountPrice: v.discountPrice != null ? Math.max(0, Number(v.discountPrice)) : undefined,
+        ...(typeof (v as { portalPrice?: number }).portalPrice === 'number'
+          ? { portalPrice: Math.max(0, Number((v as { portalPrice?: number }).portalPrice)) }
+          : {}),
+        ...(typeof (v as { hasSitePrice?: boolean }).hasSitePrice === 'boolean'
+          ? { hasSitePrice: Boolean((v as { hasSitePrice?: boolean }).hasSitePrice) }
+          : {}),
+        ...(typeof (v as { sitePercent?: number }).sitePercent === 'number'
+          ? { sitePercent: Math.max(0, Math.min(100, Number((v as { sitePercent?: number }).sitePercent))) }
+          : {}),
+        ...(typeof (v as { hasWholesale?: boolean }).hasWholesale === 'boolean'
+          ? { hasWholesale: Boolean((v as { hasWholesale?: boolean }).hasWholesale) }
+          : {}),
+        ...((v as { wholesaleDirection?: string }).wholesaleDirection === 'more' ||
+        (v as { wholesaleDirection?: string }).wholesaleDirection === 'less'
+          ? {
+              wholesaleDirection: (v as { wholesaleDirection: 'less' | 'more' }).wholesaleDirection
+            }
+          : {}),
+        ...(typeof (v as { wholesalePercent?: number }).wholesalePercent === 'number'
+          ? {
+              wholesalePercent: Math.max(
+                0,
+                Math.min(100, Number((v as { wholesalePercent?: number }).wholesalePercent))
+              )
+            }
+          : {}),
+        ...((v as { wholesaleMode?: string }).wholesaleMode === 'amount' ||
+        (v as { wholesaleMode?: string }).wholesaleMode === 'percent'
+          ? {
+              wholesaleMode: (v as { wholesaleMode: 'percent' | 'amount' }).wholesaleMode
+            }
+          : {}),
+        ...(typeof (v as { wholesaleAmount?: number }).wholesaleAmount === 'number'
+          ? {
+              wholesaleAmount: Math.max(0, Number((v as { wholesaleAmount?: number }).wholesaleAmount))
+            }
+          : {}),
+        ...(typeof (v as { wholesaleQty?: string }).wholesaleQty === 'string'
+          ? { wholesaleQty: String((v as { wholesaleQty?: string }).wholesaleQty || '').trim() }
+          : {}),
         stock: Math.max(0, Number(v.stock || 0)),
         weight: v.weight != null ? Number(v.weight) : undefined,
         weightUnit: (v.weightUnit || 'g') as ProductVariant['weightUnit'],

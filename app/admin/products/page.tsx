@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Box, FolderTree, Hash, Layers, Tag, FileSpreadsheet } from 'lucide-react';
@@ -68,7 +68,7 @@ const emptyForm = {
   fullDescription: '',
   category: '',
   price: '',
-  stock: '',
+  stock: '999',
   sku: '',
   tags: '',
   media: [] as GalleryMediaItem[],
@@ -89,7 +89,7 @@ const emptyForm = {
 };
 
 export default function AdminProductsPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Prod>('/api/admin/products');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Prod>('/api/admin/products');
   const [cats, setCats] = useState<Cat[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
@@ -243,7 +243,7 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="مدیریت محصولات" description="ایجاد، ویرایش و مدیریت موجودی محصولات فروشگاه" />
 
       <AdminCard
@@ -321,7 +321,7 @@ export default function AdminProductsPage() {
           </div>
           <div><FieldLabel text="SKU" /><TextInput value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} dir="ltr" className="text-right" /></div>
           <div>
-            <FieldLabel text="قیمت پایه (ریال)" />
+            <FieldLabel text="قیمت پایه (تومان)" />
             <TextInput
               inputMode="numeric"
               value={form.price}
@@ -332,17 +332,21 @@ export default function AdminProductsPage() {
             />
             {form.variants.length > 0 ? <p className="mt-1 text-[10px] text-slate-500">از نوع پیش‌فرض همگام می‌شود</p> : null}
           </div>
-          <div>
-            <FieldLabel text="موجودی کل" />
-            <TextInput
-              inputMode="numeric"
-              value={form.stock}
-              onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              dir="ltr"
-              className="text-right"
+          <div className="flex items-end pb-1">
+            <AdminCheckbox
+              label={Number(form.stock || 0) > 0 ? 'موجود هست' : 'ناموجود'}
+              checked={Number(form.stock || 0) > 0}
+              onChange={(available) =>
+                setForm({
+                  ...form,
+                  stock: String(available ? (Number(form.stock) > 0 ? form.stock : '999') : '0')
+                })
+              }
               disabled={form.variants.length > 0}
             />
-            {form.variants.length > 0 ? <p className="mt-1 text-[10px] text-slate-500">جمع موجودی انواع</p> : null}
+            {form.variants.length > 0 ? (
+              <p className="mr-2 mb-1 text-[10px] text-slate-500">از انواع همگام می‌شود</p>
+            ) : null}
           </div>
           <div className="md:col-span-2"><FieldLabel text="تگ‌ها (با کاما جدا کنید)" /><TextInput value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></div>
           <div className="xl:col-span-2"><FieldLabel text="توضیح کوتاه" /><TextInput value={form.shortDescription} onChange={(e) => setForm({ ...form, shortDescription: e.target.value })} /></div>
@@ -423,6 +427,10 @@ export default function AdminProductsPage() {
           loading={loading}
           rowKey={(p) => p._id}
           searchPlaceholder="جستجو در نام، SKU، موجودی..."
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             {
               id: 'images',
@@ -470,8 +478,12 @@ export default function AdminProductsPage() {
             {
               id: 'stock',
               header: 'موجودی',
-              type: 'number',
-              accessor: (p) => p.stock,
+              accessor: (p) => (p.stock > 0 ? 'موجود' : 'ناموجود'),
+              badge: (p) => ({
+                label: p.stock > 0 ? 'موجود' : 'ناموجود',
+                tone: p.stock > 0 ? 'success' : 'neutral'
+              }),
+              type: 'badge',
               sortable: true,
               searchable: true
             },

@@ -5,6 +5,7 @@ import { getSessionUser } from '@/lib/auth/session';
 import { hasMinimumRole } from '@/server/permissions';
 import { DEFAULT_SHIPPING_ON_DELIVERY, SHIPPING_METHOD_CODES } from '@/constants/shipping';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
+import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
 
 async function guard() {
   const u = await getSessionUser();
@@ -14,10 +15,12 @@ async function guard() {
 export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { page, limit, skip } = getPaginationParams(req.url);
+  const q = getListSearchQuery(req.url);
+  const filter = mergeMongoFilters(buildDocumentSearchFilter(q, ['name', 'code', 'description']));
   await connectToDatabase();
   const [items, total] = await Promise.all([
-    ShippingMethod.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    ShippingMethod.countDocuments()
+    ShippingMethod.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    ShippingMethod.countDocuments(filter)
   ]);
   return NextResponse.json(paginatedResponse(items, total, page, limit));
 }

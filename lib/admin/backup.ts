@@ -5,12 +5,13 @@ import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { google } from 'googleapis';
 import { getBackupSettings } from './backup-config';
+import { getUploadsRoot } from '@/lib/admin/upload-storage';
 import cron from 'node-cron';
 import * as unzip from 'unzip-stream';
 
 // Path for temporary backups
 const TEMP_DIR = path.join(process.cwd(), 'temp-backups');
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+const UPLOADS_DIR = getUploadsRoot();
 
 // Ensure temp dir exists
 if (!fs.existsSync(TEMP_DIR)) {

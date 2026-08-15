@@ -217,15 +217,12 @@ export default function AdminUserDetailPage() {
           <div className="my-5">
             <p className="text-3xl font-black">
               {(data.wallet?.availableBalance ?? 0).toLocaleString('fa-IR')}{' '}
-              <span className="text-xs font-normal opacity-90">ریال</span>
-            </p>
-            <p className="text-xs opacity-90 mt-1 font-bold">
-              معادل: {Math.floor((data.wallet?.availableBalance ?? 0) / 10).toLocaleString('fa-IR')} ریال
+              <span className="text-xs font-normal opacity-90">تومان</span>
             </p>
           </div>
           <div className="border-t border-white/20 pt-2 text-xs opacity-95 flex items-center justify-between">
             <span>موجودی بلوکه (در هولد):</span>
-            <span className="font-black font-mono">{(data.wallet?.blockedBalance ?? 0).toLocaleString('fa-IR')} ریال</span>
+            <span className="font-black font-mono">{(data.wallet?.blockedBalance ?? 0).toLocaleString('fa-IR')} تومان</span>
           </div>
         </div>
 
@@ -292,7 +289,7 @@ export default function AdminUserDetailPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">مبلغ مورد نظر (به ریال):</label>
+                <label className="text-xs font-bold text-slate-700">مبلغ مورد نظر (به تومان):</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -302,13 +299,8 @@ export default function AdminUserDetailPage() {
                     className="h-11 w-full rounded-xl border border-slate-200 pr-3 pl-12 text-sm outline-none font-bold text-slate-800 focus:border-amber-500"
                     required
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">ریال</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">تومان</span>
                 </div>
-                {amount ? (
-                  <p className="text-[10px] text-slate-500 font-bold mt-1 pr-1">
-                    معادل: {Math.floor(Number(amount) / 10).toLocaleString('fa-IR')} ریال
-                  </p>
-                ) : null}
               </div>
 
               <div className="space-y-1">
@@ -441,7 +433,7 @@ export default function AdminUserDetailPage() {
                   {data.orders.map((o) => (
                     <tr key={o._id} className="[&>td]:px-2.5 [&>td]:py-3 hover:bg-slate-50/50">
                       <td className="font-mono font-bold text-slate-800">#{o._id.slice(-8)}</td>
-                      <td className="font-black">{o.totalAmount.toLocaleString('fa-IR')} ریال</td>
+                      <td className="font-black">{o.totalAmount.toLocaleString('fa-IR')} تومان</td>
                       <td>
                         <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
                           {ORDER_STATUS_LABELS[o.orderStatus] || o.orderStatus}
@@ -495,7 +487,7 @@ export default function AdminUserDetailPage() {
                           {p.provider === 'CARD_TO_CARD' ? 'کارت به کارت' : p.provider}
                         </span>
                       </td>
-                      <td className="font-black text-slate-800">{p.amount.toLocaleString('fa-IR')} ریال</td>
+                      <td className="font-black text-slate-800">{p.amount.toLocaleString('fa-IR')} تومان</td>
                       <td className="font-mono text-slate-600">{p.refNum || '—'}</td>
                       <td>
                         <span

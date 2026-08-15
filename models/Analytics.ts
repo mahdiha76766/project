@@ -6,11 +6,22 @@ const AnalyticsSessionSchema = new Schema(
   {
     sessionId: { type: String, required: true, unique: true, index: true },
     visitorId: { type: String, required: true, index: true },
+    visitorKey: { type: String, index: true },
+    ipHash: { type: String, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     landingPath: { type: String, default: '/' },
     referrer: { type: String, default: '' },
     userAgent: { type: String, default: '' },
     device: { type: String, enum: ['mobile', 'tablet', 'desktop', 'unknown'], default: 'unknown' },
+    browser: { type: String, default: '' },
+    browserVersion: { type: String, default: '' },
+    os: { type: String, default: '' },
+    osVersion: { type: String, default: '' },
+    deviceVendor: { type: String, default: '' },
+    deviceModel: { type: String, default: '' },
+    deviceLabel: { type: String, default: '' },
+    screenWidth: { type: Number },
+    screenHeight: { type: Number },
     pageViews: { type: Number, default: 0 },
     totalDurationSec: { type: Number, default: 0 },
     isBot: { type: Boolean, default: false, index: true },
@@ -24,6 +35,8 @@ const AnalyticsPageViewSchema = new Schema(
   {
     sessionId: { type: String, required: true, index: true },
     visitorId: { type: String, required: true, index: true },
+    visitorKey: { type: String, index: true },
+    ipHash: { type: String, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     path: { type: String, required: true, index: true },
     title: { type: String, default: '' },
@@ -36,6 +49,15 @@ const AnalyticsPageViewSchema = new Schema(
     contentSlug: { type: String, default: '', index: true },
     referrer: { type: String, default: '' },
     device: { type: String, enum: ['mobile', 'tablet', 'desktop', 'unknown'], default: 'unknown' },
+    browser: { type: String, default: '' },
+    browserVersion: { type: String, default: '' },
+    os: { type: String, default: '' },
+    osVersion: { type: String, default: '' },
+    deviceVendor: { type: String, default: '' },
+    deviceModel: { type: String, default: '' },
+    deviceLabel: { type: String, default: '' },
+    screenWidth: { type: Number },
+    screenHeight: { type: Number },
     durationSec: { type: Number, default: 0 },
     scrollDepth: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true, index: true },
@@ -45,8 +67,10 @@ const AnalyticsPageViewSchema = new Schema(
 );
 
 AnalyticsSessionSchema.index({ createdAt: -1 });
+AnalyticsSessionSchema.index({ visitorKey: 1, lastActivityAt: -1 });
 AnalyticsPageViewSchema.index({ createdAt: -1 });
 AnalyticsPageViewSchema.index({ path: 1, createdAt: -1 });
+AnalyticsPageViewSchema.index({ visitorKey: 1, path: 1, createdAt: -1 });
 
 export const AnalyticsSession = models.AnalyticsSession || model('AnalyticsSession', AnalyticsSessionSchema);
 export const AnalyticsPageView = models.AnalyticsPageView || model('AnalyticsPageView', AnalyticsPageViewSchema);

@@ -3,15 +3,22 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { Product } from '@/models/Product';
 import { Category } from '@/models/Category';
 import { BlogPost } from '@/models/SupportModels';
+import { absoluteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nabsara.ir';
+function toLastModified(value?: Date | string | null) {
+  if (!value) return new Date();
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${BASE_URL}/categories`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: absoluteUrl('/'), lastModified: now, changeFrequency: 'daily', priority: 1.0 },
+    { url: absoluteUrl('/products'), lastModified: now, changeFrequency: 'daily', priority: 0.9 },
+    { url: absoluteUrl('/categories'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: absoluteUrl('/blog'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: absoluteUrl('/contact'), lastModified: now, changeFrequency: 'monthly', priority: 0.5 }
   ];
 
   try {
@@ -20,29 +27,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [products, categories, blogPosts] = await Promise.all([
       Product.find({ isActive: true }).select('slug updatedAt').lean(),
       Category.find({ isActive: true }).select('slug updatedAt').lean(),
-      BlogPost.find({ isPublished: true }).select('slug updatedAt publishedAt').lean(),
+      BlogPost.find({ isPublished: true }).select('slug updatedAt publishedAt').lean()
     ]);
 
-    const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-      url: `${BASE_URL}/products/${p.slug}`,
-      lastModified: p.updatedAt ?? new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
+    const productRoutes: MetadataRoute.Sitemap = products
+      .filter((p) => p.slug)
+      .map((p) => ({
+        url: absoluteUrl(`/products/${p.slug}`),
+        lastModified: toLastModified(p.updatedAt),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7
+      }));
 
-    const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
-      url: `${BASE_URL}/categories/${c.slug}`,
-      lastModified: c.updatedAt ?? new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    }));
+    const categoryRoutes: MetadataRoute.Sitemap = categories
+      .filter((c) => c.slug)
+      .map((c) => ({
+        url: absoluteUrl(`/categories/${c.slug}`),
+        lastModified: toLastModified(c.updatedAt),
+        changeFrequency: 'weekly' as const,
+        priority: 0.6
+      }));
 
-    const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((b) => ({
-      url: `${BASE_URL}/blog/${b.slug}`,
-      lastModified: b.updatedAt ?? b.publishedAt ?? new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }));
+    const blogRoutes: MetadataRoute.Sitemap = blogPosts
+      .filter((b) => b.slug)
+      .map((b) => ({
+        url: absoluteUrl(`/blog/${b.slug}`),
+        lastModified: toLastModified(b.updatedAt ?? b.publishedAt),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7
+      }));
 
     return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes];
   } catch {

@@ -12,11 +12,15 @@
     "check:mongo": "node scripts/check-mongo.js",
     "deploy:prune": "npm prune --omit=dev",
     "lint": "next lint",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "excel:remirror": "tsx --import ./scripts/register-server-only-shim.mts scripts/remirror-price-sheet.mts",
+    "excel:reconcile": "tsx --import ./scripts/register-server-only-shim.mts scripts/reconcile-excel-products.mts"
   },
   "dependencies": {
     "archiver": "^8.0.0",
+    "autoprefixer": "^10.4.21",
     "bcryptjs": "^2.4.3",
+    "exceljs": "^4.4.0",
     "googleapis": "^173.0.0",
     "html-to-image": "^1.11.13",
     "leaflet": "^1.9.4",
@@ -24,6 +28,7 @@
     "mongoose": "^8.14.1",
     "next": "^15.3.2",
     "node-cron": "^4.5.0",
+    "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-date-object": "^2.1.9",
     "react-dom": "^19.1.0",
@@ -31,6 +36,7 @@
     "react-multi-date-picker": "^4.5.2",
     "recharts": "^3.8.1",
     "server-only": "^0.0.1",
+    "tailwindcss": "^3.4.17",
     "unzip-stream": "^0.3.4",
     "xlsx": "^0.18.5",
     "zod": "^3.24.4"
@@ -44,9 +50,6 @@
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "@types/unzip-stream": "^0.3.4",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^3.4.17",
     "tsx": "^4.20.0",
     "typescript": "^5.8.3"
   }

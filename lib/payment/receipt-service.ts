@@ -1,4 +1,4 @@
-import 'server-only';
+﻿import 'server-only';
 
 import { Invoice, Order, PaymentReceipt, FinancePayment } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
@@ -100,7 +100,7 @@ export async function createPaymentReceipt(params: {
       {
         action: 'receipt_uploaded',
         message: walletAmount > 0
-          ? `رسید ثبت شد (پرداخت ترکیبی: کارت به کارت ${gatewayAmount.toLocaleString('fa-IR')} ریال + کسر از کیف پول ${walletAmount.toLocaleString('fa-IR')} ریال)`
+          ? `رسید ثبت شد (پرداخت ترکیبی: کارت به کارت ${gatewayAmount.toLocaleString('fa-IR')} تومان + کسر از کیف پول ${walletAmount.toLocaleString('fa-IR')} تومان)`
           : 'رسید کارت به کارت ثبت شد — در انتظار تأیید'
       }
     ]

@@ -100,7 +100,7 @@ export default function AdminSliderPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="اسلایدر صفحه اصلی"
         description="مدیریت اسلایدهای هیرو — تصویر، متن و دکمه‌ها را ویرایش کنید"

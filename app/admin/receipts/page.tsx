@@ -96,7 +96,7 @@ export default function AdminReceiptsPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="تأیید رسیدهای کارت به کارت"
         description="بررسی تصاویر رسید، تأیید سفارش/شارژ کیف پول و تنظیم اطلاعات بانکی"

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { HiOutlineChartBar, HiOutlineTrendingUp } from 'react-icons/hi';
@@ -114,7 +114,7 @@ export function AdminDashboardCharts({
       <div className="grid gap-4 xl:grid-cols-2">
         <AdminChartCard
           title="روند فروش"
-          subtitle={`${rangeLabel} · ${formatCurrency(salesTotal, 'ریال')}`}
+          subtitle={`${rangeLabel} · ${formatCurrency(salesTotal, 'تومان')}`}
           icon={<HiOutlineTrendingUp />}
           accent="amber"
           action={rangeAction}
@@ -125,7 +125,7 @@ export function AdminDashboardCharts({
             yKey="amount"
             name="فروش"
             color="#d97706"
-            valueFormatter={(n) => formatCurrency(n, 'ریال')}
+            valueFormatter={(n) => formatCurrency(n, 'تومان')}
           />
         </AdminChartCard>
 

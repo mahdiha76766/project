@@ -32,7 +32,7 @@ type Cat = {
 const emptyForm = { id: '', name: '', slug: '', description: '', image: '', parent: '', isActive: true };
 
 export default function AdminCategoriesPage() {
-  const { items, page, setPage, totalPages, total, loading, error, reload } = useAdminList<Cat>('/api/admin/categories');
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Cat>('/api/admin/categories');
   const [allCats, setAllCats] = useState<Cat[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
@@ -106,7 +106,7 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader title="مدیریت دسته‌بندی‌ها" description="ساختار دسته‌بندی محصولات فروشگاه را مدیریت کنید" />
 
       <AdminCard title={form.id ? 'ویرایش دسته‌بندی' : 'ایجاد دسته‌بندی'}>
@@ -150,6 +150,10 @@ export default function AdminCategoriesPage() {
           data={items}
           loading={loading}
           rowKey={(c) => c._id}
+          query={search}
+          onQueryChange={setSearch}
+          serverSearch
+          totalCount={total}
           columns={[
             {
               id: 'image',

@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
   if (loading) return <p className="text-sm text-slate-500">در حال بارگذاری تنظیمات...</p>;
 
   return (
-    <main>
+    <main className="space-y-6">
       <AdminPageHeader
         title="تنظیمات سایت و سئو"
         description="عنوان، توضیحات، کلمات کلیدی، favicon و کدهای گوگل — مستقیماً روی صفحه اصلی و متاتگ‌ها اعمال می‌شود"

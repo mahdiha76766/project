@@ -4,23 +4,35 @@ import { ProductPageHero } from '@/components/shop/ProductPageHero';
 import { StoreSidebar } from '@/components/shop/store/StorePageHeader';
 import { normalizeGalleryMedia } from '@/lib/media/gallery';
 import { StoreProductCompact, StoreRelatedProducts } from '@/components/shop/store/StoreProductCard';
+import { StoreBlogCompact } from '@/components/shop/store/StoreBlogCard';
 import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection';
 import { ProductDetailClient } from '@/components/shop/ProductDetailClient';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { getProductVariants, serializeVariantsForClient } from '@/lib/product/variants';
-import { Product } from '@/models';
+import { buildDetailMetadata, notFoundMetadata } from '@/lib/seo/metadata';
+import { buildBreadcrumbJsonLd, buildPageJsonLd, buildProductJsonLd } from '@/lib/seo/json-ld';
+import { BlogPost, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   return withDatabase(async () => {
     const product: any = await Product.findOne({ slug, isActive: true }).lean();
-    if (!product) return { title: 'محصول یافت نشد' };
-    return {
-      title: product.seo?.title || `${product.name} | نابسرا`,
-      description: product.seo?.description || product.shortDescription,
-      alternates: { canonical: `/products/${product.slug}` }
-    };
-  }, { title: 'محصول یافت نشد' });
+    if (!product) return notFoundMetadata('محصول یافت نشد');
+
+    const title = product.seo?.title?.trim() || product.name;
+    const description =
+      product.seo?.description?.trim() ||
+      product.shortDescription?.trim() ||
+      product.name;
+
+    return buildDetailMetadata({
+      title,
+      description,
+      canonicalPath: `/products/${product.slug}`,
+      image: product.images?.[0]
+    });
+  }, notFoundMetadata('محصول یافت نشد'));
 }
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -31,7 +43,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   );
   if (!product) notFound();
 
-  const [sideProducts, relatedProducts] = await withDatabase(
+  const [sideProducts, relatedProducts, relatedPosts] = await withDatabase(
     () =>
       Promise.all([
         Product.find({
@@ -48,9 +60,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           $or: [{ category: product.category }, { tags: { $in: product.tags || [] } }]
         })
           .limit(4)
+          .lean(),
+        BlogPost.find({
+          isPublished: true,
+          relatedProductIds: product._id
+        })
+          .sort({ publishedAt: -1 })
+          .limit(4)
+          .select('slug title coverImage excerpt')
           .lean()
       ]),
-    [[], []] as [unknown[], unknown[]]
+    [[], [], []] as [unknown[], unknown[], unknown[]]
   );
 
   const media = normalizeGalleryMedia(product.media, product.images);
@@ -59,8 +79,30 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     ? serializeVariantsForClient(product.variants)
     : serializeVariantsForClient(getProductVariants(product));
 
+  const jsonLd = buildPageJsonLd(
+    buildProductJsonLd({
+      name: product.name,
+      slug: product.slug,
+      shortDescription: product.shortDescription,
+      seo: product.seo,
+      images: product.images,
+      sku: product.sku,
+      price: product.price,
+      discountPrice: product.discountPrice,
+      stock: product.stock,
+      variants: product.variants,
+      updatedAt: product.updatedAt
+    }),
+    buildBreadcrumbJsonLd([
+      { name: 'خانه', path: '/' },
+      { name: 'محصولات', path: '/products' },
+      { name: product.name }
+    ])
+  );
+
   return (
     <>
+      <JsonLd data={jsonLd} />
       <ProductPageHero
         title={product.name}
         badge={product.isFeatured ? 'پرفروش' : undefined}
@@ -110,12 +152,25 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 enableVariantPicker={hasDbVariants}
               />
             </article>
+
             {relatedProducts.length ? (
               <StoreRelatedProducts
                 title="مرتبط"
                 products={relatedProducts as unknown as Parameters<typeof StoreRelatedProducts>[0]['products']}
               />
             ) : null}
+
+            {relatedPosts.length ? (
+              <section className="rounded-2xl border border-surface-200 bg-surface-0 p-6">
+                <h3 className="font-bold text-surface-900">مقالات مرتبط</h3>
+                <div className="mt-4 space-y-1">
+                  {relatedPosts.map((p: any) => (
+                    <StoreBlogCompact key={String(p._id)} slug={p.slug} title={p.title} coverImage={p.coverImage} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <ProductReviewsSection slug={product.slug} />
           </div>
         </div>
