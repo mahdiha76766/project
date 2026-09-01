@@ -4,8 +4,11 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { getSessionUser } from '@/lib/auth/session';
 import { buildCheckoutQuote } from '@/lib/checkout/pricing';
 import { findVariant, getVariantUnitPrice, getVariantWeightGrams } from '@/lib/product/variants';
+import { assertSalesEnabled } from '@/lib/commerce/sales';
 
 export async function POST(req: Request) {
+  const sales = await assertSalesEnabled();
+  if (sales.error) return sales.error;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'ابتدا وارد شوید' }, { status: 401 });
   await connectToDatabase();

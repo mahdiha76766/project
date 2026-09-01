@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireCatalog } from '@/lib/api/guards';
 import { saveAdminImage } from '@/lib/admin/image-upload';
 
-async function guard() {
-  const user = await getSessionUser();
-  return user && hasMinimumRole(user.role, 'ADMIN');
-}
-
 export async function POST(req: Request) {
-  if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const auth = await requireCatalog();
+  if (auth.error) return auth.error;
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;

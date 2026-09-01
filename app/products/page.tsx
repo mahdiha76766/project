@@ -1,13 +1,12 @@
 import { Container } from '@/components/ui/Container';
-import { StorePageHeader } from '@/components/shop/store/StorePageHeader';
-import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
-import { StoreFilters } from '@/components/shop/store/StoreFilters';
-import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
+import { FpPageHero } from '@/components/feedar/ui/PageHero';
+import { FpFilterSidebar } from '@/components/feedar/products/FilterSidebar';
+import { FeedarProductCard } from '@/components/feedar/products/ProductCard';
+import { FpEmptyState } from '@/components/feedar/ui/EmptyState';
+import { FpPagination } from '@/components/feedar/ui/Pagination';
 import { buildQueryListMetadata } from '@/lib/seo/metadata';
-import { mapProductListing } from '@/lib/shop/map-product-listing';
-import { Category, Product } from '@/models';
-import { withDatabase } from '@/lib/db/safe-query';
-import type { ShopProduct } from '@/types/shop';
+import { queryPublicCatalog } from '@/lib/feedar/product-families';
+import { FEEDAR_BRAND } from '@/lib/brand/feedar';
 
 export async function generateMetadata({
   searchParams
@@ -17,7 +16,7 @@ export async function generateMetadata({
   const params = await searchParams;
   return buildQueryListMetadata(
     'محصولات',
-    'خرید روغن، ادویه و محصولات گیاهی — فروشگاه آنلاین ناب سرا',
+    `محصولات دارویی، گیاهی و مکمل ${FEEDAR_BRAND.nameFa}`,
     '/products',
     params
   );
@@ -27,60 +26,55 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   const q = String(params.q || '').trim();
   const category = String(params.category || '').trim();
+  const line = String(params.line || '').trim();
   const sort = String(params.sort || 'newest');
+  const page = Number(params.page || 1);
 
-  const [items, categories] = await withDatabase(async () => {
-    const filter: Record<string, unknown> = { isActive: true };
-    if (category) {
-      const foundCategory = await Category.findOne({ slug: category, isActive: true }).select('_id').lean() as { _id?: unknown } | null;
-      filter.category = foundCategory?._id || null;
-    }
-    if (q) {
-      filter.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { shortDescription: { $regex: q, $options: 'i' } },
-        { fullDescription: { $regex: q, $options: 'i' } },
-        { tags: { $regex: q, $options: 'i' } }
-      ];
-    }
+  const result = await queryPublicCatalog({ q, category, line, sort, page });
 
-    const sortObj =
-      sort === 'cheapest' ? { discountPrice: 1, price: 1 }
-      : sort === 'expensive' ? { discountPrice: -1, price: -1 }
-      : sort === 'best_selling' ? { isFeatured: -1, createdAt: -1 }
-      : { createdAt: -1 };
-
-    return Promise.all([
-      Product.find(filter).sort(sortObj as any).populate('category', 'slug').lean(),
-      Category.find({ isActive: true }).sort({ name: 1 }).select('slug name').lean()
-    ]);
-  }, [[], []] as [unknown[], unknown[]]);
-
-  const products: ShopProduct[] = items.map((p: any) => mapProductListing(p, p.category?.slug || ''));
+  const hrefForPage = (next: number) => {
+    const sp = new URLSearchParams();
+    if (q) sp.set('q', q);
+    if (category) sp.set('category', category);
+    if (line) sp.set('line', line);
+    if (sort) sp.set('sort', sort);
+    if (next > 1) sp.set('page', String(next));
+    const qs = sp.toString();
+    return qs ? `/products?${qs}` : '/products';
+  };
 
   return (
     <>
-      <StorePageHeader
-        label="فروشگاه"
+      <FpPageHero
+        kicker="کاتالوگ"
         title="محصولات"
-        description="روغن، ادویه و محصولات گیاهی با فیلتر و جستجو."
+        description={`جستجو، فیلتر و مشاهده سبد محصولات ${FEEDAR_BRAND.nameFa}.`}
         breadcrumbs={[{ label: 'خانه', href: '/' }, { label: 'محصولات' }]}
       />
       <Container className="py-10 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <form action="/products" className="lg:sticky lg:top-24 lg:self-start">
-            <StoreFilters
-              categories={categories.map((c: any) => ({ slug: c.slug, name: c.name }))}
-              defaults={{ q, category, sort }}
-            />
-          </form>
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <FpFilterSidebar categories={result.categories} defaults={{ q, category, sort, line }} />
+          </div>
           <section>
-            <p className="mb-5 text-sm text-surface-500">{products.length.toLocaleString('fa-IR')} محصول</p>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {products.length ? products.map((p) => <StoreProductCard key={p.id} product={p} />) : (
-                <StoreEmpty message="محصولی یافت نشد." />
-              )}
-            </div>
+            <p className="mb-5 text-sm text-surface-500">{result.total.toLocaleString('fa-IR')} محصول</p>
+            {result.products.length ? (
+              <>
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {result.products.map((p) => (
+                    <FeedarProductCard key={p.id} product={p} categoryLabel={p.category} />
+                  ))}
+                </div>
+                <FpPagination className="mt-10" page={result.page} pageCount={result.pageCount} hrefForPage={hrefForPage} />
+              </>
+            ) : (
+              <FpEmptyState
+                title="محصولی یافت نشد"
+                description="عبارت جستجو یا فیلتر را تغییر دهید."
+                actionHref="/products"
+                actionLabel="پاک کردن فیلتر"
+              />
+            )}
           </section>
         </div>
       </Container>

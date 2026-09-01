@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils/cn';
 
 type AdminMediaUploaderProps = {
   label: string;
-  folder: 'products' | 'categories' | 'blog' | 'banners';
+  folder: 'products' | 'categories' | 'blog' | 'banners' | 'media' | 'downloads';
   value: GalleryMediaItem[];
   onChange: (items: GalleryMediaItem[]) => void;
   maxFiles?: number;

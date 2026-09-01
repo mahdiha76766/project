@@ -75,6 +75,13 @@ export default function AdminSettingsPage() {
       {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
       {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
 
+      <AdminCard title="سیستم فروش">
+        <p className="text-sm leading-7 text-surface-500">فعال یا غیرفعال کردن خرید آنلاین در کل سایت عمومی.</p>
+        <a href="/admin/settings/sales" className="ph-btn-primary mt-4 inline-flex !py-2 text-xs">
+          تنظیمات فروش
+        </a>
+      </AdminCard>
+
       <AdminCard title="اطلاعات اصلی سایت">
         <div className="grid gap-4 md:grid-cols-2">
           <div>

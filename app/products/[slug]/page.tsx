@@ -1,18 +1,13 @@
 import { notFound } from 'next/navigation';
-import { Container } from '@/components/ui/Container';
-import { ProductPageHero } from '@/components/shop/ProductPageHero';
-import { StoreSidebar } from '@/components/shop/store/StorePageHeader';
 import { normalizeGalleryMedia } from '@/lib/media/gallery';
-import { StoreProductCompact, StoreRelatedProducts } from '@/components/shop/store/StoreProductCard';
-import { StoreBlogCompact } from '@/components/shop/store/StoreBlogCard';
-import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection';
-import { ProductDetailClient } from '@/components/shop/ProductDetailClient';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { FeedarProductDetailView } from '@/components/feedar/products/ProductDetailView';
 import { getProductVariants, serializeVariantsForClient } from '@/lib/product/variants';
 import { buildDetailMetadata, notFoundMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildPageJsonLd, buildProductJsonLd } from '@/lib/seo/json-ld';
 import { BlogPost, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
+import { getSalesConfig } from '@/lib/commerce/sales';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -43,17 +38,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   );
   if (!product) notFound();
 
-  const [sideProducts, relatedProducts, relatedPosts] = await withDatabase(
+  const [relatedProducts, relatedPosts] = await withDatabase(
     () =>
       Promise.all([
-        Product.find({
-          isActive: true,
-          category: product.category,
-          slug: { $ne: product.slug }
-        })
-          .sort({ isFeatured: -1, createdAt: -1 })
-          .limit(8)
-          .lean(),
         Product.find({
           isActive: true,
           _id: { $ne: product._id },
@@ -70,7 +57,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           .select('slug title coverImage excerpt')
           .lean()
       ]),
-    [[], [], []] as [unknown[], unknown[], unknown[]]
+    [[], []] as [unknown[], unknown[]]
   );
 
   const media = normalizeGalleryMedia(product.media, product.images);
@@ -79,6 +66,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     ? serializeVariantsForClient(product.variants)
     : serializeVariantsForClient(getProductVariants(product));
 
+  const sales = await getSalesConfig();
   const jsonLd = buildPageJsonLd(
     buildProductJsonLd({
       name: product.name,
@@ -91,7 +79,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       discountPrice: product.discountPrice,
       stock: product.stock,
       variants: product.variants,
-      updatedAt: product.updatedAt
+      updatedAt: product.updatedAt,
+      includeOffers: sales.salesEnabled
     }),
     buildBreadcrumbJsonLd([
       { name: 'خانه', path: '/' },
@@ -103,78 +92,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <>
       <JsonLd data={jsonLd} />
-      <ProductPageHero
-        title={product.name}
-        badge={product.isFeatured ? 'پرفروش' : undefined}
-        breadcrumbs={[
-          { label: 'خانه', href: '/' },
-          { label: 'محصولات', href: '/products' },
-          { label: product.name }
-        ]}
+      <FeedarProductDetailView
+        product={product}
+        media={media}
+        variants={variants}
+        hasDbVariants={hasDbVariants}
+        relatedProducts={relatedProducts as Record<string, unknown>[]}
+        relatedPosts={relatedPosts as Record<string, unknown>[]}
+        salesEnabled={sales.salesEnabled}
       />
-      <Container className="py-10 lg:py-12">
-        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <StoreSidebar title="محصولات هم‌دسته">
-            {sideProducts.length ? (
-              sideProducts.map((p: any) => (
-                <StoreProductCompact
-                  key={String(p._id)}
-                  slug={p.slug}
-                  name={p.name}
-                  price={p.price}
-                  discountPrice={p.discountPrice}
-                  image={p.images?.[0]}
-                />
-              ))
-            ) : (
-              <p className="px-2 text-xs text-surface-500">محصول دیگری در این دسته نیست.</p>
-            )}
-          </StoreSidebar>
-
-          <div className="space-y-8">
-            <article className="overflow-hidden rounded-2xl border border-surface-200 bg-surface-0">
-              <ProductDetailClient
-                productId={String(product._id)}
-                productName={product.name}
-                media={media}
-                shortDescription={product.shortDescription}
-                tags={product.tags}
-                variants={variants}
-                productBase={{
-                  usageType: product.usageType,
-                  weight: product.weight,
-                  weightUnit: product.weightUnit,
-                  containerSize: product.containerSize,
-                  attributes: product.attributes || {}
-                }}
-                fullDescription={product.fullDescription}
-                isFeatured={product.isFeatured}
-                enableVariantPicker={hasDbVariants}
-              />
-            </article>
-
-            {relatedProducts.length ? (
-              <StoreRelatedProducts
-                title="مرتبط"
-                products={relatedProducts as unknown as Parameters<typeof StoreRelatedProducts>[0]['products']}
-              />
-            ) : null}
-
-            {relatedPosts.length ? (
-              <section className="rounded-2xl border border-surface-200 bg-surface-0 p-6">
-                <h3 className="font-bold text-surface-900">مقالات مرتبط</h3>
-                <div className="mt-4 space-y-1">
-                  {relatedPosts.map((p: any) => (
-                    <StoreBlogCompact key={String(p._id)} slug={p.slug} title={p.title} coverImage={p.coverImage} />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <ProductReviewsSection slug={product.slug} />
-          </div>
-        </div>
-      </Container>
     </>
   );
 }

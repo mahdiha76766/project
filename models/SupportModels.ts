@@ -128,6 +128,29 @@ export const SmsLog = models.SmsLog || model('SmsLog', new Schema({
   sentBy: { type: Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true }));
 
+export const ContactInquiry = models.ContactInquiry || model('ContactInquiry', new Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, trim: true },
+  phone: { type: String, default: '' },
+  subject: { type: String, default: '' },
+  message: { type: String, required: true },
+  status: { type: String, enum: ['NEW', 'READ'], default: 'NEW', index: true }
+}, { timestamps: true }));
+
+export const DOWNLOAD_KINDS = ['pdf', 'brochure', 'catalog', 'info'] as const;
+
+export const DownloadAsset = models.DownloadAsset || model('DownloadAsset', new Schema({
+  title: { type: String, required: true, trim: true },
+  description: { type: String, default: '' },
+  fileUrl: { type: String, required: true },
+  fileName: { type: String, default: '' },
+  fileSize: { type: Number, default: 0 },
+  mimeType: { type: String, default: 'application/pdf' },
+  kind: { type: String, enum: DOWNLOAD_KINDS, default: 'pdf', index: true },
+  relatedProduct: { type: Schema.Types.ObjectId, ref: 'Product', default: null },
+  isActive: { type: Boolean, default: true, index: true }
+}, { timestamps: true }));
+
 export const UserAddress = models.UserAddress || model('UserAddress', new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   title: { type: String, required: true, default: 'آدرس' },

@@ -102,6 +102,7 @@ export function buildProductJsonLd(product: {
   stock?: number;
   variants?: Array<{ price?: number; discountPrice?: number; stock?: number; sku?: string; isDefault?: boolean }>;
   updatedAt?: Date | string | null;
+  includeOffers?: boolean;
 }) {
   const canonical = absoluteUrl(`/products/${product.slug}`);
   const description = product.seo?.description?.trim() || product.shortDescription?.trim() || product.name;
@@ -112,7 +113,7 @@ export function buildProductJsonLd(product: {
   const stock = productStock(product);
 
   const offers =
-    priceToman != null
+    product.includeOffers === true && priceToman != null
       ? {
           '@type': 'Offer',
           url: canonical,

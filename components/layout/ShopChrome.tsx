@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { MainHeader } from '@/components/shop/MainHeader';
-import { SiteFooter } from '@/components/layout/SiteFooter';
+import { FeedarSiteChromeHeader } from '@/components/feedar/layout/SiteHeader';
+import { FeedarFooter } from '@/components/feedar/layout/SiteFooter';
 import { SiteContentProvider } from '@/components/cms/SiteContentProvider';
 import { EditModeToolbar } from '@/components/cms/EditModeToolbar';
 import { SiteAnalyticsTracker } from '@/components/analytics/SiteAnalyticsTracker';
@@ -24,9 +24,9 @@ export const ShopChrome = ({
     <SiteContentProvider initial={initialContent}>
       <SiteAnalyticsTracker />
       <EditModeToolbar />
-      <MainHeader />
+      <FeedarSiteChromeHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter />
+      <FeedarFooter />
     </SiteContentProvider>
   );
 };

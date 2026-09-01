@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { User } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { signToken } from '@/lib/auth/token';
+import { SESSION_TTL_SECONDS, signToken } from '@/lib/auth/token';
 import { loginSchema } from '@/lib/validation/auth';
 import { normalizeMobile } from '@/lib/validation/mobile';
 import { checkRateLimit } from '@/lib/security/rate-limit';
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7
+      maxAge: SESSION_TTL_SECONDS
     });
 
     logInfo('auth.login.success', { ip, userId: String(user._id), role: user.role });

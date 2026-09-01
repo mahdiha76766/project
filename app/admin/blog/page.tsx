@@ -16,6 +16,8 @@ import {
   FieldLabel,
   TextInput
 } from '@/components/admin/ui';
+import { AdminConfirmDialog } from '@/components/admin/AdminConfirmDialog';
+import { useAdminToast } from '@/components/admin/AdminToast';
 import { adminFetch } from '@/lib/admin/client';
 import { useAdminList } from '@/hooks/useAdminList';
 import type { GalleryMediaItem } from '@/lib/media/gallery';
@@ -46,7 +48,7 @@ const initialForm = {
   content: '',
   category: 'روغن‌های طبیعی',
   tags: '',
-  author: 'تیم محتوای نابسرا',
+  author: 'تیم محتوای فیدار فارمد',
   seoMetaTitle: '',
   seoMetaDescription: '',
   isPublished: true,
@@ -59,6 +61,9 @@ export default function AdminBlogPage() {
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Post | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { notify } = useAdminToast();
 
   const resetForm = () => setForm(initialForm);
 
@@ -93,6 +98,7 @@ export default function AdminBlogPage() {
         return;
       }
       setMessage(form.id ? 'مقاله با موفقیت ویرایش شد.' : 'مقاله با موفقیت ایجاد شد.');
+      notify(form.id ? 'مقاله ویرایش شد.' : 'مقاله ایجاد شد.');
       resetForm();
       reload();
     } catch (err: unknown) {
@@ -124,13 +130,7 @@ export default function AdminBlogPage() {
   };
 
   const removeItem = async (id: string) => {
-    if (!confirm('این مقاله حذف شود؟')) return;
-    const { ok, error: deleteError } = await adminFetch(`/api/admin/blog/${id}`, { method: 'DELETE' });
-    if (!ok) setFormError(deleteError);
-    else {
-      setMessage('مقاله حذف شد.');
-      reload();
-    }
+    setPendingDelete(items.find((p) => p._id === id) || null);
   };
 
   return (
@@ -259,12 +259,35 @@ export default function AdminBlogPage() {
             }
           ]}
           actions={[
+            { id: 'view', label: 'نمایش', icon: 'view', hidden: (p) => !p.isPublished, onClick: (p) => window.open(`/blog/${p.slug}`, '_blank') },
             { id: 'edit', label: 'ویرایش', icon: 'edit', tone: 'primary', onClick: editItem },
             { id: 'delete', label: 'حذف', icon: 'delete', tone: 'danger', onClick: (p) => removeItem(p._id) }
           ]}
         />
         <AdminPagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
       </AdminCard>
+      <AdminConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="حذف مقاله"
+        description={`مقاله «${pendingDelete?.title || ''}» حذف شود؟`}
+        loading={deleting}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setDeleting(true);
+          const { ok, error: deleteError } = await adminFetch(`/api/admin/blog/${pendingDelete._id}`, { method: 'DELETE' });
+          setDeleting(false);
+          if (!ok) {
+            setFormError(deleteError);
+            notify(deleteError, 'error');
+            return;
+          }
+          notify('مقاله حذف شد.');
+          setMessage('مقاله حذف شد.');
+          setPendingDelete(null);
+          reload();
+        }}
+      />
     </main>
   );
 }

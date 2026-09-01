@@ -7,14 +7,23 @@ import {
   ShoppingCart,
   Users,
   AlertTriangle,
-  Truck
+  Truck,
+  Package,
+  Shapes,
+  Newspaper,
+  Download,
+  Mail
 } from 'lucide-react';
 import { AdminLiveOrders } from '@/components/admin/AdminLiveOrders';
 import { AdminDashboardCharts } from '@/components/admin/AdminDashboardCharts';
 import { AdminLoading, AdminPageBanner, AdminStatCard } from '@/components/admin/AdminUI';
+import { AdminSalesStatusBanner } from '@/components/admin/AdminSalesStatusBanner';
 import { adminFetch } from '@/lib/admin/client';
 import { formatCurrency } from '@/lib/admin/table-formats';
 import { DASHBOARD_RANGE_OPTIONS, type DashboardRangeDays } from '@/lib/admin/dashboard-range';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { canManageCommerce } from '@/lib/auth/client-roles';
+import { FEEDAR_BRAND } from '@/lib/brand/feedar';
 
 type Summary = {
   salesToday: number;
@@ -57,16 +66,39 @@ type Summary = {
   paymentStatusBreakdown: Array<{ status: string; count: number }>;
 };
 
+type Overview = {
+  products: number;
+  categories: number;
+  articles: number;
+  downloads: number;
+  messages: number;
+  unreadMessages: number;
+  users: number;
+};
+
 export default function AdminPage() {
+  const user = useCurrentUser();
+  const commerce = canManageCommerce(user?.role);
+  const [overview, setOverview] = useState<Overview | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chartRange, setChartRange] = useState<DashboardRangeDays>(7);
 
+  const loadOverview = async () => {
+    const res = await adminFetch<{ overview: Overview }>('/api/admin/overview');
+    if (res.ok) setOverview(res.data.overview);
+  };
+
   const load = async (range = chartRange) => {
     setError('');
+    await loadOverview();
+    if (!commerce) {
+      setLoading(false);
+      return;
+    }
     const res = await adminFetch<{ summary: Summary }>(`/api/admin/dashboard/summary?range=${range}`);
-    if (!res.ok) setError(res.error || 'خطا در دریافت آمار');
+    if (!res.ok) setError(res.error || 'خطا در دریافت آمار فروش');
     else setSummary(res.data?.summary ?? null);
     setLoading(false);
   };
@@ -76,20 +108,56 @@ export default function AdminPage() {
     void load(chartRange);
     const id = setInterval(() => void load(chartRange), 30000);
     return () => clearInterval(id);
-  }, [chartRange]);
+  }, [chartRange, commerce]);
 
   return (
     <div className="space-y-6">
-      <AdminPageBanner
-        title="داشبورد مدیریت"
-        subtitle="آمار لحظه‌ای فروش، نمودارها و مدیریت سفارش‌ها بدون نیاز به رفرش"
-      />
+      <AdminPageBanner title={`داشبورد ${FEEDAR_BRAND.nameFa}`} subtitle="نمای کلی محتوا، محصولات و پیام‌های دریافتی" />
+      <AdminSalesStatusBanner canManage={commerce} />
+
+      {overview ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <AdminStatCard title="محصولات" value={`${overview.products.toLocaleString('fa-IR')}`} icon={Package} href="/admin/products" accent="emerald" />
+          <AdminStatCard title="دسته‌بندی‌ها" value={`${overview.categories.toLocaleString('fa-IR')}`} icon={Shapes} href="/admin/categories" accent="sky" />
+          <AdminStatCard title="مقالات" value={`${overview.articles.toLocaleString('fa-IR')}`} icon={Newspaper} href="/admin/blog" accent="violet" />
+          <AdminStatCard title="دانلودها" value={`${overview.downloads.toLocaleString('fa-IR')}`} icon={Download} href="/admin/downloads" accent="amber" />
+          <AdminStatCard title="پیام‌های تماس" value={`${overview.messages.toLocaleString('fa-IR')}`} hint={`${overview.unreadMessages.toLocaleString('fa-IR')} خوانده‌نشده`} icon={Mail} href="/admin/messages" accent="rose" />
+          <AdminStatCard title="کاربران" value={`${overview.users.toLocaleString('fa-IR')}`} icon={Users} href="/admin/users" accent="emerald" />
+        </div>
+      ) : null}
+
+      {overview ? (
+        <div className="rounded-2xl border border-surface-200 bg-white p-5">
+          <h2 className="text-sm font-black">ترکیب محتوا</h2>
+          <div className="mt-4 grid gap-3">
+            {[
+              { label: 'محصولات', value: overview.products },
+              { label: 'مقالات', value: overview.articles },
+              { label: 'دانلودها', value: overview.downloads },
+              { label: 'پیام‌ها', value: overview.messages }
+            ].map((row) => {
+              const max = Math.max(overview.products, overview.articles, overview.downloads, overview.messages, 1);
+              return (
+                <div key={row.label}>
+                  <div className="mb-1 flex justify-between text-xs text-surface-500">
+                    <span>{row.label}</span>
+                    <span>{row.value.toLocaleString('fa-IR')}</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-surface-100">
+                    <div className="h-full rounded-full bg-brand-700" style={{ width: `${Math.round((row.value / max) * 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {loading ? (
         <AdminLoading />
       ) : error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
-      ) : summary ? (
+      ) : commerce && summary ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <AdminStatCard

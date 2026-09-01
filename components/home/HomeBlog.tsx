@@ -23,9 +23,9 @@ export function HomeBlog({ posts }: { posts: HomeBlogPost[] }) {
             <BookOpen className="h-3.5 w-3.5" />
             مجله سلامت و تغذیه
           </span>
-          <h2 className="mt-3 text-2xl font-black text-surface-900 sm:text-3xl">آخرین مطالب وبلاگ</h2>
+          <h2 className="mt-3 text-2xl font-black text-surface-900 sm:text-3xl">اخبار و مقالات</h2>
           <p className="mt-2 max-w-lg text-sm text-surface-500">
-            نکات تخصصی درباره روغن‌های طبیعی، ادویه‌ها و سبک زندگی سالم
+            تازه‌ترین مطالب علمی، خبری و آموزشی فیدار فارمد
           </p>
         </div>
         <Link href="/blog" className="site-btn-outline inline-flex items-center gap-2">

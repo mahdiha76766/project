@@ -4,16 +4,15 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { updateDocByAnyId, findDocByAnyId, deleteDocByAnyId } from '@/lib/db/find-by-any-id';
 import { syncProductPricesToExcel } from '@/lib/price-portal/products';
 import { deleteProductFromExcel } from '@/lib/admin/product-excel-delete';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireCatalog } from '@/lib/api/guards';
 import { slugify } from '@/lib/utils/slugify';
-import { normalizeProductUsageType } from '@/constants/product';
+import { normalizeProductUsageType, normalizeProductLine } from '@/constants/product';
 import { normalizeVariantsInput, syncProductFieldsFromVariants } from '@/lib/product/variants';
 import { normalizeProductMediaInput } from '@/lib/admin/product-media';
 
 async function guard() {
-  const user = await getSessionUser();
-  return user && hasMinimumRole(user.role, 'ADMIN');
+  const auth = await requireCatalog();
+  return Boolean(auth.user);
 }
 
 async function resolveCategoryName(categoryId: unknown): Promise<string | null> {
@@ -84,6 +83,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       weightUnit: body.weightUnit || 'g',
       containerSize: body.containerSize?.trim() || '',
       usageType: normalizeProductUsageType(body.usageType),
+      productLine: normalizeProductLine(body.productLine),
       attributes: {
         ...(existing.attributes && typeof existing.attributes === 'object' ? existing.attributes : {}),
         ...(body.attributes && typeof body.attributes === 'object' ? body.attributes : {}),
@@ -94,7 +94,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       media,
       variants,
       isActive: body.isActive ?? true,
-      isFeatured: body.isFeatured ?? false
+      isFeatured: body.isFeatured ?? false,
+      seo: {
+        title: String(body.seo?.title || body.seoTitle || '').trim(),
+        description: String(body.seo?.description || body.seoDescription || '').trim()
+      }
     });
 
     const updated = await updateDocByAnyId(Product, id, payload, { new: true, runValidators: true });

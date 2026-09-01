@@ -1,10 +1,12 @@
 import { Container } from '@/components/ui/Container';
-import { StorePageHeader, StoreEmpty } from '@/components/shop/store/StorePageHeader';
-import { StoreBlogCard } from '@/components/shop/store/StoreBlogCard';
-import { StoreBlogToolbar } from '@/components/shop/store/StoreFilters';
+import { FpPageHero } from '@/components/feedar/ui/PageHero';
+import { FpArticleCard } from '@/components/feedar/ui/ArticleCard';
+import { FpEmptyState } from '@/components/feedar/ui/EmptyState';
+import { FpSearchInput } from '@/components/feedar/ui/SearchInput';
 import { buildQueryListMetadata } from '@/lib/seo/metadata';
 import { BlogPost } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
+import { FEEDAR_BRAND } from '@/lib/brand/feedar';
 
 export async function generateMetadata({
   searchParams
@@ -13,8 +15,8 @@ export async function generateMetadata({
 }) {
   const params = await searchParams;
   return buildQueryListMetadata(
-    'مجله سلامت',
-    'مقالات تخصصی روغن، ادویه و گیاهان دارویی — مجله ناب سرا',
+    'اخبار و مقالات',
+    `مقالات و اخبار تخصصی ${FEEDAR_BRAND.nameFa}`,
     '/blog',
     params
   );
@@ -24,7 +26,6 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const q = String(sp.q || '').trim();
   const category = String(sp.category || '').trim();
-  const sort = String(sp.sort || 'newest');
 
   const [posts, categories] = await withDatabase(async () => {
     const filter: Record<string, unknown> = { isPublished: true };
@@ -36,38 +37,52 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
         { content: { $regex: q, $options: 'i' } }
       ];
     }
-    const sortObj = sort === 'popular' ? { views: -1, publishedAt: -1 } : { publishedAt: -1, createdAt: -1 };
     return Promise.all([
-      BlogPost.find(filter).sort(sortObj as any).lean(),
+      BlogPost.find(filter).sort({ publishedAt: -1, createdAt: -1 }).lean(),
       BlogPost.distinct('category', { isPublished: true })
     ]);
   }, [[], []]);
 
-  const items = posts.map((p: any) => ({
-    id: String(p._id),
-    slug: p.slug,
-    title: p.title,
-    excerpt: p.excerpt || String(p.content || '').slice(0, 140),
-    coverImage: p.coverImage,
-    category: p.category,
-    views: p.views
-  }));
-
   return (
     <>
-      <StorePageHeader
-        label="مجله"
-        title="وبلاگ"
-        description="مقالات تخصصی روغن، ادویه و گیاهان دارویی."
-        breadcrumbs={[{ label: 'خانه', href: '/' }, { label: 'وبلاگ' }]}
+      <FpPageHero
+        kicker="مجله سلامت"
+        title="اخبار و مقالات"
+        description={`مطالب علمی، خبری و آموزشی ${FEEDAR_BRAND.nameFa}.`}
+        breadcrumbs={[{ label: 'خانه', href: '/' }, { label: 'مقالات' }]}
       />
       <Container className="space-y-8 py-10 lg:py-12">
-        <StoreBlogToolbar categories={categories.map(String)} defaults={{ q, category, sort }} />
-        {!items.length ? (
-          <StoreEmpty message="مقاله‌ای یافت نشد." />
+        <form action="/blog" className="fp-card grid gap-3 p-4 sm:grid-cols-[1fr_16rem_auto]">
+          <FpSearchInput bare action="/blog" defaultValue={q} placeholder="جستجو در مقالات" />
+          <select name="category" defaultValue={category} className="fp-input">
+            <option value="">همه دسته‌ها</option>
+            {categories.map((c) => (
+              <option key={String(c)} value={String(c)}>
+                {String(c)}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="fp-btn-primary">
+            فیلتر
+          </button>
+        </form>
+        {!posts.length ? (
+          <FpEmptyState title="مقاله‌ای یافت نشد" description="عبارت جستجو را تغییر دهید." actionHref="/blog" actionLabel="همه مقالات" />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((post) => <StoreBlogCard key={post.id} post={post} />)}
+            {posts.map((p: Record<string, unknown>) => (
+              <FpArticleCard
+                key={String(p._id)}
+                post={{
+                  slug: String(p.slug),
+                  title: String(p.title),
+                  excerpt: String(p.excerpt || String(p.content || '').replace(/<[^>]+>/g, '').slice(0, 140)),
+                  coverImage: p.coverImage as string | undefined,
+                  category: String(p.category || ''),
+                  dateLabel: p.publishedAt ? new Date(String(p.publishedAt)).toLocaleDateString('fa-IR') : undefined
+                }}
+              />
+            ))}
           </div>
         )}
       </Container>

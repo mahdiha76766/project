@@ -13,6 +13,7 @@ import {
   Home,
   Wallet
 } from 'lucide-react';
+import { CommerceOnly, CatalogOnly } from '@/components/commerce/SalesProvider';
 import { formatDashCurrency, formatDashDateTime, formatInvoiceNumber } from '@/lib/dashboard/formats';
 import { PAYMENT_RESULT_STATUS_LABELS, INVOICE_TYPE_LABELS } from '@/lib/dashboard/labels';
 import { PaymentReceiptCard, type ReceiptPayload } from '@/components/shop/PaymentReceiptCard';
@@ -150,18 +151,25 @@ export function PaymentResultView({ params }: { params: Params }) {
               </>
             ) : (
               <>
-                <Link href="/checkout" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 font-bold text-white">
-                  تلاش مجدد
-                </Link>
-                <Link href="/dashboard/wallet" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border font-bold text-slate-800">
+                <CommerceOnly>
+                  <Link href="/checkout" className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink-900 font-bold text-paper-50">
+                    تلاش مجدد
+                  </Link>
+                </CommerceOnly>
+                <CatalogOnly>
+                  <Link href="/products" className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink-900 font-bold text-paper-50">
+                    مشاهده محصولات
+                  </Link>
+                </CatalogOnly>
+                <Link href="/dashboard/wallet" className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-paper-200 font-bold text-ink-800">
                   <Wallet size={16} />
                   کیف پول
                 </Link>
               </>
             )}
-            <Link href="/" className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border font-bold text-slate-700 ${success ? 'sm:col-span-2' : ''}`}>
+            <Link href="/" className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border border-paper-200 font-bold text-ink-800 ${success ? 'sm:col-span-2' : ''}`}>
               <Home size={16} />
-              بازگشت به فروشگاه
+              بازگشت به سایت
             </Link>
           </div>
         </div>

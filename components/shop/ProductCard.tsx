@@ -1,6 +1,6 @@
 import type { ShopProduct } from '@/types/shop';
-import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
+import { FeedarProductCard } from '@/components/feedar/products/ProductCard';
 
 export const ProductCard = ({ product }: { product: ShopProduct }) => (
-  <StoreProductCard product={product} />
+  <FeedarProductCard product={product} />
 );

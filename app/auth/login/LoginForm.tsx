@@ -8,8 +8,12 @@ import { Input } from '@/components/ui/Input';
 import { normalizeMobile, isValidMobile } from '@/lib/validation/mobile';
 import { MathCaptcha, type CaptchaValue } from '@/components/security/MathCaptcha';
 
-const redirectByRole = (role?: string) => {
-  if (role === 'ADMIN') return '/admin';
+const redirectByRole = (role?: string, next?: string) => {
+  const safe = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'CONTENT_MANAGER') {
+    return safe.startsWith('/admin') ? safe : '/admin';
+  }
+  if (safe.startsWith('/dashboard')) return safe;
   if (role === 'CUSTOMER') return '/dashboard';
   return '/';
 };
@@ -25,6 +29,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const presetMobile = searchParams.get('mobile') || '';
+  const nextPath = searchParams.get('next') || '';
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'otp' | 'password'>('otp');
@@ -96,7 +101,7 @@ export default function LoginForm() {
       setError(data.error || 'کد نامعتبر است');
       return;
     }
-    router.push(redirectByRole(data.role));
+    router.push(redirectByRole(data.role, nextPath));
     router.refresh();
   };
 
@@ -122,7 +127,7 @@ export default function LoginForm() {
       setError(data.error || 'ورود انجام نشد');
       return;
     }
-    router.push(redirectByRole(data.role));
+    router.push(redirectByRole(data.role, nextPath));
     router.refresh();
   };
 

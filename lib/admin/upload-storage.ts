@@ -35,7 +35,7 @@ export function getUploadsPublicUrl(relativePath: string) {
 export async function ensureUploadFolders() {
   const root = getUploadsRoot();
   await fsp.mkdir(root, { recursive: true });
-  const folders = ['banners', 'products', 'blog', 'categories', 'videos', 'receipts'];
+  const folders = ['banners', 'products', 'blog', 'categories', 'videos', 'receipts', 'downloads', 'media'];
   await Promise.all(folders.map((f) => fsp.mkdir(path.join(root, f), { recursive: true })));
   return root;
 }

@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CalendarDays, Tag, UserRound } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
-import { StorePageHeader, StoreSidebar } from '@/components/shop/store/StorePageHeader';
+import { FpPageHero } from '@/components/feedar/ui/PageHero';
+import { StoreSidebar } from '@/components/shop/store/StorePageHeader';
 import { StoreBlogCompact } from '@/components/shop/store/StoreBlogCard';
-import { StoreRelatedProducts } from '@/components/shop/store/StoreProductCard';
+import { FeedarProductCard } from '@/components/feedar/products/ProductCard';
+import { mapProductListing } from '@/lib/shop/map-product-listing';
 import { BlogCommentsSection } from '@/components/shop/BlogCommentsSection';
 import { ProductMediaGallery } from '@/components/shop/ProductMediaGallery';
 import { RichHtmlContent } from '@/components/shop/RichHtmlContent';
@@ -82,12 +84,12 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   return (
     <>
       <JsonLd data={jsonLd} />
-      <StorePageHeader
-        label={post.category || 'مقاله'}
+      <FpPageHero
+        kicker={post.category || 'مقاله'}
         title={post.title}
         breadcrumbs={[
           { label: 'خانه', href: '/' },
-          { label: 'وبلاگ', href: '/blog' },
+          { label: 'مقالات', href: '/blog' },
           { label: post.title }
         ]}
       />
@@ -129,10 +131,14 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             </article>
 
             {relatedProducts.length ? (
-              <StoreRelatedProducts
-                title="محصولات مرتبط"
-                products={relatedProducts as unknown as Parameters<typeof StoreRelatedProducts>[0]['products']}
-              />
+              <section>
+                <h3 className="text-xl font-black text-ink-900">محصولات مرتبط</h3>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                  {(relatedProducts as Record<string, unknown>[]).map((p) => (
+                    <FeedarProductCard key={String(p._id)} product={mapProductListing(p)} />
+                  ))}
+                </div>
+              </section>
             ) : null}
 
             {relatedPosts.length ? (

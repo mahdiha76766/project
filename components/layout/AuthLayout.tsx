@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FpLogo } from '@/components/feedar/ui/Logo';
 import { cn } from '@/lib/utils/cn';
 
 type AuthLayoutProps = {
@@ -9,67 +10,46 @@ type AuthLayoutProps = {
   footer: React.ReactNode;
 };
 
-const highlights = {
-  login: {
-    eyebrow: 'خوش آمدید',
-    headline: 'ورود به حساب',
-    body: 'سفارش‌ها را پیگیری کنید و خرید بعدی را سریع‌تر انجام دهید.',
-    chips: ['پیگیری سفارش', 'ارسال سریع', 'پیشنهاد ویژه']
-  },
-  register: {
-    eyebrow: 'عضویت',
-    headline: 'ساخت حساب جدید',
-    body: 'با ثبت‌نام، خرید و مدیریت سفارش‌ها برایتان ساده‌تر می‌شود.',
-    chips: ['خرید آسان', 'تاریخچه سفارش', 'تخفیف‌ها']
-  }
-};
-
 export const AuthLayout = ({ variant, title, description, children, footer }: AuthLayoutProps) => {
-  const side = highlights[variant];
+  const headline = variant === 'login' ? 'ورود به حساب فیدار فارمد' : 'ساخت حساب جدید';
+  const body =
+    variant === 'login'
+      ? 'برای مدیریت حساب، پیگیری همکاری‌ها و در صورت فعال بودن فروش، سفارش‌های قبلی وارد شوید.'
+      : 'با ثبت‌نام، به اطلاعات حساب و سوابق خود دسترسی خواهید داشت.';
 
   return (
-    <div className="min-h-screen bg-surface-50">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-6 lg:px-8">
-        <header className="mb-10 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">ع</span>
-            <span className="font-bold text-surface-900">نابسرا</span>
-          </Link>
-          <Link href="/" className="text-sm font-medium text-surface-500 hover:text-brand-600">
-            بازگشت
-          </Link>
-        </header>
-
-        <div className="grid flex-1 items-center gap-10 pb-8 lg:grid-cols-2 lg:gap-16">
-          <section className="hidden lg:block">
-            <p className="site-label">{side.eyebrow}</p>
-            <h1 className="mt-3 text-4xl font-bold text-surface-900">{side.headline}</h1>
-            <p className="mt-4 max-w-md text-base leading-7 text-surface-500">{side.body}</p>
-            <div className="mt-8 flex flex-wrap gap-2">
-              {side.chips.map((chip) => (
-                <span key={chip} className="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700">
-                  {chip}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <div className="mx-auto w-full max-w-md rounded-2xl border border-surface-200 bg-surface-0 p-6 shadow-soft sm:p-8">
-              <h2 className="text-xl font-bold text-surface-900">{title}</h2>
-              <p className="mt-2 text-sm text-surface-500">{description}</p>
-              <div className="mt-6">{children}</div>
-              <div className="mt-6 border-t border-surface-200 pt-5 text-center text-sm text-surface-500">{footer}</div>
-            </div>
-          </section>
-        </div>
+    <div className="min-h-screen bg-paper-100">
+      <div className="mx-auto grid min-h-screen max-w-6xl lg:grid-cols-2">
+        <section className="ph-hero relative hidden overflow-hidden p-12 text-paper-50 lg:flex lg:flex-col lg:justify-between">
+          <div className="ph-grid absolute inset-0 opacity-30" />
+          <FpLogo inverted />
+          <div className="relative max-w-md">
+            <p className="ph-kicker">{variant === 'login' ? 'PORTAL' : 'MEMBERSHIP'}</p>
+            <h1 className="mt-4 text-4xl font-black">{headline}</h1>
+            <p className="mt-4 text-sm leading-8 text-paper-200">{body}</p>
+          </div>
+          <p className="relative text-xs text-gold-200">SCIENCE · QUALITY · TRUST</p>
+        </section>
+        <section className="flex flex-col justify-center px-5 py-10 sm:px-12">
+          <div className="mb-8 flex items-center justify-between lg:hidden">
+            <FpLogo />
+            <Link href="/" className="text-sm text-surface-500">بازگشت</Link>
+          </div>
+          <div className="mx-auto w-full max-w-md rounded-[1.75rem] border border-paper-200 bg-paper-50 p-6 shadow-soft sm:p-8">
+            <h2 className="text-xl font-black text-ink-900">{title}</h2>
+            <p className="mt-2 text-sm text-surface-500">{description}</p>
+            <div className="mt-6">{children}</div>
+            <div className="mt-6 border-t border-paper-200 pt-5 text-center text-sm text-surface-500">{footer}</div>
+          </div>
+          <Link href="/" className="mt-6 hidden text-center text-sm text-surface-400 lg:block">بازگشت به سایت</Link>
+        </section>
       </div>
     </div>
   );
 };
 
 export const AuthLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
-  <Link href={href} className="font-semibold text-brand-600 hover:text-brand-700">
+  <Link href={href} className="font-semibold text-gold-600 hover:text-gold-500">
     {children}
   </Link>
 );

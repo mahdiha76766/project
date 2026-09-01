@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { Category } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireCatalog } from '@/lib/api/guards';
 import { slugify } from '@/lib/utils/slugify';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
 import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
 
 async function guard() {
-  const user = await getSessionUser();
-  return user && hasMinimumRole(user.role, 'ADMIN');
+  const auth = await requireCatalog();
+  return Boolean(auth.user);
 }
 
 const normalizeImage = (image?: string) => {
@@ -26,7 +25,7 @@ export async function GET(req: Request) {
   await connectToDatabase();
 
   if (all) {
-    const items = await Category.find(filter).populate('parent', 'name').sort({ name: 1 }).lean();
+    const items = await Category.find(filter).populate('parent', 'name').sort({ sortOrder: 1, name: 1 }).lean();
     return NextResponse.json({ items });
   }
 
@@ -49,6 +48,9 @@ export async function POST(req: Request) {
       description: body.description || '',
       image: normalizeImage(body.image),
       parent: body.parent || null,
+      sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
+      seoTitle: String(body.seoTitle || '').trim(),
+      seoDescription: String(body.seoDescription || '').trim(),
       isActive: body.isActive ?? true
     });
     return NextResponse.json({ item }, { status: 201 });

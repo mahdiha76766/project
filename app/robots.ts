@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
         '/cart',
         '/checkout',
         '/orders',
+        '/unauthorized',
+        '/unauthorized/',
         '/orders/'
       ]
     },

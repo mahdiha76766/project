@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Box, FolderTree, Hash, Layers, Tag, FileSpreadsheet } from 'lucide-react';
@@ -22,7 +22,9 @@ import {
   TextInput
 } from '@/components/admin/ui';
 import { adminFetch } from '@/lib/admin/client';
-import { buildProductAttributes, extractProductSpecForm, usageTypeOptions, weightUnitOptions } from '@/lib/product/specs';
+import { buildProductAttributes, extractProductSpecForm, productLineOptions, usageTypeOptions, weightUnitOptions } from '@/lib/product/specs';
+import { AdminConfirmDialog } from '@/components/admin/AdminConfirmDialog';
+import { useAdminToast } from '@/components/admin/AdminToast';
 import { useAdminList } from '@/hooks/useAdminList';
 import type { GalleryMediaItem } from '@/lib/media/gallery';
 
@@ -45,7 +47,9 @@ type Prod = {
   weightUnit?: string;
   containerSize?: string;
   usageType?: string;
+  productLine?: string;
   isActive: boolean;
+  seo?: { title?: string; description?: string };
   variants?: Array<{
     _id?: string;
     name: string;
@@ -76,6 +80,7 @@ const emptyForm = {
   weightUnit: 'g',
   containerSize: '',
   usageType: 'EDIBLE',
+  productLine: '',
   origin: '',
   extraction: '',
   ingredients: '',
@@ -84,17 +89,29 @@ const emptyForm = {
   purity: '',
   aroma: '',
   usage: '',
+  form: '',
+  dosage: '',
+  indications: '',
+  brochure: '',
+  seoTitle: '',
+  seoDescription: '',
   isActive: true,
   variants: [] as VariantFormRow[]
 };
 
 export default function AdminProductsPage() {
-  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Prod>('/api/admin/products');
+  const [catFilter, setCatFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const listEndpoint = `/api/admin/products${catFilter || statusFilter ? `?${new URLSearchParams({ ...(catFilter ? { category: catFilter } : {}), ...(statusFilter ? { status: statusFilter } : {}) }).toString()}` : ''}`;
+  const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Prod>(listEndpoint);
+  const { notify } = useAdminToast();
   const [cats, setCats] = useState<Cat[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Prod | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [excelInfo, setExcelInfo] = useState<{ exists: boolean; modifiedAt?: string; publicPath?: string } | null>(null);
   const [importResult, setImportResult] = useState<any>(null);
@@ -132,8 +149,10 @@ export default function AdminProductsPage() {
         weightUnit: form.weightUnit,
         containerSize: form.containerSize.trim(),
         usageType: form.usageType,
+        productLine: form.productLine || undefined,
         attributes: buildProductAttributes(form),
         isActive: form.isActive,
+        seo: { title: form.seoTitle.trim(), description: form.seoDescription.trim() },
         variants: form.variants
           .filter((v) => v.name.trim())
           .map((v) => ({
@@ -160,10 +179,12 @@ export default function AdminProductsPage() {
 
       if (!ok) {
         setFormError(saveError);
+        notify(saveError, 'error');
         return;
       }
 
       setMessage(form.id ? 'محصول با موفقیت ویرایش شد.' : 'محصول با موفقیت ایجاد شد.');
+      notify(form.id ? 'محصول ویرایش شد.' : 'محصول ایجاد شد.');
       resetForm();
       reload();
     } catch (err: any) {
@@ -193,6 +214,9 @@ export default function AdminProductsPage() {
         ? p.media
         : (p.images || []).map((url) => ({ type: 'image' as const, url })),
       ...spec,
+      productLine: p.productLine || '',
+      seoTitle: p.seo?.title || '',
+      seoDescription: p.seo?.description || '',
       isActive: p.isActive,
       variants: (p.variants || []).map((v) => ({
         _id: v._id,
@@ -211,13 +235,7 @@ export default function AdminProductsPage() {
   };
 
   const removeItem = async (id: string) => {
-    if (!confirm('این محصول حذف شود؟')) return;
-    const { ok, error: deleteError } = await adminFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-    if (!ok) setFormError(deleteError);
-    else {
-      setMessage('محصول حذف شد.');
-      reload();
-    }
+    setPendingDelete(items.find((p) => p._id === id) || { _id: id } as Prod);
   };
 
   const runExcelImport = async (dryRun: boolean) => {
@@ -364,9 +382,22 @@ export default function AdminProductsPage() {
               {usageTypeOptions.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
             </SelectInput>
           </div>
+          <div>
+            <FieldLabel text="خط محصول" />
+            <SelectInput value={form.productLine} onChange={(e) => setForm({ ...form, productLine: e.target.value })}>
+              <option value="">انتخاب نشده</option>
+              {productLineOptions.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
+            </SelectInput>
+          </div>
           <div><FieldLabel text="منشأ / کشور مبدأ" /><TextInput value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} placeholder="مثلاً ایران" /></div>
           <div><FieldLabel text="روش استخراج" /><TextInput value={form.extraction} onChange={(e) => setForm({ ...form, extraction: e.target.value })} placeholder="مثلاً کندگاهی، بخارپز" /></div>
           <div className="md:col-span-2"><FieldLabel text="مواد تشکیل‌دهنده" /><TextInput value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })} placeholder="مثلاً ۱۰۰٪ روغن کنجد خالص" /></div>
+          <div><FieldLabel text="شکل دارویی" /><TextInput value={form.form} onChange={(e) => setForm({ ...form, form: e.target.value })} placeholder="قرص، شربت، کپسول" /></div>
+          <div><FieldLabel text="دوز مصرف" /><TextInput value={form.dosage} onChange={(e) => setForm({ ...form, dosage: e.target.value })} /></div>
+          <div className="md:col-span-2"><FieldLabel text="موارد مصرف" /><TextInput value={form.indications} onChange={(e) => setForm({ ...form, indications: e.target.value })} /></div>
+          <div className="md:col-span-2"><FieldLabel text="بروشور / فایل علمی" /><TextInput value={form.brochure} onChange={(e) => setForm({ ...form, brochure: e.target.value })} dir="ltr" placeholder="/uploads/downloads/..." /></div>
+          <div><FieldLabel text="عنوان SEO" /><TextInput value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} /></div>
+          <div className="md:col-span-2 xl:col-span-3"><FieldLabel text="توضیح SEO" /><TextInput value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} /></div>
           <div><FieldLabel text="شرایط نگهداری" /><TextInput value={form.storage} onChange={(e) => setForm({ ...form, storage: e.target.value })} placeholder="دور از نور و گرما" /></div>
           <div><FieldLabel text="مدت ماندگاری" /><TextInput value={form.shelfLife} onChange={(e) => setForm({ ...form, shelfLife: e.target.value })} placeholder="مثلاً ۱۲ ماه" /></div>
           <div><FieldLabel text="درجه خلوص / کیفیت" /><TextInput value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} placeholder="مثلاً درجه یک" /></div>
@@ -422,6 +453,17 @@ export default function AdminProductsPage() {
 
       <AdminCard title="لیست محصولات">
         {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
+        <div className="mb-4 grid gap-3 sm:grid-cols-2">
+          <SelectInput value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
+            <option value="">همه دسته‌ها</option>
+            {cats.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+          </SelectInput>
+          <SelectInput value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">همه وضعیت‌ها</option>
+            <option value="active">فعال</option>
+            <option value="inactive">غیرفعال</option>
+          </SelectInput>
+        </div>
         <AdminProTable
           data={items}
           loading={loading}
@@ -505,12 +547,35 @@ export default function AdminProductsPage() {
             }
           ]}
           actions={[
+            { id: 'view', label: 'نمایش', icon: 'view', onClick: (p) => window.open(`/products/${p.slug}`, '_blank') },
             { id: 'edit', label: 'ویرایش', icon: 'edit', tone: 'primary', onClick: editItem },
             { id: 'delete', label: 'حذف', icon: 'delete', tone: 'danger', onClick: (p) => removeItem(p._id) }
           ]}
         />
         <AdminPagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
       </AdminCard>
+      <AdminConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="حذف محصول"
+        description={`محصول «${pendingDelete?.name || ''}» حذف شود؟`}
+        loading={deleting}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setDeleting(true);
+          const { ok, error: deleteError } = await adminFetch(`/api/admin/products/${pendingDelete._id}`, { method: 'DELETE' });
+          setDeleting(false);
+          if (!ok) {
+            setFormError(deleteError);
+            notify(deleteError, 'error');
+            return;
+          }
+          notify('محصول حذف شد.');
+          setMessage('محصول حذف شد.');
+          setPendingDelete(null);
+          reload();
+        }}
+      />
     </main>
   );
 }

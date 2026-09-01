@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
-import { privatePageMetadata } from '@/lib/seo/metadata';
+import { redirect } from 'next/navigation';
+import { getSalesConfig } from '@/lib/commerce/sales';
 
-export const metadata: Metadata = privatePageMetadata();
-
-export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
+export default async function CheckoutLayout({ children }: { children: React.ReactNode }) {
+  const sales = await getSalesConfig();
+  if (!sales.salesEnabled) redirect('/products');
   return children;
 }

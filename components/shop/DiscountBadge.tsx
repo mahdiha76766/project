@@ -1,5 +1,8 @@
-﻿import { Tag } from 'lucide-react';
+﻿'use client';
+
+import { Tag } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { useShowPrices } from '@/components/commerce/SalesProvider';
 
 type DiscountBadgeProps = {
   label: string;
@@ -15,7 +18,8 @@ const sizeClass = {
 };
 
 export function DiscountBadge({ label, className, size = 'md', variant = 'overlay' }: DiscountBadgeProps) {
-  if (!label) return null;
+  const show = useShowPrices();
+  if (!show || !label) return null;
 
   if (variant === 'ribbon') {
     return (
@@ -75,6 +79,8 @@ export function ProductPriceWithDiscount({
   hasVariants?: boolean;
   className?: string;
 }) {
+  const show = useShowPrices();
+  if (!show) return null;
   return (
     <div className={className}>
       <p className="text-base font-black text-brand-600">

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Category, Product } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireCatalog } from '@/lib/api/guards';
 import { slugify } from '@/lib/utils/slugify';
 
-async function guard() { const user = await getSessionUser(); return user && hasMinimumRole(user.role, 'ADMIN'); }
+async function guard() {
+  const auth = await requireCatalog();
+  return Boolean(auth.user);
+}
 const normalizeImage = (image?: string) => {
   if (!image) return '';
   if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')) return image;
@@ -17,7 +19,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const body = await req.json();
   await connectToDatabase();
-  const payload = { ...body, slug: slugify(body.slug || body.name || ''), image: normalizeImage(body.image) };
+  const payload = {
+    name: body.name,
+    slug: slugify(body.slug || body.name || ''),
+    description: body.description || '',
+    image: normalizeImage(body.image),
+    parent: body.parent || null,
+    sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
+    seoTitle: String(body.seoTitle || '').trim(),
+    seoDescription: String(body.seoDescription || '').trim(),
+    isActive: body.isActive ?? true
+  };
   const item = await Category.findByIdAndUpdate(id, payload, { new: true });
   return NextResponse.json({ item });
 }

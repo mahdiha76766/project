@@ -3,21 +3,25 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { RtlForwardArrow } from '@/components/home/RtlForwardArrow';
+import { useSalesConfig } from '@/components/commerce/SalesProvider';
 
 export function AddToCartButton({
   productId,
   variantId,
   disabled,
-  className = 'site-btn-primary mt-6 w-full sm:w-auto'
+  className = 'ph-btn ph-btn-primary mt-6 w-full sm:w-auto'
 }: {
   productId: string;
   variantId?: string;
   disabled?: boolean;
   className?: string;
 }) {
+  const { salesEnabled } = useSalesConfig();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  if (!salesEnabled) return null;
 
   const add = async () => {
     setLoading(true);

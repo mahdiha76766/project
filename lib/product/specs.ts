@@ -1,4 +1,4 @@
-import { PRODUCT_USAGE_TYPES, PRODUCT_WEIGHT_UNITS } from '@/constants/product';
+import { PRODUCT_USAGE_TYPES, PRODUCT_WEIGHT_UNITS, PRODUCT_LINES } from '@/constants/product';
 
 export const PRODUCT_USAGE_LABELS: Record<string, string> = {
   EDIBLE: 'خوراکی',
@@ -18,6 +18,10 @@ export const PRODUCT_SPEC_FIELD_LABELS: Record<string, string> = {
   origin: 'منشأ / کشور مبدأ',
   extraction: 'روش استخراج',
   ingredients: 'مواد تشکیل‌دهنده',
+  form: 'شکل دارویی',
+  dosage: 'دوز مصرف',
+  indications: 'موارد مصرف',
+  brochure: 'بروشور / فایل علمی',
   storage: 'شرایط نگهداری',
   shelfLife: 'مدت ماندگاری',
   purity: 'درجه خلوص / کیفیت',
@@ -33,6 +37,10 @@ export type ProductSpecForm = {
   origin?: string;
   extraction?: string;
   ingredients?: string;
+  form?: string;
+  dosage?: string;
+  indications?: string;
+  brochure?: string;
   storage?: string;
   shelfLife?: string;
   purity?: string;
@@ -42,7 +50,7 @@ export type ProductSpecForm = {
 
 export function buildProductAttributes(form: ProductSpecForm, existing?: Record<string, string>) {
   const attrs: Record<string, string> = { ...(existing || {}) };
-  const specKeys = ['origin', 'extraction', 'ingredients', 'storage', 'shelfLife', 'purity', 'aroma', 'usage'] as const;
+  const specKeys = ['origin', 'extraction', 'ingredients', 'form', 'dosage', 'indications', 'brochure', 'storage', 'shelfLife', 'purity', 'aroma', 'usage'] as const;
   for (const key of specKeys) {
     const val = form[key]?.trim();
     if (val) attrs[key] = val;
@@ -67,6 +75,10 @@ export function extractProductSpecForm(product: {
     origin: attrs.origin || '',
     extraction: attrs.extraction || '',
     ingredients: attrs.ingredients || '',
+    form: attrs.form || '',
+    dosage: attrs.dosage || '',
+    indications: attrs.indications || '',
+    brochure: attrs.brochure || '',
     storage: attrs.storage || '',
     shelfLife: attrs.shelfLife || '',
     purity: attrs.purity || '',
@@ -128,9 +140,20 @@ export function getVariantSpecEntries(
   return getProductSpecEntries(merged);
 }
 
+export const PRODUCT_LINE_LABELS: Record<string, string> = {
+  PHARMACEUTICAL: 'دارویی',
+  HERBAL: 'گیاهی',
+  SUPPLEMENT: 'مکمل'
+};
+
 export const usageTypeOptions = PRODUCT_USAGE_TYPES.map((v) => ({
   value: v,
   label: PRODUCT_USAGE_LABELS[v]
+}));
+
+export const productLineOptions = PRODUCT_LINES.map((v) => ({
+  value: v,
+  label: PRODUCT_LINE_LABELS[v]
 }));
 
 export const weightUnitOptions = PRODUCT_WEIGHT_UNITS.map((v) => ({

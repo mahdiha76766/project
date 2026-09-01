@@ -6,7 +6,8 @@ const PRIVATE_PREFIXES = [
   '/profile',
   '/cart',
   '/checkout',
-  '/orders'
+  '/orders',
+  '/unauthorized'
 ] as const;
 
 export function isPrivatePath(pathname: string): boolean {

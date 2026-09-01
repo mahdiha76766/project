@@ -1,5 +1,5 @@
 import { Schema, model, models } from 'mongoose';
-import { PRODUCT_USAGE_TYPES, PRODUCT_WEIGHT_UNITS } from '@/constants/product';
+import { PRODUCT_USAGE_TYPES, PRODUCT_WEIGHT_UNITS, PRODUCT_LINES } from '@/constants/product';
 
 const MediaItemSchema = new Schema(
   {
@@ -75,6 +75,7 @@ const ProductSchema = new Schema(
     variants: { type: [ProductVariantSchema], default: [] },
     attributes: { type: Schema.Types.Mixed, default: {} },
     tags: [{ type: String }],
+    productLine: { type: String, enum: PRODUCT_LINES },
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
     productionDate: { type: Date },
@@ -97,5 +98,6 @@ ProductSchema.index({
   'attributes.origin': 'text',
   'attributes.extraction': 'text'
 });
+ProductSchema.index({ productLine: 1, isActive: 1 });
 
 export const Product = models.Product || model('Product', ProductSchema);

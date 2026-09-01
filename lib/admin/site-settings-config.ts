@@ -21,10 +21,11 @@ export type SiteSeoSettings = {
 export const SITE_SETTINGS_KEY = 'site_seo';
 
 export const defaultSiteSeoSettings: SiteSeoSettings = {
-  siteName: 'نابسرا',
-  siteTitle: 'فروشگاه روغن و ادویه | نابسرا',
-  siteDescription: 'خرید آنلاین روغن‌های طبیعی، ادویه‌های اصیل و محصولات عطاری با ارسال سریع و ضمانت کیفیت.',
-  keywords: ['روغن طبیعی', 'ادویه اصیل', 'عطاری آنلاین', 'روغن زیتون', 'زعفران', 'نابسرا'],
+  siteName: 'فیدار فارمد',
+  siteTitle: 'فیدار فارمد | محصولات دارویی، گیاهی و مکمل',
+  siteDescription:
+    'فیدار فارمد مجموعه‌ای دانش‌بنیان در حوزه محصولات دارویی، گیاهی و مکمل‌های سلامت با تمرکز بر تحقیق، کیفیت و ارتباط علمی.',
+  keywords: ['فیدار فارمد', 'Feedar Pharmed', 'محصولات دارویی', 'محصولات گیاهی', 'مکمل', 'تحقیق و توسعه'],
   faviconUrl: '/og-default.jpg',
   ogImageUrl: '/og-default.jpg',
   canonicalBaseUrl: normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL),
@@ -33,7 +34,7 @@ export const defaultSiteSeoSettings: SiteSeoSettings = {
   googleTagManagerId: '',
   bingSiteVerification: '',
   robotsIndex: true,
-  organizationName: 'نابسرا',
+  organizationName: 'فیدار فارمد',
   organizationPhone: '',
   twitterHandle: ''
 };

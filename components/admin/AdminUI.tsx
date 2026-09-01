@@ -23,7 +23,7 @@ export const AdminStatCard = ({
     rose: 'bg-rose-100 text-rose-700'
   };
   const content = (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+    <div className="rounded-[1.5rem] border border-paper-200 bg-paper-50 p-4 shadow-soft transition hover:shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-slate-500">{title}</p>
@@ -41,9 +41,10 @@ export const AdminStatCard = ({
 };
 
 export const AdminPageBanner = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-  <div className="rounded-2xl border border-slate-200 bg-gradient-to-l from-amber-50 via-white to-white p-5 shadow-sm">
-    <h1 className="text-xl font-black text-slate-900">{title}</h1>
-    {subtitle ? <p className="mt-1 text-sm text-slate-500">{subtitle}</p> : null}
+  <div className="rounded-[1.5rem] border border-paper-200 bg-ink-900 p-6 text-paper-50 shadow-soft">
+    <p className="text-[11px] font-bold tracking-[0.22em] text-gold-200">ADMIN</p>
+    <h1 className="mt-2 text-2xl font-black">{title}</h1>
+    {subtitle ? <p className="mt-1 text-sm text-paper-200">{subtitle}</p> : null}
   </div>
 );
 

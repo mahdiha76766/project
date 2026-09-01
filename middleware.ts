@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth/token';
-import { hasMinimumRole } from '@/server/permissions';
+import { canAccessAdminPanel } from '@/server/permissions';
 import { isPrivatePath, PRIVATE_ROBOTS_HEADER } from '@/lib/seo/private-routes';
 
 function redirectToCanonicalOrigin(req: NextRequest): NextResponse | null {
@@ -39,15 +39,19 @@ export async function middleware(req: NextRequest) {
   const session = token ? await verifyToken<{ userId: string; role: any }>(token) : null;
 
   if (pathname.startsWith('/dashboard') && !session) {
-    return withPrivateRobots(NextResponse.redirect(new URL('/auth/login', req.url)));
+    const login = new URL('/auth/login', req.url);
+    login.searchParams.set('next', pathname);
+    return withPrivateRobots(NextResponse.redirect(login));
   }
 
   if (pathname.startsWith('/admin')) {
     if (!session) {
-      return withPrivateRobots(NextResponse.redirect(new URL('/auth/login', req.url)));
+      const login = new URL('/auth/login', req.url);
+      login.searchParams.set('next', pathname);
+      return withPrivateRobots(NextResponse.redirect(login));
     }
-    if (!hasMinimumRole(session.role, 'ADMIN')) {
-      return withPrivateRobots(NextResponse.redirect(new URL('/', req.url)));
+    if (!canAccessAdminPanel(session.role)) {
+      return withPrivateRobots(NextResponse.redirect(new URL('/unauthorized', req.url)));
     }
   }
 

@@ -7,11 +7,11 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variants = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700',
-  secondary: 'bg-surface-900 text-white hover:bg-surface-800',
-  accent: 'bg-accent-500 text-white hover:bg-accent-600',
-  ghost: 'bg-transparent text-brand-600 hover:bg-brand-50',
-  outline: 'border border-surface-200 bg-surface-0 text-surface-800 hover:border-brand-300 hover:bg-brand-50'
+  primary: 'bg-ink-900 text-paper-50 hover:bg-brand-700',
+  secondary: 'bg-ink-800 text-paper-50 hover:bg-ink-700',
+  accent: 'bg-gold-500 text-ink-900 hover:bg-gold-400',
+  ghost: 'bg-transparent text-ink-800 hover:bg-paper-100',
+  outline: 'border border-paper-200 bg-paper-50 text-ink-800 hover:border-gold-400'
 };
 
 const sizes = {
@@ -30,7 +30,7 @@ export const Button = ({
 }: ButtonProps) => (
   <button
     className={cn(
-      'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
+      'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
       variants[variant],
       sizes[size],
       fullWidth && 'w-full',

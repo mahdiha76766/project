@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireContent } from '@/lib/api/guards';
 import { getSitePageContent, saveSitePageContent } from '@/lib/admin/page-content';
 import { normalizeSitePageContent, type SitePageContent } from '@/lib/admin/page-content-config';
 
 async function guard() {
-  const user = await getSessionUser();
-  return user && hasMinimumRole(user.role, 'ADMIN');
+  const auth = await requireContent();
+  return !auth.error;
 }
 
 export async function GET() {
@@ -33,7 +32,8 @@ export async function PUT(req: Request) {
             productSections: partial.home.productSections ?? current.home.productSections
           }
         : current.home,
-      contact: partial.contact ? { ...current.contact, ...partial.contact } : current.contact
+      contact: partial.contact ? { ...current.contact, ...partial.contact } : current.contact,
+      about: partial.about ? { ...current.about, ...partial.about } : current.about
     });
     const saved = await saveSitePageContent(merged);
     return NextResponse.json({ content: saved, message: 'محتوا ذخیره شد.' });

@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { User } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { signToken } from '@/lib/auth/token';
+import { SESSION_TTL_SECONDS, signToken } from '@/lib/auth/token';
 import { verifyOtp } from '@/lib/sms/otp-service';
 import { normalizeMobile, isValidMobile } from '@/lib/validation/mobile';
 import { registerSchema } from '@/lib/validation/auth';
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7
+        maxAge: SESSION_TTL_SECONDS
       });
       return res;
     }
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7
+      maxAge: SESSION_TTL_SECONDS
     });
     return res;
   } catch {

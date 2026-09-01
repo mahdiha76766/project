@@ -17,6 +17,8 @@ import {
   TextInput
 } from '@/components/admin/ui';
 import { adminFetch } from '@/lib/admin/client';
+import { AdminConfirmDialog } from '@/components/admin/AdminConfirmDialog';
+import { useAdminToast } from '@/components/admin/AdminToast';
 import { useAdminList } from '@/hooks/useAdminList';
 
 type Cat = {
@@ -26,10 +28,13 @@ type Cat = {
   description?: string;
   image?: string;
   isActive: boolean;
+  sortOrder?: number;
+  seoTitle?: string;
+  seoDescription?: string;
   parent?: { _id: string; name: string } | null;
 };
 
-const emptyForm = { id: '', name: '', slug: '', description: '', image: '', parent: '', isActive: true };
+const emptyForm = { id: '', name: '', slug: '', description: '', image: '', parent: '', sortOrder: '0', seoTitle: '', seoDescription: '', isActive: true };
 
 export default function AdminCategoriesPage() {
   const { items, page, setPage, search, setSearch, totalPages, total, loading, error, reload } = useAdminList<Cat>('/api/admin/categories');
@@ -38,6 +43,9 @@ export default function AdminCategoriesPage() {
   const [formError, setFormError] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Cat | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { notify } = useAdminToast();
 
   const loadOptions = async () => {
     const { ok, data } = await adminFetch<{ items: Cat[] }>('/api/admin/categories?all=1');
@@ -65,6 +73,9 @@ export default function AdminCategoriesPage() {
         description: form.description.trim(),
         image: form.image.trim(),
         parent: form.parent || null,
+        sortOrder: Number(form.sortOrder || 0),
+        seoTitle: form.seoTitle.trim(),
+        seoDescription: form.seoDescription.trim(),
         isActive: form.isActive
       })
     });
@@ -89,20 +100,16 @@ export default function AdminCategoriesPage() {
       description: c.description || '',
       image: c.image || '',
       parent: c.parent?._id || '',
+      sortOrder: String(c.sortOrder ?? 0),
+      seoTitle: c.seoTitle || '',
+      seoDescription: c.seoDescription || '',
       isActive: c.isActive
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const removeItem = async (id: string) => {
-    if (!confirm('این دسته‌بندی حذف شود؟')) return;
-    const { ok, error: deleteError } = await adminFetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
-    if (!ok) setFormError(deleteError);
-    else {
-      setMessage('دسته‌بندی حذف شد.');
-      reload();
-      void loadOptions();
-    }
+    setPendingDelete(items.find((c) => c._id === id) || { _id: id, name: '', slug: '', isActive: true });
   };
 
   return (
@@ -123,6 +130,9 @@ export default function AdminCategoriesPage() {
             </SelectInput>
           </div>
           <AdminCheckbox label="فعال" checked={form.isActive} onChange={(isActive) => setForm({ ...form, isActive })} />
+          <div><FieldLabel text="ترتیب نمایش" /><TextInput value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} dir="ltr" /></div>
+          <div><FieldLabel text="عنوان SEO" /><TextInput value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} /></div>
+          <div className="md:col-span-2"><FieldLabel text="توضیح SEO" /><TextInput value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} /></div>
           <div className="xl:col-span-2"><FieldLabel text="توضیحات" /><TextArea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           <div className="xl:col-span-2">
             <AdminSingleImageUploader
@@ -207,6 +217,29 @@ export default function AdminCategoriesPage() {
         />
         <AdminPagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
       </AdminCard>
+      <AdminConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="حذف دسته‌بندی"
+        description={`دسته «${pendingDelete?.name || ''}» حذف شود؟`}
+        loading={deleting}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setDeleting(true);
+          const { ok, error: deleteError } = await adminFetch(`/api/admin/categories/${pendingDelete._id}`, { method: 'DELETE' });
+          setDeleting(false);
+          if (!ok) {
+            setFormError(deleteError);
+            notify(deleteError, 'error');
+            return;
+          }
+          notify('دسته‌بندی حذف شد.');
+          setMessage('دسته‌بندی حذف شد.');
+          setPendingDelete(null);
+          reload();
+          void loadOptions();
+        }}
+      />
     </main>
   );
 }

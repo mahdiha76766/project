@@ -16,5 +16,5 @@ export function resolveOgImages(images?: string[] | null, fallback?: string): st
   return [resolveOgImage(fallback)];
 }
 
-export const SITE_BRAND_NAME = 'ناب سرا';
-export const SITE_CONTENT_TEAM = 'تیم محتوای ناب سرا';
+export const SITE_BRAND_NAME = 'فیدار فارمد';
+export const SITE_CONTENT_TEAM = 'تیم محتوای فیدار فارمد';

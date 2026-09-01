@@ -15,7 +15,7 @@ export function HomeJsonLd({ seo }: { seo: SiteSeoSettings }) {
         inLanguage: 'fa-IR',
         potentialAction: {
           '@type': 'SearchAction',
-          target: `${base}/products?q={search_term_string}`,
+          target: `${base}/search?q={search_term_string}`,
           'query-input': 'required name=search_term_string'
         }
       },
@@ -26,15 +26,6 @@ export function HomeJsonLd({ seo }: { seo: SiteSeoSettings }) {
         url: base,
         logo: absoluteUrl(seo.faviconUrl.startsWith('/') ? seo.faviconUrl : `/${seo.faviconUrl}`),
         ...(seo.organizationPhone ? { telephone: seo.organizationPhone } : {})
-      },
-      {
-        '@type': 'Store',
-        '@id': `${base}/#store`,
-        name: seo.siteName,
-        description: seo.siteDescription,
-        url: base,
-        image: absoluteUrl(seo.ogImageUrl.startsWith('/') ? seo.ogImageUrl : `/${seo.ogImageUrl}`),
-        priceRange: '$$'
       }
     ]
   };

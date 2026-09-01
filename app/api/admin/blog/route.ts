@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { BlogPost } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireContent } from '@/lib/api/guards';
 import { slugify } from '@/lib/utils/slugify';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
 import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
@@ -33,7 +32,10 @@ const blogInputSchema = z.object({
   media: z.array(mediaItemSchema).optional()
 });
 
-async function guard() { const u = await getSessionUser(); return u && hasMinimumRole(u.role, 'ADMIN'); }
+async function guard() {
+  const auth = await requireContent();
+  return !auth.error;
+}
 
 export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
     content: parsed.content,
     category: parsed.category || 'عمومی',
     tags: parsed.tags || [],
-    author: parsed.author || 'تیم محتوای نابسرا',
+    author: parsed.author || 'تیم محتوای فیدار فارمد',
     seoMetaTitle: parsed.seoMetaTitle || '',
     seoMetaDescription: parsed.seoMetaDescription || '',
     relatedProductIds: parsed.relatedProductIds || [],

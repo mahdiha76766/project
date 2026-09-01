@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils/cn';
 
 type AdminImageUploaderProps = {
   label: string;
-  folder: 'products' | 'categories' | 'blog' | 'banners';
+  folder: 'products' | 'categories' | 'blog' | 'banners' | 'media' | 'downloads';
   value: string[];
   onChange: (urls: string[]) => void;
   multiple?: boolean;
@@ -177,7 +177,7 @@ export function AdminSingleImageUploader({
   hint
 }: {
   label: string;
-  folder: 'products' | 'categories' | 'blog' | 'banners';
+  folder: 'products' | 'categories' | 'blog' | 'banners' | 'media' | 'downloads';
   value: string;
   onChange: (url: string) => void;
   hint?: string;

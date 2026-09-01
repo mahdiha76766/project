@@ -9,8 +9,11 @@ import { env } from '@/server/config/env';
 import { activateCodOrder } from '@/lib/saas/activation-service';
 import { findVariant, getVariantUnitPrice, getVariantWeightGrams, variantInStock } from '@/lib/product/variants';
 import { notifyOrderCreated } from '@/lib/finance/notification-service';
+import { assertSalesEnabled } from '@/lib/commerce/sales';
 
 export async function POST(req: Request) {
+  const sales = await assertSalesEnabled();
+  if (sales.error) return sales.error;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'ابتدا وارد شوید' }, { status: 401 });
   await connectToDatabase();

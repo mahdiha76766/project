@@ -1,24 +1,27 @@
 import type { Metadata } from 'next';
-import { AdvancedHeroSlider } from '@/components/home/AdvancedHeroSlider';
-import { HomeTrustBar } from '@/components/home/HomeTrustBar';
-import { HomeCategories } from '@/components/home/HomeCategories';
-import { HomeProductSectionsClient } from '@/components/home/HomeProductSectionsClient';
-import { HomePromo } from '@/components/home/HomePromo';
-import { HomeAboutEditable, HomeFeaturesEditable, HomeProductSectionsEditable } from '@/components/home/HomeEditableSections';
-import { HomeBlog } from '@/components/home/HomeBlog';
-import { HomeKeywords } from '@/components/home/HomeKeywords';
-import { HomeNewsletter } from '@/components/home/HomeNewsletter';
+import Link from 'next/link';
+import { Container } from '@/components/ui/Container';
 import { HomeJsonLd } from '@/components/seo/HomeJsonLd';
-import { getHeroSliderConfig } from '@/lib/admin/slider-settings';
+import { FeedarHomeHero } from '@/components/feedar/home/HomeHero';
+import { FeedarHomeServices } from '@/components/feedar/home/HomeServices';
+import { FeedarHomeWhy } from '@/components/feedar/home/HomeWhy';
+import { FeedarHomeFamilies } from '@/components/feedar/home/HomeFamilies';
+import { FeedarHomeResearch } from '@/components/feedar/home/HomeResearch';
+import { FeedarHomeArticles } from '@/components/feedar/home/HomeArticles';
+import { FeedarHomePartners } from '@/components/feedar/home/HomePartners';
+import { FeedarHomeCta } from '@/components/feedar/home/HomeCta';
+import { FeedarProductCard } from '@/components/feedar/products/ProductCard';
+import { FpEmptyState } from '@/components/feedar/ui/EmptyState';
+import { FpSectionHeader } from '@/components/feedar/ui/PulseTitle';
+import { FEEDAR_BRAND } from '@/lib/brand/feedar';
 import { getSiteSeoSettings } from '@/lib/admin/site-settings';
 import { getSitePageContent } from '@/lib/admin/page-content';
+import { fetchFeaturedStoreProducts } from '@/lib/feedar/product-families';
+import { stripHtml } from '@/lib/feedar/content';
 import { buildSiteMetadata } from '@/lib/seo/site-metadata';
-import { getProductMinPrice, getProductVariants, hasVariants, serializeVariantsForClient } from '@/lib/product/variants';
-import { getProductDiscountInfo } from '@/lib/product/discount';
-import { resolveImage } from '@/lib/shop/resolve-image';
-import { fetchProductsByHomeFilter } from '@/lib/shop/home-product-query';
-import { Banner, BlogPost, Category } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
+import { resolveImage } from '@/lib/shop/resolve-image';
+import { BlogPost, Category } from '@/models';
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSiteSeoSettings();
@@ -28,98 +31,82 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-function mapProduct(p: Record<string, unknown>) {
-  const variantRows = serializeVariantsForClient(getProductVariants(p as never));
-  const multi = hasVariants(p as never);
-  const defaultVariant = variantRows.find((v) => v.isDefault) || variantRows[0];
-  const images = p.images as string[] | undefined;
-  const discount = getProductDiscountInfo(p as never);
-  return {
-    id: String(p._id),
-    slug: String(p.slug),
-    name: String(p.name),
-    shortDescription: String(p.shortDescription || ''),
-    images: images?.length ? images.map((img) => resolveImage(img)) : [resolveImage(undefined)],
-    price: Number(p.price || 0),
-    discountPrice: typeof p.discountPrice === 'number' ? p.discountPrice : undefined,
-    bestSeller: Boolean(p.isFeatured),
-    hasVariants: multi,
-    minPrice: multi ? getProductMinPrice(p as never) : undefined,
-    defaultVariantId: defaultVariant?.id,
-    variants: variantRows,
-    discountLabel: discount.hasDiscount ? discount.label : undefined
-  };
-}
-
 export default async function Home() {
-  const [heroConfig, seo, pageContent] = await Promise.all([
-    getHeroSliderConfig(),
+  const [seo, pageContent, products] = await Promise.all([
     getSiteSeoSettings(),
-    getSitePageContent()
+    getSitePageContent(),
+    fetchFeaturedStoreProducts(6)
   ]);
 
-  const sectionsConfig = pageContent.home.productSections.filter((s) => s.enabled);
+  const [blogPosts, categories] = await Promise.all([
+    withDatabase(
+      () => BlogPost.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 }).limit(3).lean(),
+      [] as Record<string, unknown>[]
+    ),
+    withDatabase(
+      () => Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(4).lean(),
+      [] as Record<string, unknown>[]
+    )
+  ]);
 
-  const data = await withDatabase(
-    () =>
-      Promise.all([
-        Banner.find({ isActive: true, position: 'home' }).sort({ createdAt: -1 }).limit(2).lean(),
-        ...sectionsConfig.map((sec) => fetchProductsByHomeFilter(sec.filterType, sec.limit)),
-        Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
-        BlogPost.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 }).limit(6).lean()
-      ]),
-    [[], ...sectionsConfig.map(() => []), [], []] as unknown[][]
-  );
-
-  const homeBanners = data[0] as Record<string, unknown>[];
-  const sectionRaw = sectionsConfig.map((_, i) => (data[i + 1] as Record<string, unknown>[]) || []);
-  const categories = (data[data.length - 2] as Record<string, unknown>[]) || [];
-  const blogPosts = (data[data.length - 1] as Record<string, unknown>[]) || [];
-
-  const productSections = sectionsConfig.map((config, i) => ({
-    config,
-    products: sectionRaw[i].map(mapProduct)
+  const posts = blogPosts.map((p) => ({
+    slug: String(p.slug),
+    title: String(p.title),
+    excerpt: String(p.excerpt || String(p.content || '').replace(/<[^>]+>/g, '').slice(0, 120)),
+    coverImage: p.coverImage as string | undefined,
+    category: String(p.category || ''),
+    dateLabel: p.publishedAt ? new Date(String(p.publishedAt)).toLocaleDateString('fa-IR') : undefined
   }));
 
   const categoryItems = categories.map((cat) => ({
-    id: String(cat._id),
-    name: String(cat.name),
     slug: String(cat.slug),
+    name: String(cat.name),
     description: String(cat.description || ''),
     image: resolveImage(cat.image as string | undefined)
-  }));
-
-  const banners = homeBanners.map((b) => ({
-    id: String(b._id),
-    title: String(b.title || ''),
-    image: String(b.image || ''),
-    link: String(b.link || '')
-  }));
-
-  const posts = blogPosts.map((p) => ({
-    id: String(p._id),
-    slug: String(p.slug),
-    title: String(p.title),
-    excerpt: String(p.excerpt || String(p.content || '').slice(0, 120)),
-    coverImage: p.coverImage as string | undefined,
-    category: String(p.category || ''),
-    views: Number(p.views || 0)
   }));
 
   return (
     <>
       <HomeJsonLd seo={seo} />
-      <AdvancedHeroSlider slides={heroConfig.slides} autoplayInterval={heroConfig.autoplayInterval} />
-      <HomeTrustBar />
-      <HomeKeywords keywords={seo.keywords} />
-      <HomeCategories categories={categoryItems} />
-      <HomeProductSectionsEditable />
-      <HomeProductSectionsClient sections={productSections} />
-      {banners.length > 0 ? <HomePromo banners={banners} /> : null}
-      <HomeAboutEditable />
-      <HomeFeaturesEditable />
-      {posts.length > 0 ? <HomeBlog posts={posts} /> : null}
-      <HomeNewsletter />
+      <FeedarHomeHero home={pageContent.home} />
+      <FeedarHomeServices home={pageContent.home} />
+      <FeedarHomeWhy
+        title={pageContent.home.featuresTitle}
+        description={stripHtml(pageContent.home.featuresHtml)}
+        image={pageContent.home.aboutImage}
+      />
+      <FeedarHomeFamilies categories={categoryItems} />
+
+      <section className="ph-section bg-paper-50">
+        <Container>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <FpSectionHeader title="محصولات منتخب" description={`نمایی از سبد محصولات ${FEEDAR_BRAND.nameFa}.`} />
+            <Link href="/products" className="fp-btn-outline !py-2 text-sm">
+              همه محصولات
+            </Link>
+          </div>
+          {products.length ? (
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {products.map((product) => (
+                <FeedarProductCard key={product.id} product={product} categoryLabel={product.category} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-8">
+              <FpEmptyState title="محصولی برای نمایش نیست" description="پس از ثبت محصولات در پنل مدیریت، این بخش تکمیل می‌شود." actionHref="/contact" actionLabel="تماس با ما" />
+            </div>
+          )}
+        </Container>
+      </section>
+
+      <FeedarHomeResearch
+        title={pageContent.home.researchTitle}
+        description={stripHtml(pageContent.home.researchHtml)}
+        image={pageContent.home.researchImage}
+      />
+      <FeedarHomeArticles posts={posts} />
+      <FeedarHomePartners title={pageContent.home.partnersTitle} partnersText={pageContent.home.partnersText} />
+      <FeedarHomeCta title={pageContent.home.ctaTitle} description={stripHtml(pageContent.home.ctaHtml)} />
     </>
   );
 }

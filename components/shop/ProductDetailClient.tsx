@@ -10,6 +10,7 @@ import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { RichHtmlContent } from '@/components/shop/RichHtmlContent';
 import { getVariantSpecEntries } from '@/lib/product/specs';
 import { cn } from '@/lib/utils/cn';
+import { useSalesConfig } from '@/components/commerce/SalesProvider';
 
 export type ProductVariantOption = {
   id: string;
@@ -55,6 +56,7 @@ export function ProductDetailClient({
   isFeatured?: boolean;
   enableVariantPicker?: boolean;
 }) {
+  const { salesEnabled } = useSalesConfig();
   const defaultId = variants.find((v) => v.isDefault)?.id || variants[0]?.id || '';
   const [selectedId, setSelectedId] = useState(defaultId);
 
@@ -63,7 +65,7 @@ export function ProductDetailClient({
     [variants, selectedId]
   );
 
-  if (!selected) return null;
+  if (!salesEnabled || !selected) return null;
 
   const variantDiscount = getVariantDiscountInfo(selected);
   const finalPrice = variantDiscount.salePrice;

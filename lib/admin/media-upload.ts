@@ -11,7 +11,7 @@ const MAX_IMAGE_SIZE = 3 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const VIDEO_TYPES = new Set(['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']);
-const ALLOWED_FOLDERS = new Set(['categories', 'products', 'blog', 'banners']);
+const ALLOWED_FOLDERS = new Set(['categories', 'products', 'blog', 'banners', 'media', 'downloads']);
 
 export type UploadedMedia = {
   url: string;

@@ -5,6 +5,7 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { getSessionUser } from '@/lib/auth/session';
 import { cartLineKey, findVariant, variantInStock, type ProductLike } from '@/lib/product/variants';
 import { cartItemsCount, normalizeCartVariantId, serializeCartItems } from '@/lib/cart/serialize';
+import { assertSalesEnabled } from '@/lib/commerce/sales';
 
 function matchCartItem(
   item: { product: { toString: () => string }; variantId?: { toString: () => string } | null },
@@ -38,6 +39,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const sales = await assertSalesEnabled();
+  if (sales.error) return sales.error;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'ابتدا وارد شوید' }, { status: 401 });
 
@@ -104,6 +107,8 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  const sales = await assertSalesEnabled();
+  if (sales.error) return sales.error;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'ابتدا وارد شوید' }, { status: 401 });
 
@@ -143,6 +148,8 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const sales = await assertSalesEnabled();
+  if (sales.error) return sales.error;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'ابتدا وارد شوید' }, { status: 401 });
 

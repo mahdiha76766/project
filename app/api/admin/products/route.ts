@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Category, Product } from '@/models';
 import { connectToDatabase } from '@/lib/db/mongoose';
-import { getSessionUser } from '@/lib/auth/session';
-import { hasMinimumRole } from '@/server/permissions';
+import { requireCatalog } from '@/lib/api/guards';
 import { getPaginationParams, paginatedResponse } from '@/lib/admin/pagination';
 import { buildDocumentSearchFilter, getListSearchQuery, mergeMongoFilters } from '@/lib/admin/list-search';
-import { normalizeProductUsageType } from '@/constants/product';
+import { normalizeProductUsageType, normalizeProductLine } from '@/constants/product';
 import { normalizeVariantsInput, syncProductFieldsFromVariants } from '@/lib/product/variants';
 import { normalizeProductMediaInput } from '@/lib/admin/product-media';
 import { appendNewProductToExcel } from '@/lib/admin/product-excel-append';
@@ -21,16 +20,23 @@ import {
 } from '@/lib/admin/product-codes';
 
 async function guard() {
-  const user = await getSessionUser();
-  if (!user || !hasMinimumRole(user.role, 'ADMIN')) return null;
-  return user;
+  const auth = await requireCatalog();
+  return auth.user ?? null;
 }
 
 export async function GET(req: Request) {
   if (!(await guard())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { page, limit, skip } = getPaginationParams(req.url);
   const q = getListSearchQuery(req.url);
+  const url = new URL(req.url);
+  const category = url.searchParams.get('category')?.trim();
+  const status = url.searchParams.get('status')?.trim();
+  const extra: Record<string, unknown> = {};
+  if (category) extra.category = category;
+  if (status === 'active') extra.isActive = true;
+  if (status === 'inactive') extra.isActive = false;
   const filter = mergeMongoFilters(
+    extra,
     buildDocumentSearchFilter(q, ['name', 'slug', 'sku', 'tags', 'variants.sku', 'variants.name'])
   );
   await connectToDatabase();
@@ -161,6 +167,7 @@ export async function POST(req: Request) {
       weightUnit: body.weightUnit || 'g',
       containerSize: body.containerSize?.trim() || excel.variants[0]?.weight || '',
       usageType: normalizeProductUsageType(body.usageType),
+      productLine: normalizeProductLine(body.productLine),
       attributes: {
         ...(body.attributes && typeof body.attributes === 'object' ? body.attributes : {}),
         excelSlug: excel.baseSlug,
@@ -169,7 +176,11 @@ export async function POST(req: Request) {
       tags: body.tags || [],
       variants: nextVariants,
       isActive: body.isActive ?? true,
-      isFeatured: body.isFeatured ?? false
+      isFeatured: body.isFeatured ?? false,
+      seo: {
+        title: String(body.seo?.title || body.seoTitle || '').trim(),
+        description: String(body.seo?.description || body.seoDescription || '').trim()
+      }
     });
 
     try {

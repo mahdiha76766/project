@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
-import { StorePageHeader, StoreEmpty } from '@/components/shop/store/StorePageHeader';
-import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
+import { FpPageHero } from '@/components/feedar/ui/PageHero';
+import { FeedarProductCard } from '@/components/feedar/products/ProductCard';
+import { FpEmptyState } from '@/components/feedar/ui/EmptyState';
 import { mapProductListing } from '@/lib/shop/map-product-listing';
 import { Category, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 import { buildDetailMetadata, notFoundMetadata } from '@/lib/seo/metadata';
+import { SITE_BRAND_NAME } from '@/lib/seo/resolve-og-image';
 import type { ShopProduct } from '@/types/shop';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -13,9 +15,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return withDatabase(async () => {
     const category: any = await Category.findOne({ slug, isActive: true }).lean();
     if (!category) return notFoundMetadata('دسته یافت نشد');
+    const title = category.seoTitle?.trim() || category.name;
+    const description =
+      category.seoDescription?.trim() ||
+      category.description?.trim() ||
+      `محصولات دسته ${category.name} در ${SITE_BRAND_NAME}`;
     return buildDetailMetadata({
-      title: category.name,
-      description: category.description?.trim() || `محصولات دسته ${category.name} در فروشگاه ناب سرا`,
+      title,
+      description,
       canonicalPath: `/categories/${category.slug}`,
       image: category.image
     });
@@ -38,8 +45,8 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
 
   return (
     <>
-      <StorePageHeader
-        label="دسته"
+      <FpPageHero
+        kicker="خط محصول"
         title={category.name}
         description={category.description}
         breadcrumbs={[
@@ -48,12 +55,16 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
           { label: category.name }
         ]}
       />
-      <Container className="py-10 lg:py-12">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.length ? products.map((p) => <StoreProductCard key={p.id} product={p} />) : (
-            <StoreEmpty message="محصولی در این دسته نیست." />
-          )}
-        </div>
+      <Container className="py-12 lg:py-16">
+        {products.length ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((p) => (
+              <FeedarProductCard key={p.id} product={p} categoryLabel={category.name} />
+            ))}
+          </div>
+        ) : (
+          <FpEmptyState title="محصولی در این دسته نیست." description="به‌زودی محصولات این خط به کاتالوگ اضافه می‌شود." actionHref="/products" actionLabel="همه محصولات" />
+        )}
       </Container>
     </>
   );

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Menu, ShoppingCart, User, X } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { CartBadge } from '@/components/shop/CartBadge';
+import { CommerceOnly } from '@/components/commerce/SalesProvider';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useSiteContent } from '@/components/cms/SiteContentProvider';
 import { EditableText } from '@/components/cms/EditableContent';
@@ -67,10 +68,12 @@ export const MainHeader = () => {
           </nav>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <CommerceOnly>
             <Link href="/cart" aria-label="سبد" className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-brand-100 bg-brand-50/50 text-brand-700 transition hover:border-brand-200 hover:bg-brand-50 sm:h-10 sm:w-10">
               <ShoppingCart className="h-[18px] w-[18px]" />
               <CartBadge />
             </Link>
+            </CommerceOnly>
             <Link href={user ? '/dashboard' : '/auth/login'} className="site-btn-primary !rounded-xl !px-3 !py-2 !text-[12px] !shadow-md sm:!px-4 sm:!py-2.5 sm:!text-[13px]">
               <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">{user ? 'حساب من' : 'ورود'}</span>
