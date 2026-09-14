@@ -23,15 +23,17 @@ export const AdminStatCard = ({
     rose: 'bg-rose-100 text-rose-700'
   };
   const content = (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold text-slate-500">{title}</p>
-          <p className="mt-2 text-lg font-black text-slate-900">{value}</p>
-          {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:shadow-md">
+      <div className="flex items-start justify-between gap-2.5">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold text-slate-500">{title}</p>
+          <p className="mt-1 truncate text-base font-black leading-snug text-slate-900" title={value}>
+            {value}
+          </p>
+          {hint ? <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p> : null}
         </div>
-        <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${accents[accent]}`}>
-          <Icon size={20} />
+        <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accents[accent]}`}>
+          <Icon size={18} />
         </span>
       </div>
     </div>

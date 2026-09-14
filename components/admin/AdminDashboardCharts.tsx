@@ -110,8 +110,8 @@ export function AdminDashboardCharts({
     ) : null;
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 xl:grid-cols-2">
+    <div className="space-y-3">
+      <div className="grid gap-3 xl:grid-cols-2">
         <AdminChartCard
           title="روند فروش"
           subtitle={`${rangeLabel} · ${formatCurrency(salesTotal, 'تومان')}`}
@@ -125,6 +125,7 @@ export function AdminDashboardCharts({
             yKey="amount"
             name="فروش"
             color="#d97706"
+            height={190}
             valueFormatter={(n) => formatCurrency(n, 'تومان')}
           />
         </AdminChartCard>
@@ -141,18 +142,19 @@ export function AdminDashboardCharts({
             yKey="count"
             name="سفارش"
             color="#0ea5e9"
+            height={190}
             valueFormatter={(n) => `${n.toLocaleString('fa-IR')} سفارش`}
           />
         </AdminChartCard>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-3 xl:grid-cols-2">
         <AdminChartCard title="توزیع وضعیت سفارش" subtitle="نمای کلی چرخه سفارش‌ها" icon={<PiChartPieSliceDuotone />} accent="violet">
-          {orderDonut.length ? <AdminDonutChart data={orderDonut} /> : <EmptyChart message="سفارشی برای نمایش وجود ندارد" />}
+          {orderDonut.length ? <AdminDonutChart data={orderDonut} height={160} /> : <EmptyChart message="سفارشی برای نمایش وجود ندارد" />}
         </AdminChartCard>
 
         <AdminChartCard title="توزیع وضعیت پرداخت" subtitle="پرداخت‌های موفق، معلق و ناموفق" icon={<PiChartPieSliceDuotone />} accent="emerald">
-          {paymentDonut.length ? <AdminDonutChart data={paymentDonut} /> : <EmptyChart message="داده پرداختی وجود ندارد" />}
+          {paymentDonut.length ? <AdminDonutChart data={paymentDonut} height={160} /> : <EmptyChart message="داده پرداختی وجود ندارد" />}
         </AdminChartCard>
       </div>
     </div>
@@ -161,9 +163,9 @@ export function AdminDashboardCharts({
 
 function EmptyChart({ message }: { message: string }) {
   return (
-    <div className="flex h-44 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center">
-      <HiOutlineChartBar className="mb-2 h-8 w-8 text-slate-300" />
-      <p className="text-sm text-slate-500">{message}</p>
+    <div className="flex h-36 flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/50 text-center">
+      <HiOutlineChartBar className="mb-1.5 h-6 w-6 text-slate-300" />
+      <p className="text-xs text-slate-500">{message}</p>
     </div>
   );
 }

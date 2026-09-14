@@ -11,11 +11,6 @@ const links = {
     { href: '/categories', label: 'دسته‌بندی‌ها' },
     { href: '/blog', label: 'مجله سلامت' },
     { href: '/contact', label: 'تماس با ما' }
-  ],
-  account: [
-    { href: '/auth/login', label: 'ورود' },
-    { href: '/auth/register', label: 'ثبت‌نام' },
-    { href: '/dashboard', label: 'حساب کاربری' }
   ]
 };
 
@@ -30,8 +25,8 @@ export const SiteFooter = () => {
   return (
     <footer className="mt-auto border-t border-surface-200 bg-gradient-to-b from-surface-100 to-surface-50">
       <Container className="py-14 lg:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2 lg:col-span-2">
+        <div className="grid items-center gap-8 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)_auto]">
+          <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-sm font-bold text-white">ع</span>
               <span className="text-lg font-black text-surface-900">{header.brandName}</span>
@@ -48,13 +43,13 @@ export const SiteFooter = () => {
               ))}
             </ul>
           </div>
-          <div>
-            <EditableText value={footer.accountTitle} onSave={(v) => saveFooter('accountTitle', v)} as="h3" className="text-sm font-bold text-surface-900" label="عنوان حساب" />
-            <ul className="mt-4 space-y-2.5">
-              {links.account.map((link) => (
-                <li key={link.href}><Link href={link.href} className="text-sm text-surface-500 transition hover:text-brand-600">{link.label}</Link></li>
-              ))}
-            </ul>
+          <div className="flex justify-center sm:justify-start lg:justify-end">
+            <a
+              referrerPolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=7278140&amp;Code=PUWocCe8e6MBXjbwSVSHdCddu9TvhNPI"
+            >
+
+              <img src="/enamad.png" alt="نماد اعتماد الکترونیکی" />
+            </a>
           </div>
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-surface-200 pt-6 sm:flex-row">

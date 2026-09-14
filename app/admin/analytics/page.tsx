@@ -196,8 +196,8 @@ function TopListItem({
   duration: number;
 }) {
   return (
-    <div className="rounded-xl border border-slate-100 px-3 py-2 text-xs">
-      <p className="line-clamp-2 font-bold text-slate-800">{title}</p>
+    <div className="rounded-lg border border-slate-100 px-2.5 py-1.5 text-[11px]">
+      <p className="line-clamp-2 font-bold leading-snug text-slate-800">{title}</p>
       {subtitle ? <p className="mt-0.5 truncate text-[10px] text-slate-400">{subtitle}</p> : null}
       <p className="mt-1 flex justify-between text-slate-500">
         <span>{views.toLocaleString('fa-IR')} بازدید</span>
@@ -296,7 +296,7 @@ export default function AdminAnalyticsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <AdminPageBanner
         title="آمار بازدید و رفتار کاربران"
         subtitle="بازدید واقعی بر اساس IP و مرورگر — بدون شمارش تکراری بستن/باز کردن"
@@ -308,7 +308,7 @@ export default function AdminAnalyticsPage() {
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
       ) : summary ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <AdminStatCard title="بازدید صفحات" value={`${summary.totalPageViews.toLocaleString('fa-IR')}`} hint={`${summary.rangeDays} روز اخیر`} icon={HiOutlineEye} accent="amber" />
             <AdminStatCard title="بازدیدکنندگان یکتا" value={`${summary.uniqueVisitors.toLocaleString('fa-IR')}`} hint="بر اساس IP + مرورگر" icon={HiOutlineUsers} accent="sky" />
             <AdminStatCard title="آنلاین هم‌اکنون" value={`${(realtime?.activeCount ?? summary.activeNow).toLocaleString('fa-IR')}`} hint="۵ دقیقه اخیر" icon={BsLightningChargeFill} accent="emerald" />
@@ -354,22 +354,23 @@ export default function AdminAnalyticsPage() {
             <AdminAreaTrendChart
               data={trendChartData}
               xKey="label"
+              height={210}
               series={[
                 { key: 'views', name: 'بازدید', color: '#d97706' },
-                { key: 'visitors', name: 'بازدیدکننده یکتا', color: '#0ea5e9' }
+                { key: 'visitors', name: 'بازدیدکننده', color: '#0ea5e9' }
               ]}
             />
           </AdminChartCard>
 
-          <div className="grid gap-4 xl:grid-cols-2">
-            <AdminChartCard title="کاربران آنلاین — ۲۴ ساعت گذشته" subtitle="تعداد بازدیدکننده یکتا در هر ساعت" icon={<BsLightningChargeFill />} accent="emerald">
+          <div className="grid gap-3 xl:grid-cols-2">
+            <AdminChartCard title="آنلاین — ۲۴ ساعت" subtitle="بازدیدکننده یکتا در هر ساعت" icon={<BsLightningChargeFill />} accent="emerald">
               <AdminBarTrendChart
                 data={hourlyData}
                 xKey="label"
                 yKey="activeUsers"
-                name="کاربر فعال"
+                name="فعال"
                 color="#10b981"
-                height={260}
+                height={190}
               />
             </AdminChartCard>
 
@@ -393,12 +394,12 @@ export default function AdminAnalyticsPage() {
           </div>
 
           {/* Device distribution - detailed */}
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-3 xl:grid-cols-2">
             <AdminChartCard title="مرورگرها" icon={<HiOutlineGlobeAlt />} accent="sky">
-              {browserData.length ? <AdminDonutChart data={browserData} height={220} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
+              {browserData.length ? <AdminDonutChart data={browserData} height={160} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
             </AdminChartCard>
             <AdminChartCard title="سیستم‌عامل" icon={<HiOutlineDeviceMobile />} accent="violet">
-              {osData.length ? <AdminDonutChart data={osData} height={220} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
+              {osData.length ? <AdminDonutChart data={osData} height={160} /> : <p className="text-sm text-slate-500">داده‌ای نیست</p>}
             </AdminChartCard>
           </div>
 
@@ -438,15 +439,15 @@ export default function AdminAnalyticsPage() {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {deviceData.length ? <AdminDonutChart data={deviceData} height={200} /> : null}
-                {contentData.length ? <AdminDonutChart data={contentData} height={200} /> : null}
+                {deviceData.length ? <AdminDonutChart data={deviceData} height={150} /> : null}
+                {contentData.length ? <AdminDonutChart data={contentData} height={150} /> : null}
                 {!deviceData.length && !contentData.length ? <p className="text-sm text-slate-500">داده‌ای نیست — پس از ثبت بازدید واقعی نمایش داده می‌شود</p> : null}
               </div>
             )}
           </AdminChartCard>
 
           {/* Top lists with scroll limit */}
-          <div className="grid gap-4 xl:grid-cols-3">
+          <div className="grid gap-3 xl:grid-cols-3">
             <AdminChartCard title="صفحات پربازدید" accent="amber" subtitle={`حداکثر ${summary.topPages.length} مورد`}>
               <div className={TOP_LIST_CLASS}>
                 {summary.topPages.length ? summary.topPages.map((p) => (

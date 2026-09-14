@@ -67,6 +67,14 @@ html, body {
   .site-btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-surface-200 bg-surface-0 px-6 py-3 text-sm font-semibold text-surface-800 transition hover:border-brand-300 hover:bg-brand-50 active:scale-[0.98];
   }
+
+  .landing-footer-license-item {
+    @apply inline-flex shrink-0 rounded-xl border border-surface-200 bg-surface-0 p-2 shadow-soft transition hover:border-brand-200;
+  }
+
+  .landing-footer-license-item img {
+    @apply block h-auto w-20 sm:w-24 lg:w-28;
+  }
 }
 
 @keyframes marquee-rtl {
