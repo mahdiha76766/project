@@ -10,8 +10,20 @@ const links = {
   shop: [
     { href: '/products', label: 'همه محصولات' },
     { href: '/categories', label: 'دسته‌بندی‌ها' },
-    { href: '/blog', label: 'مجله سلامت' },
-    { href: '/contact', label: 'تماس با ما' }
+    { href: '/products?discount=1', label: 'پیشنهادهای ویژه' },
+    { href: '/blog', label: 'مجله سلامت' }
+  ],
+  service: [
+    { href: '/help/shopping-guide', label: 'راهنمای خرید' },
+    { href: '/help/shipping', label: 'ارسال و تحویل' },
+    { href: '/help/returns', label: 'بازگشت کالا' },
+    { href: '/help/faq', label: 'پرسش‌های پرتکرار' }
+  ],
+  account: [
+    { href: '/dashboard/orders', label: 'پیگیری سفارش' },
+    { href: '/dashboard/wishlist', label: 'علاقه‌مندی‌ها' },
+    { href: '/help/privacy', label: 'حریم خصوصی' },
+    { href: '/help/terms', label: 'قوانین فروشگاه' }
   ]
 };
 
@@ -33,7 +45,7 @@ export const SiteFooter = () => {
           </div>
           <Link href="/products" className="inline-flex w-fit items-center gap-2 rounded-2xl bg-accent-500 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-accent-400">ورود به فروشگاه <ArrowUpLeft className="h-4 w-4" /></Link>
         </div>
-        <div className="grid items-start gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)_auto]">
+        <div className="grid items-start gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.25fr)_repeat(3,minmax(0,.65fr))_auto]">
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">
               <span className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-accent-300"><Leaf className="h-5 w-5" /></span>
@@ -51,6 +63,22 @@ export const SiteFooter = () => {
             <EditableText value={footer.shopTitle} onSave={(v) => saveFooter('shopTitle', v)} as="h3" className="text-sm font-black text-white" label="عنوان فروشگاه" />
             <ul className="mt-5 space-y-3">
               {links.shop.map((link) => (
+                <li key={link.href}><Link href={link.href} className="text-sm text-brand-100/60 transition hover:pr-1 hover:text-accent-300">{link.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-white">خدمات مشتریان</h3>
+            <ul className="mt-5 space-y-3">
+              {links.service.map((link) => (
+                <li key={link.href}><Link href={link.href} className="text-sm text-brand-100/60 transition hover:pr-1 hover:text-accent-300">{link.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <EditableText value={footer.accountTitle} onSave={(v) => saveFooter('accountTitle', v)} as="h3" className="text-sm font-black text-white" label="عنوان حساب" />
+            <ul className="mt-5 space-y-3">
+              {links.account.map((link) => (
                 <li key={link.href}><Link href={link.href} className="text-sm text-brand-100/60 transition hover:pr-1 hover:text-accent-300">{link.label}</Link></li>
               ))}
             </ul>

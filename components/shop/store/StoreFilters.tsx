@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, Filter, RotateCcw, Search } from 'lucide-react';
+import { ArrowLeft, Banknote, CheckCircle2, Filter, Percent, RotateCcw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { resolveImage } from '@/lib/shop/resolve-image';
 
@@ -11,6 +11,24 @@ export interface ProductFilterCategory {
   name: string;
 }
 
+export const PRODUCT_USAGE_OPTIONS = [
+  { value: 'EDIBLE', label: 'خوراکی' },
+  { value: 'TOPICAL', label: 'مصرف موضعی' },
+  { value: 'BOTH', label: 'خوراکی و موضعی' },
+  { value: 'NON_EDIBLE', label: 'غیرخوراکی' }
+] as const;
+
+export type StoreFilterDefaults = {
+  q?: string;
+  category?: string;
+  sort?: string;
+  usage?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  stock?: boolean;
+  discount?: boolean;
+};
+
 export function StoreFilters({
   categories = [],
   defaults = {},
@@ -18,7 +36,7 @@ export function StoreFilters({
   compact = false
 }: {
   categories?: ProductFilterCategory[];
-  defaults?: { q?: string; category?: string; sort?: string };
+  defaults?: StoreFilterDefaults;
   action?: string;
   compact?: boolean;
 }) {
@@ -32,7 +50,7 @@ export function StoreFilters({
             <p className="mt-0.5 text-[10px] text-surface-400">انتخاب دقیق‌تر، خرید سریع‌تر</p>
           </div>
         </div>
-        {(defaults.q || defaults.category || (defaults.sort && defaults.sort !== 'newest')) ? (
+        {(defaults.q || defaults.category || defaults.usage || defaults.minPrice || defaults.maxPrice || defaults.stock || defaults.discount || (defaults.sort && defaults.sort !== 'newest')) ? (
           <Link href={action} className="inline-flex items-center gap-1 text-[10px] font-bold text-surface-400 transition hover:text-rose-600"><RotateCcw className="h-3 w-3" /> پاک‌کردن</Link>
         ) : null}
       </div>
@@ -43,6 +61,30 @@ export function StoreFilters({
             <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
             <input id={compact ? 'q-mobile' : 'q'} name="q" defaultValue={defaults.q} placeholder="نام محصول..." className="site-input bg-surface-50 pr-9" />
           </div>
+        </div>
+        <div>
+          <label htmlFor={compact ? 'usage-mobile' : 'usage'} className="mb-2 block text-[11px] font-black text-surface-600">نوع مصرف</label>
+          <select id={compact ? 'usage-mobile' : 'usage'} name="usage" defaultValue={defaults.usage || ''} className="site-input bg-surface-50">
+            <option value="">همه کاربردها</option>
+            {PRODUCT_USAGE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+        </div>
+        <fieldset>
+          <legend className="mb-2 flex items-center gap-1.5 text-[11px] font-black text-surface-600"><Banknote className="h-3.5 w-3.5 text-brand-600" /> محدوده قیمت (تومان)</legend>
+          <div className="grid grid-cols-2 gap-2">
+            <input name="minPrice" inputMode="numeric" defaultValue={defaults.minPrice} placeholder="از قیمت" aria-label="حداقل قیمت" className="site-input bg-surface-50 px-3 text-xs" />
+            <input name="maxPrice" inputMode="numeric" defaultValue={defaults.maxPrice} placeholder="تا قیمت" aria-label="حداکثر قیمت" className="site-input bg-surface-50 px-3 text-xs" />
+          </div>
+        </fieldset>
+        <div className="space-y-2 rounded-2xl bg-surface-50 p-3">
+          <label className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-surface-700">
+            <input type="checkbox" name="stock" value="1" defaultChecked={defaults.stock} className="h-4 w-4 accent-brand-700" />
+            <CheckCircle2 className="h-4 w-4 text-brand-600" /> فقط کالاهای موجود
+          </label>
+          <label className="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-surface-700">
+            <input type="checkbox" name="discount" value="1" defaultChecked={defaults.discount} className="h-4 w-4 accent-rose-600" />
+            <Percent className="h-4 w-4 text-rose-500" /> فقط محصولات تخفیف‌دار
+          </label>
         </div>
         <div>
           <label htmlFor={compact ? 'category-mobile' : 'category'} className="mb-2 block text-[11px] font-black text-surface-600">دسته‌بندی</label>

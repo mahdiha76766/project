@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { BadgeCheck, ChevronLeft, RotateCcw, Truck } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { ProductPageHero } from '@/components/shop/ProductPageHero';
 import { StoreSidebar } from '@/components/shop/store/StorePageHeader';
@@ -152,6 +154,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 enableVariantPicker={hasDbVariants}
               />
             </article>
+
+            <section className="grid gap-3 sm:grid-cols-3" aria-label="خدمات خرید">
+              {[
+                { href: '/help/quality', title: 'تضمین کیفیت', text: 'اطلاعات اصالت و نگهداری', icon: BadgeCheck },
+                { href: '/help/shipping', title: 'ارسال سفارش', text: 'روش‌ها و زمان تحویل', icon: Truck },
+                { href: '/help/returns', title: 'شرایط بازگشت', text: 'ثبت و پیگیری درخواست', icon: RotateCcw }
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="group flex items-center gap-3 rounded-2xl border border-surface-200 bg-white p-4 shadow-soft transition hover:border-brand-200">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><item.icon className="h-4 w-4" /></span>
+                  <span className="min-w-0"><strong className="block text-xs font-black text-surface-900">{item.title}</strong><span className="mt-1 block truncate text-[10px] text-surface-500">{item.text}</span></span>
+                  <ChevronLeft className="mr-auto h-3.5 w-3.5 shrink-0 text-surface-300 group-hover:text-brand-600" />
+                </Link>
+              ))}
+            </section>
 
             {relatedProducts.length ? (
               <StoreRelatedProducts

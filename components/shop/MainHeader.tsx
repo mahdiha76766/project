@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Leaf, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { Heart, Leaf, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { CartBadge } from '@/components/shop/CartBadge';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -13,10 +13,11 @@ import { cn } from '@/lib/utils/cn';
 
 const menuItems = [
   { href: '/', label: 'خانه' },
-  { href: '/products', label: 'محصولات' },
+  { href: '/products', label: 'فروشگاه' },
   { href: '/categories', label: 'دسته‌بندی‌ها' },
+  { href: '/products?discount=1', label: 'پیشنهادها' },
   { href: '/blog', label: 'مجله' },
-  { href: '/contact', label: 'تماس با ما' }
+  { href: '/help', label: 'راهنما' }
 ];
 
 export const MainHeader = () => {
@@ -59,7 +60,7 @@ export const MainHeader = () => {
 
           <nav className="hidden items-center gap-1 lg:flex">
             {menuItems.map((item) => {
-              const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              const active = pathname === item.href || (item.href !== '/' && !item.href.includes('?') && pathname.startsWith(item.href));
               return (
                 <Link key={item.href} href={item.href} className={cn('relative rounded-xl px-3.5 py-2 text-sm font-bold transition', active ? 'text-brand-800' : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900')}>
                   {item.label}
@@ -77,6 +78,9 @@ export const MainHeader = () => {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <Link href={user ? '/dashboard/wishlist' : '/auth/login?next=/dashboard/wishlist'} aria-label="علاقه‌مندی‌ها" className="hidden h-10 w-10 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 transition hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 sm:flex sm:h-11 sm:w-11">
+              <Heart className="h-[18px] w-[18px]" />
+            </Link>
             <Link href="/cart" aria-label="سبد خرید" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-surface-200 bg-white text-brand-800 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-soft sm:h-11 sm:w-11">
               <ShoppingBag className="h-[18px] w-[18px]" />
               <CartBadge />
@@ -104,6 +108,7 @@ export const MainHeader = () => {
             {menuItems.map((item) => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={cn('rounded-xl px-3 py-3 text-sm font-bold', pathname === item.href ? 'bg-brand-50 text-brand-800' : 'text-surface-700 hover:bg-surface-100')}>{item.label}</Link>
             ))}
+            <Link href={user ? '/dashboard/wishlist' : '/auth/login?next=/dashboard/wishlist'} onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-bold text-surface-700 hover:bg-rose-50 hover:text-rose-700"><Heart className="h-4 w-4" /> علاقه‌مندی‌ها</Link>
           </nav>
         </div>
       ) : null}

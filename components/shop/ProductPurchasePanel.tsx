@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Package, Tag } from 'lucide-react';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
+import { WishlistButton } from '@/components/shop/WishlistButton';
 import { cn } from '@/lib/utils/cn';
 
 export type ProductVariantOption = {
@@ -110,11 +111,15 @@ export function ProductPurchasePanel({
         ) : null}
       </div>
 
-      <AddToCartButton
-        productId={productId}
-        variantId={variants.length > 0 ? selected.id : undefined}
-        disabled={!inStock}
-      />
+      <div className="mt-6 grid gap-2 sm:grid-cols-[1fr_auto]">
+        <AddToCartButton
+          productId={productId}
+          variantId={variants.length > 0 ? selected.id : undefined}
+          disabled={!inStock}
+          className="site-btn-primary w-full"
+        />
+        <WishlistButton productId={productId} />
+      </div>
 
       {tags?.length ? (
         <div className="mt-6 flex flex-wrap gap-2">

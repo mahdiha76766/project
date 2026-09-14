@@ -4,6 +4,7 @@ import { Product } from '@/models/Product';
 import { Category } from '@/models/Category';
 import { BlogPost } from '@/models/SupportModels';
 import { absoluteUrl } from '@/lib/seo/site-url';
+import { HELP_PAGES } from '@/lib/shop/help-content';
 
 function toLastModified(value?: Date | string | null) {
   if (!value) return new Date();
@@ -18,7 +19,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl('/products'), lastModified: now, changeFrequency: 'daily', priority: 0.9 },
     { url: absoluteUrl('/categories'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: absoluteUrl('/blog'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
-    { url: absoluteUrl('/contact'), lastModified: now, changeFrequency: 'monthly', priority: 0.5 }
+    { url: absoluteUrl('/contact'), lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: absoluteUrl('/help'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    ...HELP_PAGES.map((page) => ({
+      url: absoluteUrl(`/help/${page.slug}`),
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: page.slug === 'shopping-guide' || page.slug === 'faq' ? 0.6 : 0.4
+    }))
   ];
 
   try {

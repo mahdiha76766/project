@@ -8,6 +8,10 @@ import { HomeAboutEditable, HomeFeaturesEditable, HomeProductSectionsEditable } 
 import { HomeBlog } from '@/components/home/HomeBlog';
 import { HomeKeywords } from '@/components/home/HomeKeywords';
 import { HomeNewsletter } from '@/components/home/HomeNewsletter';
+import { HomeDiscovery } from '@/components/home/HomeDiscovery';
+import { HomePurchaseJourney } from '@/components/home/HomePurchaseJourney';
+import { HomeReviews } from '@/components/home/HomeReviews';
+import { HomeFaq } from '@/components/home/HomeFaq';
 import { HomeJsonLd } from '@/components/seo/HomeJsonLd';
 import { getHeroSliderConfig } from '@/lib/admin/slider-settings';
 import { getSiteSeoSettings } from '@/lib/admin/site-settings';
@@ -17,7 +21,7 @@ import { getProductMinPrice, getProductVariants, hasVariants, serializeVariantsF
 import { getProductDiscountInfo } from '@/lib/product/discount';
 import { resolveImage } from '@/lib/shop/resolve-image';
 import { fetchProductsByHomeFilter } from '@/lib/shop/home-product-query';
-import { Banner, BlogPost, Category } from '@/models';
+import { Banner, BlogPost, Category, Product, Review } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -60,16 +64,31 @@ export default async function Home() {
 
   const sectionsConfig = pageContent.home.productSections.filter((s) => s.enabled);
 
-  const data = await withDatabase(
-    () =>
-      Promise.all([
-        Banner.find({ isActive: true, position: 'home' }).sort({ createdAt: -1 }).limit(2).lean(),
-        ...sectionsConfig.map((sec) => fetchProductsByHomeFilter(sec.filterType, sec.limit)),
-        Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
-        BlogPost.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 }).limit(6).lean()
+  const [data, overview] = await Promise.all([
+    withDatabase(
+      () =>
+        Promise.all([
+          Banner.find({ isActive: true, position: 'home' }).sort({ createdAt: -1 }).limit(2).lean(),
+          ...sectionsConfig.map((sec) => fetchProductsByHomeFilter(sec.filterType, sec.limit)),
+          Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
+          BlogPost.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 }).limit(6).lean()
+        ]),
+      [[], ...sectionsConfig.map(() => []), [], []] as unknown[][]
+    ),
+    withDatabase(
+      () => Promise.all([
+        Review.find({ status: 'APPROVED', isDeleted: false })
+          .sort({ createdAt: -1 })
+          .limit(3)
+          .select('userName rating title comment productId')
+          .populate('productId', 'name slug')
+          .lean(),
+        Product.countDocuments({ isActive: true }),
+        Category.countDocuments({ isActive: true })
       ]),
-    [[], ...sectionsConfig.map(() => []), [], []] as unknown[][]
-  );
+      [[], 0, 0] as [unknown[], number, number]
+    )
+  ]);
 
   const homeBanners = data[0] as Record<string, unknown>[];
   const sectionRaw = sectionsConfig.map((_, i) => (data[i + 1] as Record<string, unknown>[]) || []);
@@ -106,19 +125,36 @@ export default async function Home() {
     views: Number(p.views || 0)
   }));
 
+  const reviews = (overview[0] as Record<string, unknown>[]).map((review) => {
+    const product = review.productId as { name?: string; slug?: string } | undefined;
+    return {
+      id: String(review._id),
+      userName: String(review.userName || ''),
+      title: String(review.title || ''),
+      comment: String(review.comment || ''),
+      rating: Number(review.rating || 5),
+      productName: product?.name,
+      productSlug: product?.slug
+    };
+  });
+
   return (
     <>
       <HomeJsonLd seo={seo} />
       <AdvancedHeroSlider slides={heroConfig.slides} autoplayInterval={heroConfig.autoplayInterval} />
       <HomeTrustBar />
       <HomeKeywords keywords={seo.keywords} />
+      <HomeDiscovery />
       <HomeCategories categories={categoryItems} />
       <HomeProductSectionsEditable />
       <HomeProductSectionsClient sections={productSections} />
       {banners.length > 0 ? <HomePromo banners={banners} /> : null}
+      <HomePurchaseJourney productCount={overview[1]} categoryCount={overview[2]} />
       <HomeAboutEditable />
       <HomeFeaturesEditable />
+      <HomeReviews reviews={reviews} />
       {posts.length > 0 ? <HomeBlog posts={posts} /> : null}
+      <HomeFaq />
       <HomeNewsletter />
     </>
   );
