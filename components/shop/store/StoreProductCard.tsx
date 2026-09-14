@@ -1,5 +1,5 @@
 ﻿import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ArrowUpLeft, Check, Layers3, ShoppingBag, Sparkles } from 'lucide-react';
 import { DiscountBadge, ProductPriceWithDiscount } from '@/components/shop/DiscountBadge';
 import { getProductDiscountInfo } from '@/lib/product/discount';
 import type { ShopProduct } from '@/types/shop';
@@ -16,35 +16,43 @@ export function StoreProductCard({ product }: { product: ShopProduct }) {
   const inStock = product.stock > 0;
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-surface-200 bg-white transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-brand-500/20 hover:shadow-card-hover transform translate-z-0 will-change-transform flex flex-col h-full">
-      <Link href={`/products/${product.slug}`} className="relative block aspect-square overflow-hidden bg-surface-100">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-surface-200/80 bg-white transition-all duration-500 hover:-translate-y-2 hover:border-brand-200 hover:shadow-card-hover">
+      <Link href={`/products/${product.slug}`} className="relative block aspect-[5/5.25] overflow-hidden bg-surface-100">
         <img
           src={resolveImage(product.images[0])}
           alt={product.name}
           loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-900/30 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
         {showBadge ? <DiscountBadge label={badgeLabel} /> : null}
         {product.bestSeller ? (
-          <span className="absolute right-3 top-3 rounded-md bg-accent-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-            پرفروش
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-white/30 bg-brand-800/90 px-2.5 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur">
+            <Sparkles className="h-3 w-3 text-accent-300" /> پرفروش
           </span>
         ) : null}
         {product.hasVariants ? (
-          <span className="absolute bottom-3 left-3 rounded-md bg-brand-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-            چند نوع
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full border border-white/40 bg-white/90 px-2.5 py-1 text-[10px] font-black text-brand-800 backdrop-blur-sm">
+            <Layers3 className="h-3 w-3" /> چند انتخاب
           </span>
         ) : null}
+        <span className="absolute bottom-3 left-3 flex h-10 w-10 translate-y-3 items-center justify-center rounded-full bg-white text-brand-800 opacity-0 shadow-lg transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"><ArrowUpLeft className="h-4 w-4" /></span>
       </Link>
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
         <div>
-          <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-bold text-surface-900 hover:text-brand-700">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className={cn('inline-flex items-center gap-1 text-[10px] font-black', inStock ? 'text-brand-600' : 'text-surface-400')}>
+              {inStock ? <Check className="h-3 w-3" /> : null}{inStock ? 'آماده ارسال' : 'ناموجود'}
+            </p>
+            <span className="text-[10px] text-surface-400">محصول طبیعی</span>
+          </div>
+          <Link href={`/products/${product.slug}`} className="line-clamp-2 text-[15px] font-black leading-6 text-surface-900 transition hover:text-brand-700">
             {product.name}
           </Link>
-          <p className="mt-1 line-clamp-2 text-xs leading-5 text-surface-500">{product.shortDescription}</p>
+          <p className="mt-1.5 line-clamp-2 min-h-10 text-xs leading-5 text-surface-500">{product.shortDescription}</p>
         </div>
-        <div className="mt-4">
-          <div className="flex items-end justify-between gap-2">
+        <div className="mt-4 border-t border-surface-100 pt-4">
+          <div className="flex items-center justify-between gap-2">
             <ProductPriceWithDiscount
               salePrice={salePrice}
               originalPrice={product.price}
@@ -53,14 +61,12 @@ export function StoreProductCard({ product }: { product: ShopProduct }) {
             />
             <Link
               href={`/products/${product.slug}`}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition hover:bg-brand-600 hover:text-white"
+              aria-label={`مشاهده ${product.name}`}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-800 text-white shadow-lg shadow-brand-900/10 transition hover:bg-accent-500"
             >
               <ShoppingBag className="h-4 w-4" />
             </Link>
           </div>
-          <p className={cn('mt-2 text-[11px] font-medium', inStock ? 'text-brand-600' : 'text-surface-400')}>
-            {inStock ? 'موجود' : 'ناموجود'}
-          </p>
         </div>
       </div>
     </article>

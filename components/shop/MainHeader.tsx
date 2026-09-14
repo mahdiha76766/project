@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Menu, ShoppingCart, User, X } from 'lucide-react';
+import { Leaf, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { CartBadge } from '@/components/shop/CartBadge';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -30,9 +30,10 @@ export const MainHeader = () => {
     patchContent({ header: { ...header, [field]: value } });
 
   return (
-    <header className={cn('sticky top-0 z-50 border-b border-surface-200/80 bg-surface-0/90 shadow-header backdrop-blur-md', editMode && isAdmin && 'top-9')}>
+    <header className={cn('sticky top-0 z-50 border-b border-surface-200/70 bg-[#fffef9]/90 shadow-header backdrop-blur-xl', editMode && isAdmin && 'top-9')}>
       {header.announcement ? (
-        <div className="border-b border-brand-100 bg-gradient-to-l from-brand-50 to-amber-50 px-4 py-2 text-center text-xs font-bold text-brand-800">
+        <div className="organic-grid bg-brand-900 px-4 py-2 text-center text-[11px] font-bold text-brand-50 sm:text-xs">
+          <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-accent-400 shadow-[0_0_0_4px_rgba(212,149,90,0.14)]" />
           <EditableText value={header.announcement} onSave={(v) => saveHeader('announcement', v)} label="اعلان هدر" />
         </div>
       ) : isAdmin && editMode ? (
@@ -44,51 +45,64 @@ export const MainHeader = () => {
       ) : null}
 
       <Container>
-        <div className="flex h-16 items-center justify-between gap-6 lg:h-[4.25rem]">
+        <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20 lg:gap-7">
           <Link href="/" className="group flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 text-sm font-bold text-white shadow-md shadow-brand-600/25 transition group-hover:scale-105">
-              ع
+            <span className="relative flex h-11 w-11 items-center justify-center rounded-[1.1rem] bg-brand-800 text-white shadow-lg shadow-brand-900/15 transition duration-300 group-hover:-rotate-3 group-hover:scale-105">
+              <Leaf className="h-5 w-5" />
+              <span className="absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-[#fffef9] bg-accent-400" />
             </span>
             <div className="leading-tight">
-              <EditableText value={header.brandName} onSave={(v) => saveHeader('brandName', v)} className="block text-[15px] font-black text-surface-900" as="span" label="نام برند" />
-              <EditableText value={header.brandTagline} onSave={(v) => saveHeader('brandTagline', v)} className="hidden text-[11px] text-surface-400 sm:block" as="span" label="شعار" />
+              <EditableText value={header.brandName} onSave={(v) => saveHeader('brandName', v)} className="block text-base font-black tracking-tight text-surface-900" as="span" label="نام برند" />
+              <EditableText value={header.brandTagline} onSave={(v) => saveHeader('brandTagline', v)} className="hidden text-[10px] font-medium tracking-wide text-surface-400 sm:block" as="span" label="شعار" />
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-0.5 lg:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {menuItems.map((item) => {
               const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
               return (
-                <Link key={item.href} href={item.href} className={cn('rounded-xl px-3.5 py-2 text-sm font-semibold transition', active ? 'bg-brand-50 text-brand-700' : 'text-surface-600 hover:bg-surface-100')}>
+                <Link key={item.href} href={item.href} className={cn('relative rounded-xl px-3.5 py-2 text-sm font-bold transition', active ? 'text-brand-800' : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900')}>
                   {item.label}
+                  {active ? <span className="absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-accent-500" /> : null}
                 </Link>
               );
             })}
           </nav>
 
+          <div className="mr-auto hidden max-w-[15rem] flex-1 xl:block">
+            <form action="/products" className="relative">
+              <Search className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
+              <input name="q" aria-label="جستجوی محصولات" placeholder="جستجو در محصولات..." className="h-10 w-full rounded-xl border border-surface-200 bg-white/70 pr-10 pl-3 text-xs outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-50" />
+            </form>
+          </div>
+
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <Link href="/cart" aria-label="سبد" className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-brand-100 bg-brand-50/50 text-brand-700 transition hover:border-brand-200 hover:bg-brand-50 sm:h-10 sm:w-10">
-              <ShoppingCart className="h-[18px] w-[18px]" />
+            <Link href="/cart" aria-label="سبد خرید" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-surface-200 bg-white text-brand-800 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-soft sm:h-11 sm:w-11">
+              <ShoppingBag className="h-[18px] w-[18px]" />
               <CartBadge />
             </Link>
-            <Link href={user ? '/dashboard' : '/auth/login'} className="site-btn-primary !rounded-xl !px-3 !py-2 !text-[12px] !shadow-md sm:!px-4 sm:!py-2.5 sm:!text-[13px]">
+            <Link href={user ? '/dashboard' : '/auth/login'} className="site-btn-primary !h-10 !rounded-xl !px-3 !py-0 !text-[12px] sm:!h-11 sm:!px-4 sm:!text-[13px]">
               <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">{user ? 'حساب من' : 'ورود'}</span>
-              <span className="xs:hidden">{user ? 'پنل' : 'ورود'}</span>
+              <span className="hidden sm:inline">{user ? 'حساب من' : 'ورود'}</span>
+              <span className="sm:hidden">{user ? 'پنل' : 'ورود'}</span>
             </Link>
           </div>
 
-          <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-surface-200 lg:hidden" aria-label="منو">
+          <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-surface-200 bg-white lg:hidden" aria-label="منو">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </Container>
 
       {open ? (
-        <div className="border-t border-surface-200 bg-surface-0 px-5 py-4 lg:hidden">
+        <div className="border-t border-surface-200 bg-[#fffef9] px-5 py-4 shadow-xl lg:hidden">
+          <form action="/products" className="relative mb-3">
+            <Search className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
+            <input name="q" placeholder="جستجو در فروشگاه..." className="site-input bg-white pr-10" />
+          </form>
           <nav className="flex flex-col gap-1">
             {menuItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 text-sm font-medium text-surface-700 hover:bg-surface-100">{item.label}</Link>
+              <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={cn('rounded-xl px-3 py-3 text-sm font-bold', pathname === item.href ? 'bg-brand-50 text-brand-800' : 'text-surface-700 hover:bg-surface-100')}>{item.label}</Link>
             ))}
           </nav>
         </div>

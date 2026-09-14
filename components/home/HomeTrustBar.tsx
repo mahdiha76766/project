@@ -10,18 +10,17 @@ const items = [
 ];
 
 export function HomeTrustBar() {
-  const list = [...items, ...items];
   return (
-    <div className="border-y border-surface-200/80 bg-gradient-to-l from-surface-0 via-brand-50/40 to-surface-0 py-3.5" dir="rtl">
-      <div className="overflow-hidden">
-        <div className="marquee-rtl flex w-max items-center gap-12 whitespace-nowrap px-6">
-          {list.map((item, i) => (
-            <span key={`${item.text}-${i}`} className="inline-flex items-center gap-2.5 text-sm font-medium text-surface-700">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                <item.icon className="h-3.5 w-3.5 text-brand-600" />
+    <div className="border-b border-surface-200/70 bg-[#f7f3e8] py-5" dir="rtl">
+      <div className="site-container">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+          {items.map((item) => (
+            <div key={item.text} className="flex items-center gap-2.5 sm:justify-center lg:border-l lg:border-surface-200 last:lg:border-0">
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-700 shadow-soft">
+                <item.icon className="h-4 w-4" />
               </span>
-              {item.text}
-            </span>
+              <span className="text-xs font-bold text-surface-700">{item.text}</span>
+            </div>
           ))}
         </div>
       </div>

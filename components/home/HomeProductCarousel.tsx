@@ -143,30 +143,30 @@ export function HomeProductSectionShell({
   const shell = useMemo(() => {
     if (config.design === 'accent') {
       return {
-        wrap: 'relative overflow-hidden rounded-[2rem] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 md:p-8 shadow-sm',
+        wrap: 'relative overflow-hidden rounded-[2rem] border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-[#f8efe4] p-6 shadow-soft md:p-8',
         decor: (
           <>
-            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-amber-200/30 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-16 -right-10 h-48 w-48 rounded-full bg-orange-200/25 blur-3xl" />
+            <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-accent-200/35 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -right-10 h-48 w-48 rounded-full bg-brand-200/35 blur-3xl" />
           </>
         ),
-        label: 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-xs font-bold text-amber-800',
-        title: 'text-2xl font-black text-slate-900 md:text-3xl'
+        label: 'inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-bold text-brand-800',
+        title: 'text-2xl font-black text-surface-900 md:text-3xl'
       };
     }
     if (config.design === 'minimal') {
       return {
-        wrap: 'rounded-2xl border border-slate-200 bg-white p-6 md:p-7',
+        wrap: 'rounded-[2rem] border border-surface-200 bg-white p-6 shadow-soft md:p-7',
         decor: null,
-        label: 'text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400',
-        title: 'text-xl font-black text-slate-900 md:text-2xl'
+        label: 'text-[11px] font-bold uppercase tracking-[0.2em] text-surface-400',
+        title: 'text-xl font-black text-surface-900 md:text-2xl'
       };
     }
     return {
       wrap: 'relative',
       decor: <div className=" " />,
-      label: 'text-xs font-bold text-amber-700',
-      title: 'text-2xl font-black text-slate-900'
+      label: 'text-xs font-black text-accent-600',
+      title: 'text-2xl font-black text-surface-900'
     };
   }, [config.design]);
 
@@ -179,7 +179,7 @@ export function HomeProductSectionShell({
           <h2 className={`${shell.title} ${config.label ? 'mt-2' : ''}`}>{config.title}</h2>
         </div>
         {config.design === 'accent' ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-600 px-3 py-1 text-xs font-bold text-white">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-500 px-3 py-1 text-xs font-bold text-white">
             <Sparkles className="h-3.5 w-3.5" />
             ویژه
           </span>

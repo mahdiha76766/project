@@ -31,8 +31,8 @@ export function HomeProductSectionsClient({ sections }: { sections: SectionData[
           <HomeProductSectionShell config={config}>
             <HomeProductCarousel products={products} design={config.design} />
           </HomeProductSectionShell>
-          <div className="mt-4 text-left">
-            <Link href="/products" className="text-sm font-bold text-amber-700 hover:underline">
+          <div className="mt-5 text-left">
+            <Link href="/products" className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-xs font-black text-brand-800 transition hover:border-brand-700 hover:bg-brand-800 hover:text-white">
               مشاهده همه محصولات ←
             </Link>
           </div>

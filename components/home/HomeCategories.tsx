@@ -10,31 +10,35 @@ export function HomeCategories({ categories }: { categories: HomeCategory[] }) {
   return (
     <Section bg="white">
       <SectionHeading
-        label="دسته‌بندی"
-        title="کاوش در مجموعه ما"
-        description="روغن، ادویه، گیاهان دارویی و بیشتر."
+        label="از دل طبیعت"
+        title="دسته‌بندی‌های محبوب"
+        description="هر آنچه برای عطر، طعم و حال خوب خانه نیاز دارید."
         href="/categories"
+        linkText="همه دسته‌بندی‌ها"
       />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((cat) => (
+      <div className="grid auto-rows-[13rem] gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[12.5rem]">
+        {categories.map((cat, index) => (
           <Link
             key={cat.id}
             href={`/categories/${cat.slug}`}
-            className="group flex items-center gap-4 rounded-2xl border border-surface-200 bg-surface-0 p-3 transition hover:border-brand-200 hover:shadow-card"
+            className={`group relative isolate overflow-hidden rounded-[1.75rem] bg-brand-900 shadow-soft transition duration-500 hover:-translate-y-1 hover:shadow-card-hover ${index === 0 ? 'sm:col-span-2 lg:row-span-2' : ''}`}
           >
             <img
               src={cat.image}
               alt={cat.name}
-              className="h-20 w-20 shrink-0 rounded-xl object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
             />
-            <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-surface-900 group-hover:text-brand-700">{cat.name}</h3>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 sm:p-6">
+              <div className="min-w-0">
+                <span className="mb-2 block text-[10px] font-black tracking-widest text-accent-300">مجموعه {String(index + 1).padStart(2, '0')}</span>
+                <h3 className={`${index === 0 ? 'text-2xl sm:text-3xl' : 'text-lg'} font-black text-white`}>{cat.name}</h3>
               {cat.description ? (
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-surface-500">{cat.description}</p>
+                  <p className={`mt-1.5 line-clamp-2 max-w-sm text-xs leading-5 text-white/65 ${index === 0 ? 'hidden sm:block' : 'hidden'}`}>{cat.description}</p>
               ) : null}
-              <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
-                مشاهده
-                <RtlForwardArrow className="h-3 w-3" />
+              </div>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition group-hover:bg-accent-500">
+                <RtlForwardArrow className="h-4 w-4" />
               </span>
             </div>
           </Link>

@@ -1,5 +1,6 @@
+import Link from 'next/link';
+import { ChevronLeft, Leaf, Search, ShieldCheck, SlidersHorizontal, Sparkles, Truck } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
-import { StorePageHeader } from '@/components/shop/store/StorePageHeader';
 import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
 import { StoreFilters } from '@/components/shop/store/StoreFilters';
 import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
@@ -57,33 +58,88 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   }, [[], []] as [unknown[], unknown[]]);
 
   const products: ShopProduct[] = items.map((p: any) => mapProductListing(p, p.category?.slug || ''));
+  const categoryItems = categories.map((c: any) => ({ slug: String(c.slug), name: String(c.name) }));
+  const activeCategory = categoryItems.find((c) => c.slug === category);
 
   return (
-    <>
-      <StorePageHeader
-        label="فروشگاه"
-        title="محصولات"
-        description="روغن، ادویه و محصولات گیاهی با فیلتر و جستجو."
-        breadcrumbs={[{ label: 'خانه', href: '/' }, { label: 'محصولات' }]}
-      />
-      <Container className="py-10 lg:py-12">
-        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <form action="/products" className="lg:sticky lg:top-24 lg:self-start">
-            <StoreFilters
-              categories={categories.map((c: any) => ({ slug: c.slug, name: c.name }))}
-              defaults={{ q, category, sort }}
-            />
+    <main className="bg-[#fbfaf5]">
+      <section className="relative isolate overflow-hidden bg-brand-900 text-white">
+        <div className="organic-grid absolute inset-0 opacity-60" />
+        <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-brand-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 left-[12%] h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
+        <Container className="relative py-12 sm:py-16 lg:py-20">
+          <nav className="flex items-center gap-2 text-[11px] font-bold text-brand-200">
+            <Link href="/" className="transition hover:text-white">خانه</Link>
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <span className="text-accent-300">فروشگاه</span>
+          </nav>
+          <div className="mt-7 grid items-end gap-8 lg:grid-cols-[1fr_.82fr]">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 text-[11px] font-bold text-brand-100 backdrop-blur"><Leaf className="h-3.5 w-3.5 text-accent-300" /> انتخابی از دل طبیعت</span>
+              <h1 className="mt-4 text-3xl font-black leading-[1.4] tracking-tight sm:text-4xl lg:text-5xl">فروشگاه محصولات طبیعی</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-8 text-brand-100/70 sm:text-base">روغن‌های تازه، ادویه‌های خوش‌عطر و محصولات گیاهی اصیل؛ با انتخاب دقیق، بسته‌بندی حرفه‌ای و ارسال مطمئن.</p>
+              <div className="mt-6 flex flex-wrap gap-4 text-xs font-bold text-brand-100/70">
+                <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-accent-300" /> تضمین کیفیت</span>
+                <span className="inline-flex items-center gap-1.5"><Truck className="h-4 w-4 text-accent-300" /> ارسال سراسر کشور</span>
+                <span className="inline-flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-accent-300" /> انتخاب تازه</span>
+              </div>
+            </div>
+            <form action="/products" className="rounded-[1.5rem] border border-white/10 bg-white/[0.07] p-3 shadow-2xl backdrop-blur-md sm:p-4">
+              {category ? <input type="hidden" name="category" value={category} /> : null}
+              <div className="relative">
+                <Search className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-surface-400" />
+                <input name="q" defaultValue={q} placeholder="دنبال چه محصولی هستید؟" className="h-14 w-full rounded-2xl bg-white pr-12 pl-28 text-sm font-medium text-surface-900 outline-none ring-0 placeholder:text-surface-400 focus:shadow-[0_0_0_4px_rgba(201,133,70,0.22)] sm:h-16" />
+                <button type="submit" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-xl bg-accent-500 px-4 py-2.5 text-xs font-black text-white transition hover:bg-accent-400 sm:px-5">جستجو</button>
+              </div>
+              <p className="mt-3 px-1 text-[10px] text-brand-100/55">نام محصول، ویژگی یا کاربرد موردنظر را جستجو کنید.</p>
+            </form>
+          </div>
+        </Container>
+      </section>
+
+      {categoryItems.length ? (
+        <div className="border-b border-surface-200 bg-white">
+          <Container className="flex gap-2 overflow-x-auto py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <Link href="/products" className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${!category ? 'bg-brand-800 text-white shadow-md' : 'border border-surface-200 bg-surface-50 text-surface-600 hover:border-brand-300'}`}>همه محصولات</Link>
+            {categoryItems.map((item) => (
+              <Link key={item.slug} href={`/products?category=${encodeURIComponent(item.slug)}`} className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${category === item.slug ? 'bg-brand-800 text-white shadow-md' : 'border border-surface-200 bg-surface-50 text-surface-600 hover:border-brand-300 hover:text-brand-700'}`}>{item.name}</Link>
+            ))}
+          </Container>
+        </div>
+      ) : null}
+
+      <Container className="py-8 sm:py-10 lg:py-14">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-black text-accent-600">{activeCategory ? `دسته ${activeCategory.name}` : q ? 'نتیجه جستجو' : 'تمام محصولات'}</p>
+            <h2 className="mt-1 text-xl font-black text-surface-900 sm:text-2xl">{q ? `نتایج برای «${q}»` : activeCategory?.name || 'انتخاب‌های تازه فروشگاه'}</h2>
+          </div>
+          <span className="rounded-full border border-surface-200 bg-white px-4 py-2 text-xs font-bold text-surface-500 shadow-soft">{products.length.toLocaleString('fa-IR')} محصول</span>
+        </div>
+
+        <details className="group mb-6 rounded-2xl border border-surface-200 bg-white shadow-soft lg:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-sm font-black text-surface-800 [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-brand-700" /> فیلتر و مرتب‌سازی</span>
+            <ChevronLeft className="h-4 w-4 transition group-open:-rotate-90" />
+          </summary>
+          <form action="/products" className="border-t border-surface-100 p-4">
+            <StoreFilters categories={categoryItems} defaults={{ q, category, sort }} compact />
+          </form>
+        </details>
+
+        <div className="grid gap-8 lg:grid-cols-[17.5rem_1fr]">
+          <form action="/products" className="hidden lg:sticky lg:top-28 lg:block lg:self-start">
+            <StoreFilters categories={categoryItems} defaults={{ q, category, sort }} />
           </form>
           <section>
-            <p className="mb-5 text-sm text-surface-500">{products.length.toLocaleString('fa-IR')} محصول</p>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {products.length ? products.map((p) => <StoreProductCard key={p.id} product={p} />) : (
-                <StoreEmpty message="محصولی یافت نشد." />
+                <StoreEmpty message="محصولی با این مشخصات پیدا نشد؛ فیلترها را تغییر دهید." />
               )}
             </div>
           </section>
         </div>
       </Container>
-    </>
+    </main>
   );
 }

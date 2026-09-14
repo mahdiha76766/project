@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
-import { Filter, Search } from 'lucide-react';
+import { ArrowLeft, Filter, RotateCcw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { resolveImage } from '@/lib/shop/resolve-image';
 
@@ -13,45 +14,55 @@ export interface ProductFilterCategory {
 export function StoreFilters({
   categories = [],
   defaults = {},
-  action = '/products'
+  action = '/products',
+  compact = false
 }: {
   categories?: ProductFilterCategory[];
   defaults?: { q?: string; category?: string; sort?: string };
   action?: string;
+  compact?: boolean;
 }) {
   return (
-    <aside className="rounded-2xl border border-surface-200 bg-surface-0 p-5">
-      <div className="mb-5 flex items-center gap-2">
-        <Filter className="h-4 w-4 text-brand-600" />
-        <h3 className="text-sm font-bold text-surface-900">فیلتر</h3>
+    <aside className={compact ? '' : 'overflow-hidden rounded-[1.5rem] border border-surface-200 bg-white shadow-soft'}>
+      <div className={compact ? 'mb-5 flex items-center justify-between' : 'flex items-center justify-between border-b border-surface-100 bg-gradient-to-l from-brand-50 to-white px-5 py-4'}>
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-800 text-white"><Filter className="h-3.5 w-3.5" /></span>
+          <div>
+            <h3 className="text-sm font-black text-surface-900">فیلتر محصولات</h3>
+            <p className="mt-0.5 text-[10px] text-surface-400">انتخاب دقیق‌تر، خرید سریع‌تر</p>
+          </div>
+        </div>
+        {(defaults.q || defaults.category || (defaults.sort && defaults.sort !== 'newest')) ? (
+          <Link href={action} className="inline-flex items-center gap-1 text-[10px] font-bold text-surface-400 transition hover:text-rose-600"><RotateCcw className="h-3 w-3" /> پاک‌کردن</Link>
+        ) : null}
       </div>
-      <div className="space-y-4">
+      <div className={compact ? 'space-y-4' : 'space-y-5 p-5'}>
         <div>
-          <label htmlFor="q" className="mb-1.5 block text-xs font-medium text-surface-500">جستجو</label>
+          <label htmlFor={compact ? 'q-mobile' : 'q'} className="mb-2 block text-[11px] font-black text-surface-600">جستجو در نتایج</label>
           <div className="relative">
             <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
-            <input id="q" name="q" defaultValue={defaults.q} placeholder="نام محصول..." className="site-input pr-9" />
+            <input id={compact ? 'q-mobile' : 'q'} name="q" defaultValue={defaults.q} placeholder="نام محصول..." className="site-input bg-surface-50 pr-9" />
           </div>
         </div>
         <div>
-          <label htmlFor="category" className="mb-1.5 block text-xs font-medium text-surface-500">دسته</label>
-          <select id="category" name="category" defaultValue={defaults.category || ''} className="site-input">
-            <option value="">همه</option>
+          <label htmlFor={compact ? 'category-mobile' : 'category'} className="mb-2 block text-[11px] font-black text-surface-600">دسته‌بندی</label>
+          <select id={compact ? 'category-mobile' : 'category'} name="category" defaultValue={defaults.category || ''} className="site-input bg-surface-50">
+            <option value="">همه دسته‌بندی‌ها</option>
             {categories.map((c) => (
               <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="sort" className="mb-1.5 block text-xs font-medium text-surface-500">مرتب‌سازی</label>
-          <select id="sort" name="sort" defaultValue={defaults.sort || 'newest'} className="site-input">
+          <label htmlFor={compact ? 'sort-mobile' : 'sort'} className="mb-2 block text-[11px] font-black text-surface-600">مرتب‌سازی</label>
+          <select id={compact ? 'sort-mobile' : 'sort'} name="sort" defaultValue={defaults.sort || 'newest'} className="site-input bg-surface-50">
             <option value="newest">جدیدترین</option>
             <option value="best_selling">پرفروش</option>
             <option value="cheapest">ارزان‌ترین</option>
             <option value="expensive">گران‌ترین</option>
           </select>
         </div>
-        <button type="submit" className="site-btn-primary w-full">اعمال</button>
+        <button type="submit" className="site-btn-primary w-full !rounded-2xl">نمایش نتایج <ArrowLeft className="h-4 w-4" /></button>
       </div>
     </aside>
   );

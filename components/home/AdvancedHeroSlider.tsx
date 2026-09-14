@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { BadgeCheck, ChevronLeft, ChevronRight, Leaf, PackageCheck, Pause, Play, Sparkles } from 'lucide-react';
 import { RtlForwardArrow } from './RtlForwardArrow';
 import type { HeroSlide } from '@/lib/admin/slider-config';
 
@@ -53,73 +53,78 @@ export function AdvancedHeroSlider({ slides, autoplayInterval = 6000 }: Props) {
 
   return (
     <section
-      className="relative isolate min-h-[min(58vh,520px)] w-full overflow-hidden rounded-b-[2rem] bg-slate-950 shadow-xl sm:min-h-[min(62vh,560px)]"
+      className="relative isolate overflow-hidden bg-[#f7f3e8] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-10"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
     >
-      {slides.map((s, i) => (
-        <div
-          key={`${s.title}-${i}`}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === index ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        >
-          <img src={s.image} alt="" className={`h-full w-full object-cover ${i === index ? 'scale-105' : 'scale-100'} transition-transform duration-[6000ms]`} />
-          <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/45 to-black/15" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(217,119,6,0.22),transparent_55%)]" />
-        </div>
-      ))}
+      <div className="pointer-events-none absolute inset-0 soft-noise opacity-35" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 left-[8%] h-72 w-72 rounded-full bg-accent-200/40 blur-3xl" />
 
-      <div className="relative z-10 mx-auto flex h-full min-h-[inherit] max-w-7xl flex-col justify-center px-4 py-12 pb-24 sm:px-6 lg:px-8">
-        <div key={index} className="max-w-xl">
-          {slide.badge ? (
-            <span className="mb-3 inline-flex rounded-full border border-amber-300/30 bg-amber-500/15 px-3 py-1 text-[11px] font-bold text-amber-200 backdrop-blur">
-              {slide.badge}
-            </span>
-          ) : (
-            <span className="mb-3 inline-block text-xs font-bold tracking-wide text-amber-200/90">عطاری آنلاین</span>
-          )}
-          <h1 className="text-3xl font-black leading-tight text-white sm:text-4xl lg:text-[2.75rem]">{slide.title}</h1>
-          <p className="mt-4 max-w-lg text-base leading-8 text-white/75 sm:text-lg">{slide.subtitle}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link href={slide.ctaLink} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-l from-amber-500 to-brand-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-amber-900/25 transition hover:brightness-110">
-              {slide.ctaText}
-              <RtlForwardArrow className="text-white" />
-            </Link>
-            <Link href="/categories" className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20">
-              دسته‌بندی‌ها
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {total > 1 ? (
-        <>
-          <button type="button" onClick={prev} aria-label="قبلی" className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur hover:bg-black/55 sm:right-5">
-            <ChevronRight className="h-5 w-5" />
-          </button>
-          <button type="button" onClick={next} aria-label="بعدی" className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur hover:bg-black/55 sm:left-5">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <div className="absolute bottom-0 inset-x-0 z-20 border-t border-white/10 bg-black/40 px-4 py-3 backdrop-blur-md sm:px-6">
-            <div className="mx-auto flex max-w-7xl items-center gap-3">
-              <button type="button" onClick={() => setPaused((p) => !p)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/20 text-white">
-                {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
-              </button>
-              <div className="hidden flex-1 gap-2 sm:flex">
-                {slides.map((s, i) => (
-                  <button key={i} type="button" onClick={() => goTo(i)} className={`h-14 w-24 overflow-hidden rounded-lg border-2 transition ${i === index ? 'border-amber-400' : 'border-white/10 opacity-60 hover:opacity-100'}`}>
-                    <img src={s.image} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-brand-900 shadow-[0_30px_90px_-35px_rgba(26,46,36,0.55)] lg:rounded-[2.5rem]">
+        <div className="organic-grid absolute inset-0 opacity-60" />
+        <div className="relative grid min-h-[35rem] lg:grid-cols-[1.05fr_.95fr] lg:min-h-[39rem]">
+          <div className="relative z-10 flex flex-col justify-center px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+            <div key={`copy-${index}`} className="animate-fade-up">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-3.5 py-2 text-[11px] font-bold text-brand-100 backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5 text-accent-400" />
+                {slide.badge || 'عطاری آنلاین و تخصصی'}
+              </span>
+              <h1 className="mt-5 max-w-xl text-4xl font-black leading-[1.35] tracking-tight text-white sm:text-5xl lg:text-[3.35rem]">
+                {slide.title}
+              </h1>
+              <p className="mt-5 max-w-lg text-sm leading-8 text-brand-100/75 sm:text-base lg:text-lg">{slide.subtitle}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href={slide.ctaLink} className="inline-flex items-center gap-2 rounded-2xl bg-accent-500 px-6 py-3.5 text-sm font-black text-white shadow-xl shadow-black/15 transition hover:-translate-y-1 hover:bg-accent-400">
+                  {slide.ctaText}
+                  <RtlForwardArrow className="text-white" />
+                </Link>
+                <Link href="/categories" className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.06] px-6 py-3.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white/10">
+                  کشف دسته‌بندی‌ها
+                </Link>
               </div>
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/15 sm:max-w-xs">
-                <div className="h-full rounded-full bg-gradient-to-l from-amber-400 to-brand-500" style={{ width: `${progress}%` }} />
+              <div className="mt-10 grid max-w-xl grid-cols-2 gap-3 border-t border-white/10 pt-6 sm:grid-cols-3">
+                <span className="flex items-center gap-2 text-xs font-bold text-brand-100/80"><Leaf className="h-4 w-4 text-accent-400" /> کاملاً طبیعی</span>
+                <span className="flex items-center gap-2 text-xs font-bold text-brand-100/80"><PackageCheck className="h-4 w-4 text-accent-400" /> بسته‌بندی تازه</span>
+                <span className="hidden items-center gap-2 text-xs font-bold text-brand-100/80 sm:flex"><BadgeCheck className="h-4 w-4 text-accent-400" /> تضمین اصالت</span>
               </div>
-              <span className="text-[10px] font-bold text-white/50">{index + 1}/{total}</span>
             </div>
           </div>
-        </>
-      ) : null}
+
+          <div className="relative min-h-[24rem] overflow-hidden border-t border-white/10 lg:min-h-full lg:border-r lg:border-t-0">
+            {slides.map((s, i) => (
+              <div key={`${s.title}-${i}`} className={`absolute inset-0 transition-all duration-700 ${i === index ? 'scale-100 opacity-100' : 'pointer-events-none scale-105 opacity-0'}`}>
+                <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0f1f17]/80 via-transparent to-brand-900/10" />
+              </div>
+            ))}
+            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/15 bg-[#0f1f17]/60 p-4 text-white shadow-xl backdrop-blur-md sm:inset-x-7 sm:bottom-7">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold text-accent-300">انتخابی برای زندگی سالم‌تر</p>
+                  <p className="mt-1 text-sm font-black">از طبیعت، برای خانه شما</p>
+                </div>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10"><Leaf className="h-5 w-5 text-accent-300" /></span>
+              </div>
+            </div>
+          </div>
+
+          {total > 1 ? (
+            <div className="absolute inset-x-6 bottom-[25.5rem] z-20 flex items-center gap-3 sm:inset-x-10 lg:inset-x-auto lg:bottom-8 lg:right-14 lg:w-[calc(52%-7rem)]">
+              <button type="button" onClick={() => setPaused((p) => !p)} aria-label={paused ? 'پخش اسلایدر' : 'توقف اسلایدر'} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur hover:bg-white/20">
+                {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+              </button>
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/15">
+                <div className="h-full rounded-full bg-accent-400" style={{ width: `${progress}%` }} />
+              </div>
+              <span className="min-w-12 text-left text-[10px] font-black text-white/55">{(index + 1).toLocaleString('fa-IR', { minimumIntegerDigits: 2 })} / {total.toLocaleString('fa-IR', { minimumIntegerDigits: 2 })}</span>
+              <button type="button" onClick={prev} aria-label="اسلاید قبلی" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 text-white hover:bg-white/10"><ChevronRight className="h-4 w-4" /></button>
+              <button type="button" onClick={next} aria-label="اسلاید بعدی" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 text-white hover:bg-white/10"><ChevronLeft className="h-4 w-4" /></button>
+            </div>
+          ) : null}
+        </div>
+      </div>
     </section>
   );
 }
