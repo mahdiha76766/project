@@ -5,6 +5,7 @@ import { StorePageHeader } from '@/components/shop/store/StorePageHeader';
 import { RtlForwardArrow } from '@/components/home/RtlForwardArrow';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { resolveImage } from '@/lib/shop/resolve-image';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 import { Category, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
@@ -19,7 +20,7 @@ export default async function CategoriesPage() {
     () => Promise.all([
       Category.find({ isActive: true }).sort({ createdAt: -1 }).lean(),
       Product.aggregate([
-        { $match: { isActive: true } },
+        { $match: withAvailableProducts() },
         { $group: { _id: '$category', count: { $sum: 1 } } }
       ])
     ]),

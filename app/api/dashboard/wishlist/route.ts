@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth/session';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import { Product, Wishlist } from '@/models';
+import { filterAvailableProducts } from '@/lib/shop/available-products';
 
 export async function GET() {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   await connectToDatabase();
-  const row:any = await Wishlist.findOne({ user: user.userId }).populate('products', 'name slug price discountPrice images stock').lean();
-  return NextResponse.json({ items: row?.products || [] });
+  const row: any = await Wishlist.findOne({ user: user.userId })
+    .populate('products', 'name slug price discountPrice images stock variants isActive')
+    .lean();
+  const items = filterAvailableProducts((row?.products || []) as Record<string, unknown>[]);
+  return NextResponse.json({ items });
 }
 
 export async function POST(req: Request) {

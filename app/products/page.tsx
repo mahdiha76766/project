@@ -1,15 +1,17 @@
-import Link from 'next/link';
-import { ChevronLeft, Leaf, Search, ShieldCheck, SlidersHorizontal, Sparkles, Truck, X } from 'lucide-react';
-import { Container } from '@/components/ui/Container';
-import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
-import { PRODUCT_USAGE_OPTIONS, StoreFilters } from '@/components/shop/store/StoreFilters';
-import { StorePagination } from '@/components/shop/store/StorePagination';
-import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
-import { buildQueryListMetadata } from '@/lib/seo/metadata';
 import { mapProductListing } from '@/lib/shop/map-product-listing';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 import { Category, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 import type { ShopProduct } from '@/types/shop';
+import { buildQueryListMetadata } from '@/lib/seo/metadata';
+import { PRODUCT_USAGE_OPTIONS, StoreFilters } from '@/components/shop/store/StoreFilters';
+import { StorePagination } from '@/components/shop/store/StorePagination';
+import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
+import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
+import { Container } from '@/components/ui/Container';
+import Link from 'next/link';
+import { ChevronLeft, Leaf, Search, ShieldCheck, SlidersHorizontal, Sparkles, Truck, X } from 'lucide-react';
+
 
 const PAGE_SIZE = 18;
 const ALLOWED_USAGE_TYPES = new Set<string>(PRODUCT_USAGE_OPTIONS.map((item) => item.value));
@@ -75,11 +77,11 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const requestedPage = Math.max(1, Math.floor(Number(params.page) || 1));
 
   const [items, categories, total] = await withDatabase(async () => {
-    const filter: Record<string, unknown> = { isActive: true };
+    const base: Record<string, unknown> = {};
     const andFilters: Record<string, unknown>[] = [];
     if (category) {
       const foundCategory = await Category.findOne({ slug: category, isActive: true }).select('_id').lean() as { _id?: unknown } | null;
-      filter.category = foundCategory?._id || null;
+      base.category = foundCategory?._id || null;
     }
     if (q) {
       const safeQuery = escapeRegex(q);
@@ -90,8 +92,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         { tags: { $regex: safeQuery, $options: 'i' } }
       ] });
     }
-    if (usage) filter.usageType = usage;
-    if (stockOnly) andFilters.push({ $or: [{ stock: { $gt: 0 } }, { 'variants.stock': { $gt: 0 } }] });
+    if (usage) base.usageType = usage;
+    // stockOnly is redundant globally (OOS never listed) — kept for query URL compatibility
     if (discountOnly) andFilters.push({ $or: [{ discountPrice: { $gt: 0 } }, { 'variants.discountPrice': { $gt: 0 } }] });
     if (minPrice !== undefined || maxPrice !== undefined) {
       const effectivePrice = {
@@ -106,7 +108,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       if (maxPrice !== undefined) priceConditions.push({ $lte: [effectivePrice, maxPrice] });
       andFilters.push({ $expr: priceConditions.length === 1 ? priceConditions[0] : { $and: priceConditions } });
     }
-    if (andFilters.length) filter.$and = andFilters;
+    if (andFilters.length) base.$and = andFilters;
+
+    const filter = withAvailableProducts(base);
 
     const sortObj = sort === 'best_selling' ? { isFeatured: -1, createdAt: -1 } : { createdAt: -1 };
     const effectivePrice = {

@@ -4,6 +4,7 @@ import { Product } from '@/models/Product';
 import { Category } from '@/models/Category';
 import { BlogPost } from '@/models/SupportModels';
 import { absoluteUrl } from '@/lib/seo/site-url';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 import { HELP_PAGES } from '@/lib/shop/help-content';
 
 function toLastModified(value?: Date | string | null) {
@@ -33,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await connectToDatabase();
 
     const [products, categories, blogPosts] = await Promise.all([
-      Product.find({ isActive: true }).select('slug updatedAt').lean(),
+      Product.find(withAvailableProducts()).select('slug updatedAt').lean(),
       Category.find({ isActive: true }).select('slug updatedAt').lean(),
       BlogPost.find({ isPublished: true }).select('slug updatedAt publishedAt').lean()
     ]);

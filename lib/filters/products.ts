@@ -12,7 +12,8 @@ export interface ProductFilterParams {
 }
 
 export const filterProducts = (items: ShopProduct[], params: ProductFilterParams): ShopProduct[] => {
-  let output = [...items];
+  // Storefront never surfaces unavailable products.
+  let output = items.filter((p) => p.stock > 0);
 
   if (params.q) {
     const q = params.q.toLowerCase();
@@ -34,7 +35,6 @@ export const filterProducts = (items: ShopProduct[], params: ProductFilterParams
   if (params.category) output = output.filter((p) => p.category === params.category);
   if (typeof params.minPrice === 'number') output = output.filter((p) => (p.discountPrice ?? p.price) >= params.minPrice!);
   if (typeof params.maxPrice === 'number') output = output.filter((p) => (p.discountPrice ?? p.price) <= params.maxPrice!);
-  if (params.inStock) output = output.filter((p) => p.stock > 0);
   if (params.type) output = output.filter((p) => p.type === params.type);
   if (params.temperament) output = output.filter((p) => p.temperament === params.temperament);
 

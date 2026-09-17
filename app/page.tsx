@@ -21,6 +21,7 @@ import { getProductMinPrice, getProductVariants, hasVariants, serializeVariantsF
 import { getProductDiscountInfo } from '@/lib/product/discount';
 import { resolveImage } from '@/lib/shop/resolve-image';
 import { fetchProductsByHomeFilter } from '@/lib/shop/home-product-query';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 import { Banner, BlogPost, Category, Product, Review } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 
@@ -92,10 +93,10 @@ export default async function Home() {
             .select('userName rating title comment productId')
             .populate('productId', 'name slug')
             .lean(),
-          Product.countDocuments({ isActive: true }),
+          Product.countDocuments(withAvailableProducts()),
           Category.countDocuments({ isActive: true }),
           Product.aggregate([
-            { $match: { isActive: true, category: { $ne: null } } },
+            { $match: withAvailableProducts({ category: { $ne: null } }) },
             { $group: { _id: '$category', count: { $sum: 1 } } }
           ])
         ]);

@@ -16,6 +16,7 @@ import { buildBlogPostingJsonLd, buildBreadcrumbJsonLd, buildPageJsonLd } from '
 import { SITE_CONTENT_TEAM } from '@/lib/seo/resolve-og-image';
 import { BlogPost, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -53,7 +54,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         BlogPost.find({ isPublished: true, slug: { $ne: post.slug } }).sort({ publishedAt: -1 }).limit(8).lean(),
         BlogPost.find({ isPublished: true, _id: { $ne: post._id }, category: post.category }).sort({ publishedAt: -1 }).limit(3).lean(),
         post.relatedProductIds?.length
-          ? Product.find({ _id: { $in: post.relatedProductIds }, isActive: true })
+          ? Product.find(withAvailableProducts({ _id: { $in: post.relatedProductIds } }))
               .select('name slug price discountPrice images')
               .lean()
           : Promise.resolve([])

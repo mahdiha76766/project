@@ -4,13 +4,14 @@ import { connectToDatabase } from '@/lib/db/mongoose';
 import { Product, Review, User } from '@/models';
 import { getSessionUser } from '@/lib/auth/session';
 import { verifyCaptchaFromBody } from '@/lib/captcha/verify-request';
+import { withAvailableProducts } from '@/lib/shop/available-products';
 
 const createReviewSchema = z.object({ rating: z.number().min(1).max(5), title: z.string().trim().min(3).max(120), comment: z.string().trim().min(10).max(2000) });
 
 export async function GET(_: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   await connectToDatabase();
-  const product = await Product.findOne({ slug, isActive: true }).select('_id');
+  const product = await Product.findOne(withAvailableProducts({ slug })).select('_id');
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
   const items = await Review.find({ productId: product._id, status: 'APPROVED', isDeleted: false }).sort({ createdAt: -1 }).lean();
@@ -28,7 +29,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const parsed = createReviewSchema.parse(raw);
   const { slug } = await params;
   await connectToDatabase();
-  const product = await Product.findOne({ slug, isActive: true }).select('_id');
+  const product = await Product.findOne(withAvailableProducts({ slug })).select('_id');
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   const user = await User.findById(session.userId).select('name');
 

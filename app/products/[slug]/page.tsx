@@ -11,6 +11,7 @@ import { ProductReviewsSection } from '@/components/shop/ProductReviewsSection';
 import { ProductDetailClient } from '@/components/shop/ProductDetailClient';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getProductVariants, serializeVariantsForClient } from '@/lib/product/variants';
+import { isProductAvailable, withAvailableProducts } from '@/lib/shop/available-products';
 import { buildDetailMetadata, notFoundMetadata } from '@/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildPageJsonLd, buildProductJsonLd } from '@/lib/seo/json-ld';
 import { BlogPost, Product } from '@/models';
@@ -19,7 +20,7 @@ import { withDatabase } from '@/lib/db/safe-query';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   return withDatabase(async () => {
-    const product: any = await Product.findOne({ slug, isActive: true }).lean();
+    const product: any = await Product.findOne(withAvailableProducts({ slug })).lean();
     if (!product) return notFoundMetadata('محصول یافت نشد');
 
     const title = product.seo?.title?.trim() || product.name;
@@ -40,27 +41,29 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product: any = await withDatabase(
-    () => Product.findOne({ slug, isActive: true }).lean(),
+    () => Product.findOne(withAvailableProducts({ slug })).lean(),
     null
   );
-  if (!product) notFound();
+  if (!product || !isProductAvailable(product)) notFound();
 
   const [sideProducts, relatedProducts, relatedPosts] = await withDatabase(
     () =>
       Promise.all([
-        Product.find({
-          isActive: true,
-          category: product.category,
-          slug: { $ne: product.slug }
-        })
+        Product.find(
+          withAvailableProducts({
+            category: product.category,
+            slug: { $ne: product.slug }
+          })
+        )
           .sort({ isFeatured: -1, createdAt: -1 })
           .limit(8)
           .lean(),
-        Product.find({
-          isActive: true,
-          _id: { $ne: product._id },
-          $or: [{ category: product.category }, { tags: { $in: product.tags || [] } }]
-        })
+        Product.find(
+          withAvailableProducts({
+            _id: { $ne: product._id },
+            $or: [{ category: product.category }, { tags: { $in: product.tags || [] } }]
+          })
+        )
           .limit(4)
           .lean(),
         BlogPost.find({
