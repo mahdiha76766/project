@@ -9,8 +9,8 @@ import type { HomeProduct } from '@/lib/shop/home-types';
 
 export function BestsellersSpotlight({
   products,
-  label = 'انتخاب مشتریان',
-  title = 'پرفروش‌های این فصل'
+  label = 'پرفروش',
+  title = 'محصولات پرفروش'
 }: {
   products: HomeProduct[];
   label?: string;
@@ -34,7 +34,7 @@ export function BestsellersSpotlight({
           </p>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-surface-900 sm:text-3xl lg:text-4xl">{title}</h2>
           <p className="mt-3 text-sm leading-7 text-surface-500 sm:text-base">
-            بر اساس خریدهای واقعی مشتریان — محصولاتی که بیشترین اعتماد را جلب کرده‌اند.
+            محصولات پرفروش فروشگاه را در این بخش ببینید.
           </p>
         </div>
         <Link
@@ -42,7 +42,7 @@ export function BestsellersSpotlight({
           className="inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2.5 text-xs font-black text-white shadow-lg shadow-brand-900/15 transition hover:bg-accent-500"
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          مشاهده پرفروش‌ها
+          مشاهده بیشتر
         </Link>
       </div>
 

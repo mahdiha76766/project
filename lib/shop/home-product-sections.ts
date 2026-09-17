@@ -43,8 +43,8 @@ export const defaultHomeProductSections: HomeProductSectionConfig[] = [
   {
     id: 'sec-newest',
     enabled: true,
-    label: 'تازه از انبار',
-    title: 'تازه‌واردهای فروشگاه',
+    label: 'جدید',
+    title: 'جدیدترین محصولات',
     filterType: 'NEWEST',
     design: 'classic',
     limit: 10
@@ -52,8 +52,8 @@ export const defaultHomeProductSections: HomeProductSectionConfig[] = [
   {
     id: 'sec-bestseller',
     enabled: true,
-    label: 'انتخاب مشتریان',
-    title: 'پرفروش‌های این فصل',
+    label: 'پرفروش',
+    title: 'محصولات پرفروش',
     filterType: 'BEST_SELLING',
     design: 'accent',
     limit: 8
@@ -61,8 +61,8 @@ export const defaultHomeProductSections: HomeProductSectionConfig[] = [
   {
     id: 'sec-sale',
     enabled: true,
-    label: 'پیشنهاد هوشمند',
-    title: 'فرصت‌های خرید امروز',
+    label: 'تخفیف',
+    title: 'پیشنهاد ویژه',
     filterType: 'ON_SALE',
     design: 'minimal',
     limit: 10
@@ -95,17 +95,27 @@ export function normalizeHomeProductSections(raw: unknown): HomeProductSectionCo
       : fb.design;
 
     const legacyTitleMap: Record<string, { title: string; label: string }> = {
-      'جدیدترین محصولات': { title: 'تازه‌واردهای فروشگاه', label: 'تازه از انبار' },
-      'بیشترین خریدها': { title: 'پرفروش‌های این فصل', label: 'انتخاب مشتریان' },
-      'پیشنهاد ویژه': { title: 'فرصت‌های خرید امروز', label: 'پیشنهاد هوشمند' }
+      'جدیدترین محصولات': { title: 'جدیدترین محصولات', label: 'جدید' },
+      'تازه‌واردهای فروشگاه': { title: 'جدیدترین محصولات', label: 'جدید' },
+      'بیشترین خریدها': { title: 'محصولات پرفروش', label: 'پرفروش' },
+      'پرفروش‌های این فصل': { title: 'محصولات پرفروش', label: 'پرفروش' },
+      'پرفروش‌ترین محصولات': { title: 'محصولات پرفروش', label: 'پرفروش' },
+      'پیشنهاد ویژه': { title: 'پیشنهاد ویژه', label: 'تخفیف' },
+      'فرصت‌های خرید امروز': { title: 'پیشنهاد ویژه', label: 'تخفیف' }
+    };
+    const legacyLabelMap: Record<string, string> = {
+      'تازه از انبار': 'جدید',
+      'انتخاب مشتریان': 'پرفروش',
+      'پیشنهاد هوشمند': 'تخفیف'
     };
     const rawTitle = asStr(r.title, fb.title);
+    const rawLabel = asStr(r.label, fb.label);
     const upgraded = legacyTitleMap[rawTitle];
 
     return {
       id: asStr(r.id, fb.id),
       enabled: asBool(r.enabled, fb.enabled),
-      label: upgraded?.label || asStr(r.label, fb.label),
+      label: upgraded?.label || legacyLabelMap[rawLabel] || rawLabel,
       title: upgraded?.title || rawTitle,
       filterType,
       design,

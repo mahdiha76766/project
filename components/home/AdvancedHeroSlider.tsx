@@ -157,8 +157,8 @@ export function AdvancedHeroSlider({ slides, autoplayInterval = 6000 }: Props) {
             <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/15 bg-[#0f1f17]/60 p-3.5 text-white shadow-xl backdrop-blur-md sm:inset-x-6 sm:bottom-6 sm:p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-bold text-accent-300">انتخابی برای زندگی سالم‌تر</p>
-                  <p className="mt-1 text-sm font-black">از طبیعت، برای خانه شما</p>
+                  <p className="text-[10px] font-bold text-accent-300">فروشگاه ناب سرا</p>
+                  <p className="mt-1 text-sm font-black">روغن، ادویه و محصولات گیاهی</p>
                 </div>
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
                   <Leaf className="h-5 w-5 text-accent-300" />

@@ -111,10 +111,10 @@ export function DiscoveryProductCard({
           isSpotlight ? 'justify-center p-5 sm:p-8' : isCompact ? 'justify-center p-3.5' : 'p-4 sm:p-5'
         )}
       >
-        {isSpotlight && product.soldCount ? (
+        {isSpotlight ? (
           <p className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 text-[11px] font-black text-accent-600">
             <Flame className="h-3.5 w-3.5" />
-            {product.soldCount.toLocaleString('fa-IR')}+ خرید موفق
+            پرفروش
           </p>
         ) : null}
 
@@ -132,12 +132,6 @@ export function DiscoveryProductCard({
         {product.shortDescription && !isCompact ? (
           <p className={cn('mt-2 text-xs leading-6 text-surface-500', isSpotlight ? 'line-clamp-3 max-w-md sm:text-sm' : 'line-clamp-2 min-h-10')}>
             {product.shortDescription}
-          </p>
-        ) : null}
-
-        {!isSpotlight && product.soldCount ? (
-          <p className="mt-2 text-[10px] font-bold text-surface-400">
-            {product.soldCount.toLocaleString('fa-IR')} فروش
           </p>
         ) : null}
 

@@ -44,13 +44,13 @@ export function CollectionStudio({ collections }: { collections: Collection[] })
       <div className="relative mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-xl">
           <p className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white px-3 py-1 text-[11px] font-black text-rose-700">
-            <BadgePercent className="h-3.5 w-3.5" /> مجموعه‌های هوشمند
+            <BadgePercent className="h-3.5 w-3.5" /> پیشنهادها
           </p>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-surface-900 sm:text-3xl lg:text-4xl">
-            ویترین انتخاب‌های ویژه
+            پیشنهادهای ویژه
           </h2>
           <p className="mt-3 text-sm leading-7 text-surface-500">
-            بین پیشنهادها جابه‌جا شوید و سریع‌تر به محصولی برسید که با نیازتان هم‌خوان است.
+            مجموعه‌های منتخب فروشگاه.
           </p>
         </div>
         <Link
@@ -58,7 +58,7 @@ export function CollectionStudio({ collections }: { collections: Collection[] })
           className="inline-flex items-center gap-1.5 rounded-full border border-surface-200 bg-white px-4 py-2.5 text-xs font-black text-brand-800 transition hover:bg-brand-800 hover:text-white"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          مشاهده کامل این مجموعه
+          مشاهده همه
         </Link>
       </div>
 

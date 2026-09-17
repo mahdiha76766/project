@@ -21,13 +21,13 @@ export function CategoryShowcase({ categories }: { categories: HomeCategory[] })
       <div className="relative mb-8 flex flex-wrap items-end justify-between gap-4 lg:mb-10">
         <div className="max-w-xl">
           <p className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-black text-brand-700">
-            <Compass className="h-3.5 w-3.5" /> کشف بر اساس دسته
+            <Compass className="h-3.5 w-3.5" /> دسته‌بندی‌ها
           </p>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-surface-900 sm:text-3xl lg:text-4xl">
-            مسیر بصری به محصولات
+            دسته‌بندی محصولات
           </h2>
           <p className="mt-3 text-sm leading-7 text-surface-500 sm:text-base">
-            به‌جای لیست خشک، از فضای بصری دسته‌ها شروع کنید و سریع‌تر به انتخاب مناسب برسید.
+            محصولات را بر اساس دسته‌بندی‌های فروشگاه مرور کنید.
           </p>
         </div>
         <Link
@@ -66,12 +66,11 @@ export function CategoryShowcase({ categories }: { categories: HomeCategory[] })
 function CategoryTile({
   category,
   featured,
-  index,
   className
 }: {
   category: HomeCategory;
   featured?: boolean;
-  index: number;
+  index?: number;
   className?: string;
 }) {
   return (
@@ -91,17 +90,16 @@ function CategoryTile({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(201,133,70,0.22),transparent_48%)] opacity-0 transition duration-500 group-hover:opacity-100" />
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 sm:p-6">
         <div className="min-w-0">
-          <span className="mb-2 block text-[10px] font-black tracking-[0.2em] text-accent-300">
-            مجموعه {(index + 1).toLocaleString('fa-IR', { minimumIntegerDigits: 2 })}
-          </span>
+          {typeof category.productCount === 'number' ? (
+            <span className="mb-2 block text-[10px] font-black text-accent-300">
+              {category.productCount.toLocaleString('fa-IR')} محصول
+            </span>
+          ) : (
+            <span className="mb-2 block text-[10px] font-black text-accent-300">دسته</span>
+          )}
           <h3 className={cn('font-black text-white', featured ? 'text-2xl sm:text-3xl' : 'text-lg')}>{category.name}</h3>
           {featured && category.description ? (
             <p className="mt-2 line-clamp-2 max-w-sm text-xs leading-6 text-white/70">{category.description}</p>
-          ) : null}
-          {typeof category.productCount === 'number' ? (
-            <p className="mt-2 text-[11px] font-bold text-white/60">
-              {category.productCount.toLocaleString('fa-IR')} محصول فعال
-            </p>
           ) : null}
         </div>
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition group-hover:bg-accent-500">
