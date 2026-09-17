@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { BadgePercent, Sparkles } from 'lucide-react';
 import { Section } from '@/components/home/Section';
 import { DiscoveryProductCard } from '@/components/home/discovery/DiscoveryProductCard';
+import { SiteButton } from '@/components/ui/SiteButton';
 import type { HomeProduct } from '@/lib/shop/home-types';
 import type { HomeProductSectionConfig } from '@/lib/shop/home-product-sections';
 
@@ -49,38 +49,31 @@ export function CollectionStudio({ collections }: { collections: Collection[] })
           <h2 className="mt-3 text-2xl font-black tracking-tight text-surface-900 sm:text-3xl lg:text-4xl">
             پیشنهادهای ویژه
           </h2>
-          <p className="mt-3 text-sm leading-7 text-surface-500">
-            مجموعه‌های منتخب فروشگاه.
-          </p>
+          <p className="mt-3 text-sm leading-7 text-surface-500">مجموعه‌های منتخب فروشگاه.</p>
         </div>
-        <Link
-          href={href}
-          className="inline-flex items-center gap-1.5 rounded-full border border-surface-200 bg-white px-4 py-2.5 text-xs font-black text-brand-800 transition hover:bg-brand-800 hover:text-white"
-        >
+        <SiteButton href={href} variant="outline" size="md">
           <Sparkles className="h-3.5 w-3.5" />
           مشاهده همه
-        </Link>
+        </SiteButton>
       </div>
 
       <div className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab) => {
           const selected = tab.config.id === active.config.id;
           return (
-            <button
+            <SiteButton
               key={tab.config.id}
               type="button"
+              variant={selected ? 'primary' : 'outline'}
+              size="md"
               onClick={() => setActiveId(tab.config.id)}
-              className={`shrink-0 rounded-full px-4 py-2.5 text-xs font-black transition ${
-                selected
-                  ? 'bg-brand-800 text-white shadow-md shadow-brand-900/15'
-                  : 'border border-surface-200 bg-white text-surface-600 hover:border-brand-300 hover:text-brand-800'
-              }`}
+              className="shrink-0"
             >
               {tab.config.label || tab.config.title}
-              <span className={`mr-2 ${selected ? 'text-accent-300' : 'text-surface-400'}`}>
+              <span className={selected ? 'text-accent-300' : 'text-surface-400'}>
                 {tab.products.length.toLocaleString('fa-IR')}
               </span>
-            </button>
+            </SiteButton>
           );
         })}
       </div>

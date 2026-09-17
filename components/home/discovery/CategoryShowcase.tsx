@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowUpLeft, Compass, LayoutGrid } from 'lucide-react';
 import { Section } from '@/components/home/Section';
 import { Reveal } from '@/components/home/Reveal';
+import { SiteButton } from '@/components/ui/SiteButton';
 import { cn } from '@/lib/utils/cn';
 import type { HomeCategory } from '@/lib/shop/home-types';
 
@@ -30,16 +31,12 @@ export function CategoryShowcase({ categories }: { categories: HomeCategory[] })
             محصولات را بر اساس دسته‌بندی‌های فروشگاه مرور کنید.
           </p>
         </div>
-        <Link
-          href="/categories"
-          className="inline-flex items-center gap-2 rounded-full border border-surface-200 bg-white px-4 py-2.5 text-xs font-black text-brand-800 shadow-soft transition hover:border-brand-300 hover:bg-brand-800 hover:text-white"
-        >
+        <SiteButton href="/categories" variant="outline" size="md">
           <LayoutGrid className="h-3.5 w-3.5" />
           همه دسته‌بندی‌ها
-        </Link>
+        </SiteButton>
       </div>
 
-      {/* Mobile story rail */}
       <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
         {categories.map((cat, index) => (
           <div key={cat.id} className="w-[78vw] max-w-[19rem] shrink-0 snap-center sm:w-[42vw]">
@@ -48,7 +45,6 @@ export function CategoryShowcase({ categories }: { categories: HomeCategory[] })
         ))}
       </div>
 
-      {/* Desktop bento: featured 6 + 2x2 of 3 */}
       <div className="hidden gap-4 lg:grid lg:grid-cols-12 lg:auto-rows-[15rem]">
         <Reveal className="lg:col-span-6 lg:row-span-2">
           <CategoryTile category={featured} featured index={0} className="h-full" />
@@ -102,7 +98,7 @@ function CategoryTile({
             <p className="mt-2 line-clamp-2 max-w-sm text-xs leading-6 text-white/70">{category.description}</p>
           ) : null}
         </div>
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition group-hover:bg-accent-500">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white backdrop-blur transition group-hover:bg-accent-500">
           <ArrowUpLeft className="h-4 w-4" />
         </span>
       </div>

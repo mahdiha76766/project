@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BadgeCheck, ChevronLeft, ChevronRight, Leaf, PackageCheck, Pause, Play, Sparkles } from 'lucide-react';
 import { RtlForwardArrow } from './RtlForwardArrow';
+import { SiteButton } from '@/components/ui/SiteButton';
 import type { HeroSlide } from '@/lib/admin/slider-config';
 
 type Props = {
@@ -78,19 +78,13 @@ export function AdvancedHeroSlider({ slides, autoplayInterval = 6000 }: Props) {
                 {slide.subtitle}
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href={slide.ctaLink}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-accent-500 px-5 py-3 text-sm font-black text-white shadow-xl shadow-black/15 transition hover:-translate-y-1 hover:bg-accent-400"
-                >
+                <SiteButton href={slide.ctaLink} variant="accent" size="lg">
                   {slide.ctaText}
                   <RtlForwardArrow className="text-white" />
-                </Link>
-                <Link
-                  href="/categories"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/10"
-                >
+                </SiteButton>
+                <SiteButton href="/categories" variant="soft" size="lg">
                   کشف دسته‌بندی‌ها
-                </Link>
+                </SiteButton>
               </div>
               <div className="mt-7 grid max-w-xl grid-cols-2 gap-3 border-t border-white/10 pt-5 sm:grid-cols-3">
                 <span className="flex items-center gap-2 text-xs font-bold text-brand-100/80">

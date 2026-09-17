@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { Crown, TrendingUp } from 'lucide-react';
 import { Section } from '@/components/home/Section';
 import { Reveal } from '@/components/home/Reveal';
 import { DiscoveryProductCard } from '@/components/home/discovery/DiscoveryProductCard';
+import { SiteButton } from '@/components/ui/SiteButton';
 import type { HomeProduct } from '@/lib/shop/home-types';
 
 export function BestsellersSpotlight({
@@ -37,13 +37,10 @@ export function BestsellersSpotlight({
             محصولات پرفروش فروشگاه را در این بخش ببینید.
           </p>
         </div>
-        <Link
-          href="/products?sort=best_selling"
-          className="inline-flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2.5 text-xs font-black text-white shadow-lg shadow-brand-900/15 transition hover:bg-accent-500"
-        >
+        <SiteButton href="/products?sort=best_selling" variant="primary" size="md">
           <TrendingUp className="h-3.5 w-3.5" />
           مشاهده بیشتر
-        </Link>
+        </SiteButton>
       </div>
 
       <div className="relative grid gap-4 lg:grid-cols-12">

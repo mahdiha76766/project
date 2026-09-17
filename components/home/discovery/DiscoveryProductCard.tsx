@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowUpLeft, Flame, ShoppingBag, Sparkles } from 'lucide-react';
 import { AddToCartButton } from '@/components/shop/AddToCartButton';
 import { DiscountBadge, ProductPriceWithDiscount } from '@/components/shop/DiscountBadge';
+import { SiteButton } from '@/components/ui/SiteButton';
 import { getProductDiscountInfo } from '@/lib/product/discount';
 import { cn } from '@/lib/utils/cn';
 import type { HomeProduct } from '@/lib/shop/home-types';
@@ -148,22 +149,20 @@ export function DiscoveryProductCard({
             hasVariants={product.hasVariants}
           />
           {product.hasVariants ? (
-            <Link
+            <SiteButton
               href={`/products/${product.slug}`}
               aria-label="انتخاب نوع محصول"
-              className={cn(
-                'flex shrink-0 items-center justify-center rounded-2xl bg-brand-800 text-white shadow-lg shadow-brand-900/10 transition hover:bg-accent-500',
-                isCompact ? 'h-10 w-10' : 'h-11 w-11',
-                isSpotlight && 'h-12 w-auto gap-2 px-5'
-              )}
+              variant="primary"
+              size={isSpotlight ? 'lg' : isCompact ? 'icon' : 'icon'}
+              className={cn(isSpotlight && 'w-auto px-5', !isSpotlight && !isCompact && 'h-11 w-11', isCompact && 'h-10 w-10')}
             >
-              {isSpotlight ? <span className="text-xs font-black">مشاهده محصول</span> : <ShoppingBag className="h-4 w-4" />}
-            </Link>
+              {isSpotlight ? <span>مشاهده محصول</span> : <ShoppingBag className="h-4 w-4" />}
+            </SiteButton>
           ) : isSpotlight ? (
             <AddToCartButton
               productId={product.id}
               variantId={defaultVariant?.id}
-              className="site-btn-primary !mt-0 h-12 shrink-0 rounded-2xl px-5 text-xs"
+              className="site-btn-primary !mt-0 !h-12 shrink-0 !px-5"
             />
           ) : (
             <AddToCartButton productId={product.id} variantId={defaultVariant?.id} compact />

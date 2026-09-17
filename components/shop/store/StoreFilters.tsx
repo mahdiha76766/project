@@ -4,19 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowLeft, Banknote, CheckCircle2, Filter, Percent, RotateCcw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { PRODUCT_USAGE_OPTIONS } from '@/constants/product';
 import { resolveImage } from '@/lib/shop/resolve-image';
 
 export interface ProductFilterCategory {
   slug: string;
   name: string;
 }
-
-export const PRODUCT_USAGE_OPTIONS = [
-  { value: 'EDIBLE', label: 'خوراکی' },
-  { value: 'TOPICAL', label: 'مصرف موضعی' },
-  { value: 'BOTH', label: 'خوراکی و موضعی' },
-  { value: 'NON_EDIBLE', label: 'غیرخوراکی' }
-] as const;
 
 export type StoreFilterDefaults = {
   q?: string;

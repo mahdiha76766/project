@@ -4,14 +4,14 @@ import { Category, Product } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
 import type { ShopProduct } from '@/types/shop';
 import { buildQueryListMetadata } from '@/lib/seo/metadata';
-import { PRODUCT_USAGE_OPTIONS, StoreFilters } from '@/components/shop/store/StoreFilters';
+import { PRODUCT_USAGE_OPTIONS, isProductUsageType } from '@/constants/product';
+import { StoreFilters } from '@/components/shop/store/StoreFilters';
 import { StorePagination } from '@/components/shop/store/StorePagination';
 import { StoreEmpty } from '@/components/shop/store/StorePageHeader';
 import { StoreProductCard } from '@/components/shop/store/StoreProductCard';
 import { Container } from '@/components/ui/Container';
 import Link from 'next/link';
 import { ChevronLeft, Leaf, Search, ShieldCheck, SlidersHorizontal, Sparkles, Truck, X } from 'lucide-react';
-
 
 const PAGE_SIZE = 18;
 const ALLOWED_USAGE_TYPES = new Set<string>(PRODUCT_USAGE_OPTIONS.map((item) => item.value));
@@ -63,7 +63,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const category = String(params.category || '').trim();
   const requestedSort = String(params.sort || 'newest');
   const sort = ALLOWED_SORTS.has(requestedSort) ? requestedSort : 'newest';
-  const usage = ALLOWED_USAGE_TYPES.has(String(params.usage)) ? String(params.usage) : '';
+  const usage = isProductUsageType(params.usage) && ALLOWED_USAGE_TYPES.has(String(params.usage))
+    ? String(params.usage)
+    : '';
   const parsedMinPrice = parsePrice(String(params.minPrice || ''));
   const parsedMaxPrice = parsePrice(String(params.maxPrice || ''));
   const minPrice = parsedMinPrice !== undefined && parsedMaxPrice !== undefined

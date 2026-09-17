@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { AdvancedHeroSlider } from '@/components/home/AdvancedHeroSlider';
 import { HomeTrustBar } from '@/components/home/HomeTrustBar';
 import { CategoryShowcase } from '@/components/home/discovery/CategoryShowcase';
-import { HomeMerchandisingExperience } from '@/components/home/discovery/HomeMerchandisingExperience';
+import { HomeMarketplaceExperience } from '@/components/home/discovery/HomeMarketplaceExperience';
 import { HomePromo } from '@/components/home/HomePromo';
 import { HomeAboutEditable, HomeFeaturesEditable, HomeProductSectionsEditable } from '@/components/home/HomeEditableSections';
 import { HomeBlog } from '@/components/home/HomeBlog';
@@ -17,10 +17,10 @@ import { getHeroSliderConfig } from '@/lib/admin/slider-settings';
 import { getSiteSeoSettings } from '@/lib/admin/site-settings';
 import { getSitePageContent } from '@/lib/admin/page-content';
 import { buildSiteMetadata } from '@/lib/seo/site-metadata';
-import { getProductMinPrice, getProductVariants, hasVariants, serializeVariantsForClient } from '@/lib/product/variants';
-import { getProductDiscountInfo } from '@/lib/product/discount';
 import { resolveImage } from '@/lib/shop/resolve-image';
 import { fetchProductsByHomeFilter } from '@/lib/shop/home-product-query';
+import { mapHomeProduct } from '@/lib/shop/map-home-product';
+import { buildHomeCategoryShelves } from '@/lib/shop/category-shelves';
 import { withAvailableProducts } from '@/lib/shop/available-products';
 import { Banner, BlogPost, Category, Product, Review } from '@/models';
 import { withDatabase } from '@/lib/db/safe-query';
@@ -33,37 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const NEW_PRODUCT_MS = 30 * 24 * 60 * 60 * 1000;
-
-function mapProduct(p: Record<string, unknown>) {
-  const variantRows = serializeVariantsForClient(getProductVariants(p as never));
-  const multi = hasVariants(p as never);
-  const defaultVariant = variantRows.find((v) => v.isDefault) || variantRows[0];
-  const images = p.images as string[] | undefined;
-  const discount = getProductDiscountInfo(p as never);
-  const createdAt = p.createdAt ? new Date(p.createdAt as string | Date) : null;
-  const isNew = createdAt ? Date.now() - createdAt.getTime() < NEW_PRODUCT_MS : false;
-
-  return {
-    id: String(p._id),
-    slug: String(p.slug),
-    name: String(p.name),
-    shortDescription: String(p.shortDescription || ''),
-    images: images?.length ? images.map((img) => resolveImage(img)) : [resolveImage(undefined)],
-    price: Number(p.price || 0),
-    discountPrice: typeof p.discountPrice === 'number' ? p.discountPrice : undefined,
-    bestSeller: Boolean(p.isFeatured),
-    hasVariants: multi,
-    minPrice: multi ? getProductMinPrice(p as never) : undefined,
-    defaultVariantId: defaultVariant?.id,
-    variants: variantRows,
-    discountLabel: discount.hasDiscount ? discount.label : undefined,
-    soldCount: typeof p.soldCount === 'number' ? p.soldCount : undefined,
-    isNew,
-    createdAt: createdAt?.toISOString()
-  };
-}
-
 export default async function Home() {
   const [heroConfig, seo, pageContent] = await Promise.all([
     getHeroSliderConfig(),
@@ -73,13 +42,13 @@ export default async function Home() {
 
   const sectionsConfig = pageContent.home.productSections.filter((s) => s.enabled);
 
-  const [data, overview] = await Promise.all([
+  const [data, overview, categoryShelves] = await Promise.all([
     withDatabase(
       () =>
         Promise.all([
           Banner.find({ isActive: true, position: 'home' }).sort({ createdAt: -1 }).limit(2).lean(),
           ...sectionsConfig.map((sec) => fetchProductsByHomeFilter(sec.filterType, sec.limit)),
-          Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
+          Category.find({ isActive: true }).sort({ createdAt: -1 }).limit(8).lean(),
           BlogPost.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 }).limit(6).lean()
         ]),
       [[], ...sectionsConfig.map(() => []), [], []] as unknown[][]
@@ -108,7 +77,8 @@ export default async function Home() {
         };
       },
       { reviews: [], productCount: 0, categoryCount: 0, counts: [] as Array<{ _id: unknown; count: number }> }
-    )
+    ),
+    withDatabase(() => buildHomeCategoryShelves({ maxCategories: 5, productsPerShelf: 8 }), [])
   ]);
 
   const homeBanners = data[0] as Record<string, unknown>[];
@@ -121,7 +91,7 @@ export default async function Home() {
 
   const productSections = sectionsConfig.map((config, i) => ({
     config,
-    products: sectionRaw[i].map(mapProduct)
+    products: sectionRaw[i].map(mapHomeProduct)
   }));
 
   const categoryItems = categories.map((cat) => ({
@@ -172,7 +142,7 @@ export default async function Home() {
       <HomeDiscovery />
       <CategoryShowcase categories={categoryItems} />
       <HomeProductSectionsEditable />
-      <HomeMerchandisingExperience sections={productSections} />
+      <HomeMarketplaceExperience sections={productSections} shelves={categoryShelves} />
       {banners.length > 0 ? <HomePromo banners={banners} /> : null}
       <HomePurchaseJourney productCount={overview.productCount} categoryCount={overview.categoryCount} />
       <HomeAboutEditable />
