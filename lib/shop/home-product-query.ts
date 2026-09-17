@@ -37,14 +37,17 @@ export async function fetchProductsByHomeFilter(filterType: HomeProductFilterTyp
         { $limit: limit * 2 }
       ]);
       const ids = agg.map((a) => a._id).filter(Boolean);
+      const qtyById = new Map(agg.map((a) => [String(a._id), Number(a.qty || 0)]));
       if (!ids.length) {
-        return Product.find(baseFilter).sort({ isFeatured: -1, createdAt: -1 }).limit(limit).lean();
+        const featured = await Product.find(baseFilter).sort({ isFeatured: -1, createdAt: -1 }).limit(limit).lean();
+        return featured.map((p) => ({ ...p, soldCount: 0 }));
       }
       const products = await Product.find({ ...baseFilter, _id: { $in: ids } }).lean();
       const rank = new Map(ids.map((id: unknown, i: number) => [String(id), i]));
       return products
         .sort((a, b) => (rank.get(String(a._id)) ?? 999) - (rank.get(String(b._id)) ?? 999))
-        .slice(0, limit);
+        .slice(0, limit)
+        .map((p) => ({ ...p, soldCount: qtyById.get(String(p._id)) || 0 }));
     }
     default:
       return Product.find(baseFilter).sort({ createdAt: -1 }).limit(limit).lean();

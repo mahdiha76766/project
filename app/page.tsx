@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { AdvancedHeroSlider } from '@/components/home/AdvancedHeroSlider';
 import { HomeTrustBar } from '@/components/home/HomeTrustBar';
-import { HomeCategories } from '@/components/home/HomeCategories';
-import { HomeProductSectionsClient } from '@/components/home/HomeProductSectionsClient';
+import { CategoryShowcase } from '@/components/home/discovery/CategoryShowcase';
+import { HomeMerchandisingExperience } from '@/components/home/discovery/HomeMerchandisingExperience';
 import { HomePromo } from '@/components/home/HomePromo';
 import { HomeAboutEditable, HomeFeaturesEditable, HomeProductSectionsEditable } from '@/components/home/HomeEditableSections';
 import { HomeBlog } from '@/components/home/HomeBlog';
@@ -32,12 +32,17 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+const NEW_PRODUCT_MS = 30 * 24 * 60 * 60 * 1000;
+
 function mapProduct(p: Record<string, unknown>) {
   const variantRows = serializeVariantsForClient(getProductVariants(p as never));
   const multi = hasVariants(p as never);
   const defaultVariant = variantRows.find((v) => v.isDefault) || variantRows[0];
   const images = p.images as string[] | undefined;
   const discount = getProductDiscountInfo(p as never);
+  const createdAt = p.createdAt ? new Date(p.createdAt as string | Date) : null;
+  const isNew = createdAt ? Date.now() - createdAt.getTime() < NEW_PRODUCT_MS : false;
+
   return {
     id: String(p._id),
     slug: String(p.slug),
@@ -51,7 +56,10 @@ function mapProduct(p: Record<string, unknown>) {
     minPrice: multi ? getProductMinPrice(p as never) : undefined,
     defaultVariantId: defaultVariant?.id,
     variants: variantRows,
-    discountLabel: discount.hasDiscount ? discount.label : undefined
+    discountLabel: discount.hasDiscount ? discount.label : undefined,
+    soldCount: typeof p.soldCount === 'number' ? p.soldCount : undefined,
+    isNew,
+    createdAt: createdAt?.toISOString()
   };
 }
 
@@ -76,17 +84,29 @@ export default async function Home() {
       [[], ...sectionsConfig.map(() => []), [], []] as unknown[][]
     ),
     withDatabase(
-      () => Promise.all([
-        Review.find({ status: 'APPROVED', isDeleted: false })
-          .sort({ createdAt: -1 })
-          .limit(3)
-          .select('userName rating title comment productId')
-          .populate('productId', 'name slug')
-          .lean(),
-        Product.countDocuments({ isActive: true }),
-        Category.countDocuments({ isActive: true })
-      ]),
-      [[], 0, 0] as [unknown[], number, number]
+      async () => {
+        const [reviews, productCount, categoryCount, counts] = await Promise.all([
+          Review.find({ status: 'APPROVED', isDeleted: false })
+            .sort({ createdAt: -1 })
+            .limit(3)
+            .select('userName rating title comment productId')
+            .populate('productId', 'name slug')
+            .lean(),
+          Product.countDocuments({ isActive: true }),
+          Category.countDocuments({ isActive: true }),
+          Product.aggregate([
+            { $match: { isActive: true, category: { $ne: null } } },
+            { $group: { _id: '$category', count: { $sum: 1 } } }
+          ])
+        ]);
+        return {
+          reviews,
+          productCount,
+          categoryCount,
+          counts: counts as Array<{ _id: unknown; count: number }>
+        };
+      },
+      { reviews: [], productCount: 0, categoryCount: 0, counts: [] as Array<{ _id: unknown; count: number }> }
     )
   ]);
 
@@ -94,6 +114,9 @@ export default async function Home() {
   const sectionRaw = sectionsConfig.map((_, i) => (data[i + 1] as Record<string, unknown>[]) || []);
   const categories = (data[data.length - 2] as Record<string, unknown>[]) || [];
   const blogPosts = (data[data.length - 1] as Record<string, unknown>[]) || [];
+  const categoryCounts = new Map(
+    (overview.counts || []).map((row) => [String(row._id), Number(row.count || 0)])
+  );
 
   const productSections = sectionsConfig.map((config, i) => ({
     config,
@@ -105,7 +128,8 @@ export default async function Home() {
     name: String(cat.name),
     slug: String(cat.slug),
     description: String(cat.description || ''),
-    image: resolveImage(cat.image as string | undefined)
+    image: resolveImage(cat.image as string | undefined),
+    productCount: categoryCounts.get(String(cat._id)) || 0
   }));
 
   const banners = homeBanners.map((b) => ({
@@ -125,7 +149,7 @@ export default async function Home() {
     views: Number(p.views || 0)
   }));
 
-  const reviews = (overview[0] as Record<string, unknown>[]).map((review) => {
+  const reviews = (overview.reviews as Record<string, unknown>[]).map((review) => {
     const product = review.productId as { name?: string; slug?: string } | undefined;
     return {
       id: String(review._id),
@@ -145,11 +169,11 @@ export default async function Home() {
       <HomeTrustBar />
       <HomeKeywords keywords={seo.keywords} />
       <HomeDiscovery />
-      <HomeCategories categories={categoryItems} />
+      <CategoryShowcase categories={categoryItems} />
       <HomeProductSectionsEditable />
-      <HomeProductSectionsClient sections={productSections} />
+      <HomeMerchandisingExperience sections={productSections} />
       {banners.length > 0 ? <HomePromo banners={banners} /> : null}
-      <HomePurchaseJourney productCount={overview[1]} categoryCount={overview[2]} />
+      <HomePurchaseJourney productCount={overview.productCount} categoryCount={overview.categoryCount} />
       <HomeAboutEditable />
       <HomeFeaturesEditable />
       <HomeReviews reviews={reviews} />

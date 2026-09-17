@@ -21,6 +21,11 @@ export type HomeProduct = {
   minPrice?: number;
   defaultVariantId?: string;
   variants?: HomeProductVariant[];
+  /** Paid-order units sold (bestseller sections). */
+  soldCount?: number;
+  /** True when created within the last 30 days. */
+  isNew?: boolean;
+  createdAt?: string;
 };
 
 export type HomeCategory = {
@@ -29,6 +34,7 @@ export type HomeCategory = {
   slug: string;
   description?: string;
   image: string;
+  productCount?: number;
 };
 
 export type HomeBanner = {

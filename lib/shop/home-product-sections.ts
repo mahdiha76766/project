@@ -43,29 +43,29 @@ export const defaultHomeProductSections: HomeProductSectionConfig[] = [
   {
     id: 'sec-newest',
     enabled: true,
-    label: 'تازه‌ها',
-    title: 'جدیدترین محصولات',
+    label: 'تازه از انبار',
+    title: 'تازه‌واردهای فروشگاه',
     filterType: 'NEWEST',
     design: 'classic',
-    limit: 12
+    limit: 10
   },
   {
     id: 'sec-bestseller',
     enabled: true,
-    label: 'پرفروش',
-    title: 'بیشترین خریدها',
+    label: 'انتخاب مشتریان',
+    title: 'پرفروش‌های این فصل',
     filterType: 'BEST_SELLING',
     design: 'accent',
-    limit: 12
+    limit: 8
   },
   {
     id: 'sec-sale',
     enabled: true,
-    label: 'تخفیف',
-    title: 'پیشنهاد ویژه',
+    label: 'پیشنهاد هوشمند',
+    title: 'فرصت‌های خرید امروز',
     filterType: 'ON_SALE',
     design: 'minimal',
-    limit: 12
+    limit: 10
   }
 ];
 
@@ -93,11 +93,20 @@ export function normalizeHomeProductSections(raw: unknown): HomeProductSectionCo
     const design = HOME_SECTION_DESIGNS.includes(r.design as HomeSectionDesign)
       ? (r.design as HomeSectionDesign)
       : fb.design;
+
+    const legacyTitleMap: Record<string, { title: string; label: string }> = {
+      'جدیدترین محصولات': { title: 'تازه‌واردهای فروشگاه', label: 'تازه از انبار' },
+      'بیشترین خریدها': { title: 'پرفروش‌های این فصل', label: 'انتخاب مشتریان' },
+      'پیشنهاد ویژه': { title: 'فرصت‌های خرید امروز', label: 'پیشنهاد هوشمند' }
+    };
+    const rawTitle = asStr(r.title, fb.title);
+    const upgraded = legacyTitleMap[rawTitle];
+
     return {
       id: asStr(r.id, fb.id),
       enabled: asBool(r.enabled, fb.enabled),
-      label: asStr(r.label, fb.label),
-      title: asStr(r.title, fb.title),
+      label: upgraded?.label || asStr(r.label, fb.label),
+      title: upgraded?.title || rawTitle,
       filterType,
       design,
       limit: Math.min(24, Math.max(4, asNum(r.limit, fb.limit)))
